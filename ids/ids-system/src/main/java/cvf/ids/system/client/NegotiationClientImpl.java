@@ -5,7 +5,7 @@ import cvf.ids.system.api.connector.Connector;
 
 import java.util.Map;
 
-import static cvf.ids.system.api.messages.MessageFunctions.createNegotiationResponse;
+import static cvf.ids.system.api.message.MessageFunctions.createNegotiationResponse;
 import static java.util.Collections.emptyMap;
 
 /**

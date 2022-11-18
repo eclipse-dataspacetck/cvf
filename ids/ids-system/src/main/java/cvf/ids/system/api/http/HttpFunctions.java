@@ -8,7 +8,7 @@ import okhttp3.Response;
 
 import java.io.IOException;
 
-import static cvf.ids.system.api.messages.SerializationFunctions.serialize;
+import static cvf.core.api.message.SerializationFunctions.serialize;
 
 /**
  * Utility methods for HTTP requests.

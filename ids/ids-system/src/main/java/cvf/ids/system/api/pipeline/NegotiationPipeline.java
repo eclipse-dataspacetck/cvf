@@ -12,11 +12,11 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-import static cvf.ids.system.api.messages.IdsConstants.ID;
-import static cvf.ids.system.api.messages.MessageFunctions.createContractCounterRequest;
-import static cvf.ids.system.api.messages.MessageFunctions.createContractRequest;
-import static cvf.ids.system.api.messages.MessageFunctions.createTermination;
-import static cvf.ids.system.api.messages.MessageFunctions.stringProperty;
+import static cvf.ids.system.api.message.IdsConstants.ID;
+import static cvf.ids.system.api.message.MessageFunctions.createContractCounterRequest;
+import static cvf.ids.system.api.message.MessageFunctions.createContractRequest;
+import static cvf.ids.system.api.message.MessageFunctions.createTermination;
+import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 import static java.util.UUID.randomUUID;
 import static java.util.concurrent.TimeUnit.SECONDS;

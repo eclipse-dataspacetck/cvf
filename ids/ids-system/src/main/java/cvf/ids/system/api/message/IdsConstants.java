@@ -1,4 +1,4 @@
-package cvf.ids.system.api.messages;
+package cvf.ids.system.api.message;
 
 /**
  * Message constants.

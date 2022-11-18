@@ -6,9 +6,9 @@ import okhttp3.Response;
 import java.util.Map;
 
 import static cvf.ids.system.api.http.HttpFunctions.postJson;
-import static cvf.ids.system.api.messages.MessageFunctions.createOffer;
-import static cvf.ids.system.api.messages.MessageFunctions.createTermination;
-import static cvf.ids.system.api.messages.MessageFunctions.stringProperty;
+import static cvf.ids.system.api.message.MessageFunctions.createOffer;
+import static cvf.ids.system.api.message.MessageFunctions.createTermination;
+import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 

@@ -4,7 +4,7 @@ import cvf.ids.system.api.connector.Connector;
 
 import java.util.Map;
 
-import static cvf.ids.system.api.messages.MessageFunctions.stringProperty;
+import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER_OFFERED;
 
 /**

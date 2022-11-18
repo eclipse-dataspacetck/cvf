@@ -1,6 +1,6 @@
 package cvf.ids.system.api.connector;
 
-import cvf.ids.system.api.messages.MessageFunctions;
+import cvf.ids.system.api.message.MessageFunctions;
 import cvf.ids.system.api.statemachine.ContractNegotiation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,8 +10,8 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static cvf.ids.system.api.messages.IdsConstants.ID;
-import static cvf.ids.system.api.messages.MessageFunctions.stringProperty;
+import static cvf.ids.system.api.message.IdsConstants.ID;
+import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_REQUESTED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 import static java.util.Objects.requireNonNull;

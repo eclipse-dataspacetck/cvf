@@ -20,6 +20,7 @@ import java.net.InetSocketAddress;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static cvf.core.api.message.SerializationFunctions.serialize;
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
 /**
@@ -128,14 +129,6 @@ public class SystemBootstrapExtension implements BeforeAllCallback, ExtensionCon
         }
     }
 
-    private static class NoOpSystemLauncher implements SystemLauncher {
-
-        @Override
-        public void start(SystemConfiguration configuration) {
-        }
-
-    }
-
     private static class DispatchingHandler implements HttpHandler {
         private ObjectMapper mapper = new ObjectMapper();
 
@@ -156,15 +149,28 @@ public class SystemBootstrapExtension implements BeforeAllCallback, ExtensionCon
                 if (endpoint.handlesPath(path)) {
                     var message = mapper.readValue(exchange.getRequestBody(), Object.class);
                     var response = endpoint.apply(path, message);
-                    exchange.sendResponseHeaders(200, "test".getBytes().length);     // XCV
-                    var responseBody = exchange.getResponseBody();
-                    responseBody.write("test".getBytes());
-                    responseBody.close();
+                    if (response == null) {
+                        exchange.sendResponseHeaders(200, 0);
+                    } else {
+                        var serialized = serialize(response).getBytes();
+                        exchange.sendResponseHeaders(200, serialized.length);
+                        var responseBody = exchange.getResponseBody();
+                        responseBody.write(serialized);
+                        responseBody.close();
+                    }
                     return;
                 }
             }
             throw new IllegalArgumentException("Callback path not registered: " + path);
         }
+    }
+
+    private static class NoOpSystemLauncher implements SystemLauncher {
+
+        @Override
+        public void start(SystemConfiguration configuration) {
+        }
+
     }
 
 }

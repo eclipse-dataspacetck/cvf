@@ -1,4 +1,4 @@
-package cvf.ids.system.api.messages;
+package cvf.ids.system.api.message;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static cvf.ids.system.api.messages.IdsConstants.CONTEXT;
-import static cvf.ids.system.api.messages.IdsConstants.ID;
-import static cvf.ids.system.api.messages.IdsConstants.IDS_NAMESPACE;
-import static cvf.ids.system.api.messages.IdsConstants.ODRL_NAMESPACE;
-import static cvf.ids.system.api.messages.IdsConstants.TYPE;
+import static cvf.ids.system.api.message.IdsConstants.CONTEXT;
+import static cvf.ids.system.api.message.IdsConstants.ID;
+import static cvf.ids.system.api.message.IdsConstants.IDS_NAMESPACE;
+import static cvf.ids.system.api.message.IdsConstants.ODRL_NAMESPACE;
+import static cvf.ids.system.api.message.IdsConstants.TYPE;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
