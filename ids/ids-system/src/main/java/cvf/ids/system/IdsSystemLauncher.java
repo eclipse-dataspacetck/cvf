@@ -39,6 +39,12 @@ public class IdsSystemLauncher implements SystemLauncher {
     }
 
     @Override
+    public void start(SystemConfiguration configuration) {
+        executor = newFixedThreadPool(configuration.getPropertyAsInt(CVF_THREAD_POOL, 10));
+        useLocalConnector = configuration.getPropertyAsBoolean(CVF_LOCAL_CONNECTOR, false);
+    }
+
+    @Override
     public <T> T createClient(Class<T> type, ClientConfiguration configuration, String scopeId) {
         requireNonNull(type);
         requireNonNull(configuration);
@@ -49,12 +55,6 @@ public class IdsSystemLauncher implements SystemLauncher {
             return type.cast(new NegotiationClientImpl(systemConnectors.computeIfAbsent(scopeId, k2 -> new Connector())));
         }
         return type.cast(new NegotiationClientImpl());
-    }
-
-    @Override
-    public void start(SystemConfiguration configuration) {
-        executor = newFixedThreadPool(configuration.getPropertyAsInt(CVF_THREAD_POOL, 10));
-        useLocalConnector = configuration.getPropertyAsBoolean(CVF_LOCAL_CONNECTOR, false);
     }
 
     @Nullable
