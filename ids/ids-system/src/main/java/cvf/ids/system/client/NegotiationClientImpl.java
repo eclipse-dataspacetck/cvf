@@ -9,7 +9,7 @@ import static cvf.ids.system.api.messages.MessageFunctions.createNegotiationResp
 import static java.util.Collections.emptyMap;
 
 /**
- * Default implementation that suports dispatch to a local, in-memory test connector or a remote connector system via HTTP.
+ * Default implementation that supports dispatch to a local, in-memory test connector or a remote connector system via HTTP.
  */
 public class NegotiationClientImpl implements NegotiationClient {
     private Connector systemConnector;
