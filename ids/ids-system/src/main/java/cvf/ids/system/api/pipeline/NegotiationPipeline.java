@@ -27,12 +27,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * A test pipline to create and execute message interaction tests.
  */
 public class NegotiationPipeline {
+    private static final int DEFAULT_WAIT_SECONDS = 15;
+
     private CallbackEndpoint endpoint;
     private Connector connector;
     private NegotiationClient negotiationClient;
+
+    private long waitTime = DEFAULT_WAIT_SECONDS;
     private List<Runnable> stages = new ArrayList<>();
 
     private ContractNegotiation clientNegotiation;
+
+    public NegotiationPipeline waitTime(long waitTime) {
+        this.waitTime = waitTime;
+        return this;
+    }
 
     public NegotiationPipeline sendRequest() {
         stages.add(() -> {
@@ -73,14 +82,14 @@ public class NegotiationPipeline {
         return this;
     }
 
-    public NegotiationPipeline thenWaitForState(ContractNegotiation.State state, long seconds) {
-        return thenWait("state to transition to " + state, () -> state == clientNegotiation.getState(), seconds);
+    public NegotiationPipeline thenWaitForState(ContractNegotiation.State state) {
+        return thenWait("state to transition to " + state, () -> state == clientNegotiation.getState());
     }
 
-    public NegotiationPipeline thenWait(String description, Callable<Boolean> condition, long seconds) {
+    public NegotiationPipeline thenWait(String description, Callable<Boolean> condition) {
         stages.add(() -> {
             try {
-                await().atMost(seconds, SECONDS).until(condition);
+                await().atMost(waitTime, SECONDS).until(condition);
             } catch (ConditionTimeoutException e) {
                 throw new AssertionError("Timeout waiting for " + description);
             }
