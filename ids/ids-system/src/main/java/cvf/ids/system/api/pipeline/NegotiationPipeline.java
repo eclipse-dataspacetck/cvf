@@ -38,6 +38,14 @@ public class NegotiationPipeline {
 
     private ContractNegotiation clientNegotiation;
 
+    public static NegotiationPipeline negotiationPipeline(NegotiationClient negotiationClient, CallbackEndpoint endpoint, Connector connector) {
+        var pipeline = new NegotiationPipeline();
+        pipeline.negotiationClient = negotiationClient;
+        pipeline.connector = connector;
+        pipeline.endpoint = endpoint;
+        return pipeline;
+    }
+
     public NegotiationPipeline waitTime(long waitTime) {
         this.waitTime = waitTime;
         return this;
@@ -141,14 +149,6 @@ public class NegotiationPipeline {
 
     public void execute() {
         stages.forEach(Runnable::run);
-    }
-
-    public static NegotiationPipeline negotiationPipeline(NegotiationClient negotiationClient, CallbackEndpoint endpoint, Connector connector) {
-        var pipeline = new NegotiationPipeline();
-        pipeline.negotiationClient = negotiationClient;
-        pipeline.connector = connector;
-        pipeline.endpoint = endpoint;
-        return pipeline;
     }
 
 }
