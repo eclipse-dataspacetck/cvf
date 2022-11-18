@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Tag;
  */
 @Tag("ids-cn")
 public abstract class AbstractNegotiationVerificationTest extends AbstractVerificationTest {
+    protected static final int WAIT_SECONDS = 15;
+
     protected Connector connector;
 
     @BeforeEach

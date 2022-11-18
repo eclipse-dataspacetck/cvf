@@ -29,7 +29,7 @@ public class IdsVerification1Test extends AbstractNegotiationVerificationTest {
         negotiationPipeline(negotiationClient, endpoint, connector)
                 .expectOffer(offer -> handleProviderOffer(offer, connector))
                 .sendRequest()
-                .thenWaitForState(PROVIDER_OFFERED, 15)
+                .thenWaitForState(PROVIDER_OFFERED, WAIT_SECONDS)
                 .sendTermination()
                 .thenVerifyProviderState(TERMINATED)
                 .execute();
@@ -47,10 +47,10 @@ public class IdsVerification1Test extends AbstractNegotiationVerificationTest {
         negotiationPipeline(negotiationClient, endpoint, connector)
                 .expectOffer(offer -> handleProviderOffer(offer, connector))
                 .sendRequest()
-                .thenWaitForState(PROVIDER_OFFERED, 15)
+                .thenWaitForState(PROVIDER_OFFERED, WAIT_SECONDS)
                 .expectTermination()
                 .sendCounterRequest()
-                .thenWaitForState(TERMINATED, 15)
+                .thenWaitForState(TERMINATED, WAIT_SECONDS)
                 .execute();
 
         negotiationMock.verify();
