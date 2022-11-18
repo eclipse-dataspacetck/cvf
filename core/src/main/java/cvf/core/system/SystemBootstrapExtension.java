@@ -5,7 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import cvf.core.api.system.CallbackEndpoint;
-import cvf.core.spi.system.ClientConfiguration;
+import cvf.core.spi.system.ServiceConfiguration;
 import cvf.core.spi.system.SystemConfiguration;
 import cvf.core.spi.system.SystemLauncher;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -81,7 +81,7 @@ public class SystemBootstrapExtension implements BeforeAllCallback, ExtensionCon
             return endpoint;
         } else {
             var tags = extensionContext.getTags();
-            var configuration = ClientConfiguration.Builder.newInstance()
+            var configuration = ServiceConfiguration.Builder.newInstance()
                     .tags(tags)
                     .propertyDelegate(k -> extensionContext.getConfigurationParameter(k).orElse(null))
                     .build();

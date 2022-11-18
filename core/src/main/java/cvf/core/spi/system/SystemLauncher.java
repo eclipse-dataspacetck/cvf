@@ -22,7 +22,7 @@ public interface SystemLauncher {
      * Returns a service of the given type or null for the provided scope. Some services may not be available until {@link #start(SystemConfiguration)} ()} is invoked.
      */
     @Nullable
-    default <T> T getService(Class<T> type, ClientConfiguration configuration, String scopeId) {
+    default <T> T getService(Class<T> type, ServiceConfiguration configuration, String scopeId) {
         return null;
     }
 

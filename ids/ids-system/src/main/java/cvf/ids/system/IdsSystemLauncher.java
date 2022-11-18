@@ -1,6 +1,6 @@
 package cvf.ids.system;
 
-import cvf.core.spi.system.ClientConfiguration;
+import cvf.core.spi.system.ServiceConfiguration;
 import cvf.core.spi.system.SystemConfiguration;
 import cvf.core.spi.system.SystemLauncher;
 import cvf.ids.system.api.client.NegotiationClient;
@@ -43,7 +43,7 @@ public class IdsSystemLauncher implements SystemLauncher {
 
     @Nullable
     @Override
-    public <T> T getService(Class<T> type, ClientConfiguration configuration, String scopeId) {
+    public <T> T getService(Class<T> type, ServiceConfiguration configuration, String scopeId) {
         if (Connector.class.equals(type)) {
             return type.cast(systemConnectors.computeIfAbsent(scopeId, k -> new Connector()));
         } else if (ProviderNegotiationMock.class.equals(type)) {

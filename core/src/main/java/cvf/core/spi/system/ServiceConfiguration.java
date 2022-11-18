@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * Configuration used to create a system client proxy.
  */
-public class ClientConfiguration extends AbstractConfiguration {
+public class ServiceConfiguration extends AbstractConfiguration {
     private Set<String> tags = new HashSet<>();
 
     /**
@@ -16,12 +16,12 @@ public class ClientConfiguration extends AbstractConfiguration {
         return tags;
     }
 
-    private ClientConfiguration() {
+    private ServiceConfiguration() {
         super();
     }
 
     public static class Builder extends AbstractConfiguration.Builder<Builder> {
-        private ClientConfiguration configuration;
+        private ServiceConfiguration configuration;
 
         public static Builder newInstance() {
             return new Builder();
@@ -32,7 +32,7 @@ public class ClientConfiguration extends AbstractConfiguration {
             return this;
         }
 
-        public ClientConfiguration build() {
+        public ServiceConfiguration build() {
             return configuration;
         }
 
@@ -43,7 +43,7 @@ public class ClientConfiguration extends AbstractConfiguration {
 
         private Builder() {
             super();
-            configuration = new ClientConfiguration();
+            configuration = new ServiceConfiguration();
         }
 
     }
