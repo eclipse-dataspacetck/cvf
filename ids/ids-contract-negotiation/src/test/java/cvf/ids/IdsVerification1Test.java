@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import static cvf.ids.ConsumerNegotiationHandlers.handleProviderOffer;
 import static cvf.ids.ProviderActions.terminate;
 import static cvf.ids.system.api.pipeline.NegotiationPipeline.negotiationPipeline;
-import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_REQUESTED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER_OFFERED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 
@@ -46,9 +45,8 @@ public class IdsVerification1Test extends AbstractNegotiationVerificationTest {
         negotiationMock.recordContractRequestedAction((request, negotiation) -> terminate(negotiation));
 
         negotiationPipeline(negotiationClient, endpoint, connector)
-                .sendRequest()
-                .thenVerifyProviderState(CONSUMER_REQUESTED)
                 .expectOffer(offer -> handleProviderOffer(offer, connector))
+                .sendRequest()
                 .thenWaitForState(PROVIDER_OFFERED, 15)
                 .expectTermination()
                 .sendCounterRequest()
