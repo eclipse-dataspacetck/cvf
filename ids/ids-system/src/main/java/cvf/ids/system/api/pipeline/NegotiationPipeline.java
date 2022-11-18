@@ -24,7 +24,7 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * A test pipline to create and execute message interaction tests.
+ * A test pipeline to create and execute message interaction tests.
  */
 public class NegotiationPipeline {
     private static final int DEFAULT_WAIT_SECONDS = 15;
