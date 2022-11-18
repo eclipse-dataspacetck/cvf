@@ -18,10 +18,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
 /**
@@ -71,26 +69,24 @@ public class SystemBootstrapExtension implements BeforeAllCallback, ExtensionCon
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext context) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getType();
-        return launcher.clientTypes().contains(type) || type.equals(CallbackEndpoint.class) || launcher.providesService(type);
+        return launcher.providesService(type) || type.equals(CallbackEndpoint.class) || launcher.providesService(type);
     }
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getType();
-        if (launcher.clientTypes().contains(type)) {
+        if (type.equals(CallbackEndpoint.class)) {
+            var endpoint = attachCallbackEndpoint(dispatchingHandler, extensionContext);
+            extensionContext.getStore(CALLBACK_NAMESPACE).put("callback", endpoint);
+            return endpoint;
+        } else {
             var tags = extensionContext.getTags();
             var configuration = ClientConfiguration.Builder.newInstance()
                     .tags(tags)
                     .propertyDelegate(k -> extensionContext.getConfigurationParameter(k).orElse(null))
                     .build();
-            return launcher.createClient(type, configuration, extensionContext.getUniqueId());
-        } else if (type.equals(CallbackEndpoint.class)) {
-            var endpoint = attachCallbackEndpoint(dispatchingHandler, extensionContext);
-            extensionContext.getStore(CALLBACK_NAMESPACE).put("callback", endpoint);
-            return endpoint;
-        } else {
             var id = extensionContext.getUniqueId();
-            var service = launcher.getService(type, id);
+            var service = launcher.getService(type, configuration, id);
             if (service != null) {
                 return service;
             }
@@ -138,15 +134,6 @@ public class SystemBootstrapExtension implements BeforeAllCallback, ExtensionCon
         public void start(SystemConfiguration configuration) {
         }
 
-        @Override
-        public Set<Class<?>> clientTypes() {
-            return emptySet();
-        }
-
-        @Override
-        public <T> T createClient(Class<T> type, ClientConfiguration configuration, String scopeId) {
-            return null;
-        }
     }
 
     private static class DispatchingHandler implements HttpHandler {

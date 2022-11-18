@@ -7,6 +7,7 @@ import cvf.sample.tf.gx.system.api.GxSystemClient;
 import cvf.sample.tf.gx.system.api.Response;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Set;
@@ -29,12 +30,13 @@ public class GxSystemLauncher implements SystemLauncher {
     }
 
     @Override
-    public Set<Class<?>> clientTypes() {
-        return TYPES;
+    public <T> boolean providesService(Class<T> type) {
+        return type.equals(GxSystemClient.class);
     }
 
     @Override
-    public <T> T createClient(Class<T> type, ClientConfiguration configuration, String scopeId) {
+    @Nullable
+    public <T> T getService(Class<T> type, ClientConfiguration configuration, String scopeId) {
         requireNonNull(type);
         requireNonNull(configuration);
         if (!GxSystemClient.class.equals(type)) {
@@ -42,6 +44,7 @@ public class GxSystemLauncher implements SystemLauncher {
         }
         return type.cast(new SampleSystemClient());
     }
+
     @Override
     public void close() {
         if (executor != null) {

@@ -2,17 +2,10 @@ package cvf.core.spi.system;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
-
 /**
  * Initializes and interfaces with the system being verified.
  */
 public interface SystemLauncher {
-
-    /**
-     * Returns the collection of supported client interfaces.
-     */
-    Set<Class<?>> clientTypes();
 
     /**
      * Performs required initialization and signals to the system that a test run will start.
@@ -26,16 +19,10 @@ public interface SystemLauncher {
     }
 
     /**
-     * Creates a proxy to the system being verified of the given type.
-     */
-    <T> T createClient(Class<T> type, ClientConfiguration configuration, String scopeId);
-
-
-    /**
      * Returns a service of the given type or null for the provided scope. Some services may not be available until {@link #start(SystemConfiguration)} ()} is invoked.
      */
     @Nullable
-    default <T> T getService(Class<T> type, String scopeId) {
+    default <T> T getService(Class<T> type, ClientConfiguration configuration, String scopeId) {
         return null;
     }
 
