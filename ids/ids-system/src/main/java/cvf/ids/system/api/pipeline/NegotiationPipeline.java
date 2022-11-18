@@ -66,7 +66,6 @@ public class NegotiationPipeline {
         return this;
     }
 
-
     public NegotiationPipeline sendCounterRequest() {
         stages.add(() -> {
             var contractRequest = createContractCounterRequest(clientNegotiation.getCorrelationId(), clientNegotiation.getDatasetId());
