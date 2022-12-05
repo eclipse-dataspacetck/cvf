@@ -1,5 +1,6 @@
 package cvf.sample.tf.gx.system;
 
+import cvf.core.spi.system.HostServiceResolver;
 import cvf.core.spi.system.ServiceConfiguration;
 import cvf.core.spi.system.SystemConfiguration;
 import cvf.core.spi.system.SystemLauncher;
@@ -36,7 +37,7 @@ public class GxSystemLauncher implements SystemLauncher {
 
     @Override
     @Nullable
-    public <T> T getService(Class<T> type, ServiceConfiguration configuration, String scopeId) {
+    public <T> T getService(Class<T> type, ServiceConfiguration configuration, HostServiceResolver resolver) {
         requireNonNull(type);
         requireNonNull(configuration);
         if (!GxSystemClient.class.equals(type)) {

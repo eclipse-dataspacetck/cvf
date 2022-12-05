@@ -1,11 +1,15 @@
 package cvf.ids.system;
 
+import cvf.core.api.system.CallbackEndpoint;
+import cvf.core.spi.system.HostServiceResolver;
 import cvf.core.spi.system.ServiceConfiguration;
 import cvf.core.spi.system.SystemConfiguration;
 import cvf.core.spi.system.SystemLauncher;
 import cvf.ids.system.api.client.NegotiationClient;
 import cvf.ids.system.api.connector.Connector;
+import cvf.ids.system.api.connector.Client;
 import cvf.ids.system.api.mock.ProviderNegotiationMock;
+import cvf.ids.system.api.pipeline.NegotiationPipeline;
 import cvf.ids.system.client.NegotiationClientImpl;
 import cvf.ids.system.mock.ProviderNegotiationMockImpl;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +18,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
+import static cvf.ids.system.api.pipeline.NegotiationPipeline.negotiationPipeline;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
 /**
@@ -26,13 +31,18 @@ public class IdsSystemLauncher implements SystemLauncher {
     private ExecutorService executor;
     private boolean useLocalConnector;
 
-    private Map<String, Connector> systemConnectors = new ConcurrentHashMap<>();
+    private Map<String, Connector> clientConnectors = new ConcurrentHashMap<>();
+    private Map<String, Connector> providerConnectors = new ConcurrentHashMap<>();
+
     private Map<String, ProviderNegotiationMock> negotiationMocks = new ConcurrentHashMap<>();
     private Map<String, NegotiationClient> negotiationClients = new ConcurrentHashMap<>();
 
     @Override
     public <T> boolean providesService(Class<T> type) {
-        return type.equals(NegotiationClient.class) || type.equals(Connector.class) || type.equals(ProviderNegotiationMock.class);
+        return type.equals(NegotiationClient.class)
+                || type.equals(Connector.class)
+                || type.equals(ProviderNegotiationMock.class)
+                || type.equals(NegotiationPipeline.class);
     }
 
     @Override
@@ -43,12 +53,22 @@ public class IdsSystemLauncher implements SystemLauncher {
 
     @Nullable
     @Override
-    public <T> T getService(Class<T> type, ServiceConfiguration configuration, String scopeId) {
+    public <T> T getService(Class<T> type, ServiceConfiguration configuration, HostServiceResolver resolver) {
+        var scopeId = configuration.getScopeId();
+        if (NegotiationPipeline.class.equals(type)) {
+            var negotiationClient = createNegotiationClient(scopeId);
+            var callbackEndpoint = resolver.resolve(CallbackEndpoint.class);
+            var consumerConnector = clientConnectors.computeIfAbsent(scopeId, k -> new Connector());
+            return type.cast(negotiationPipeline(negotiationClient, callbackEndpoint, consumerConnector));
+        }
         if (Connector.class.equals(type)) {
-            return type.cast(systemConnectors.computeIfAbsent(scopeId, k -> new Connector()));
+            if (configuration.getAnnotations().stream().anyMatch(a->a.annotationType().equals(Client.class))) {
+                return type.cast(clientConnectors.computeIfAbsent(scopeId, k -> new Connector()));
+            }
+            return type.cast(providerConnectors.computeIfAbsent(scopeId, k -> new Connector()));
         } else if (ProviderNegotiationMock.class.equals(type)) {
             return type.cast(negotiationMocks.computeIfAbsent(scopeId, k -> {
-                var connector = systemConnectors.computeIfAbsent(scopeId, k2 -> new Connector());
+                var connector = providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector());
                 return new ProviderNegotiationMockImpl(connector.getProviderNegotiationManager(), executor);
             }));
         } else if (NegotiationClient.class.equals(type)) {
@@ -60,7 +80,7 @@ public class IdsSystemLauncher implements SystemLauncher {
     private NegotiationClient createNegotiationClient(String scopeId) {
         return negotiationClients.computeIfAbsent(scopeId, k -> {
             if (useLocalConnector) {
-                return new NegotiationClientImpl(systemConnectors.computeIfAbsent(scopeId, k2 -> new Connector()));
+                return new NegotiationClientImpl(providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector()));
             }
             return new NegotiationClientImpl();
 

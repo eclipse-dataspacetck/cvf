@@ -5,9 +5,11 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import cvf.core.api.system.CallbackEndpoint;
+import cvf.core.spi.system.HostServiceResolver;
 import cvf.core.spi.system.ServiceConfiguration;
 import cvf.core.spi.system.SystemConfiguration;
 import cvf.core.spi.system.SystemLauncher;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -29,7 +31,7 @@ import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 public class SystemBootstrapExtension implements BeforeAllCallback, ExtensionContext.Store.CloseableResource, ParameterResolver {
     private static final String CVF_CALLBACK_ADDRESS = "cvf.callback.address";
     private static final String CVF_LAUNCHER = "cvf.launcher";
-    private static final ExtensionContext.Namespace CALLBACK_NAMESPACE = ExtensionContext.Namespace.create(new Object());
+    private static final ExtensionContext.Namespace CALLBACK_NAMESPACE = org.junit.jupiter.api.extension.ExtensionContext.Namespace.create(new Object());
 
     private static boolean started;
 
@@ -53,7 +55,7 @@ public class SystemBootstrapExtension implements BeforeAllCallback, ExtensionCon
         launcher.start(configuration);
 
         dispatchingHandler = new DispatchingHandler();
-        server = initializeCallbackServer(dispatchingHandler, context);
+        server = initializeCallbackServer(dispatchingHandler);
         server.start();
     }
 
@@ -76,23 +78,37 @@ public class SystemBootstrapExtension implements BeforeAllCallback, ExtensionCon
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getType();
+        var service = resolve(type, extensionContext);
+        if (service != null) {
+            return service;
+        }
+        var tags = extensionContext.getTags();
+        var id = extensionContext.getUniqueId();
+        var configuration = ServiceConfiguration.Builder.newInstance()
+                .tags(tags)
+                .scopeId(id)
+                .annotations(parameterContext.getParameter().getAnnotations())
+                .propertyDelegate(k -> extensionContext.getConfigurationParameter(k).orElse(null))
+                .build();
+        service = launcher.getService(type, configuration, new HostServiceResolver() {
+            public <T> T resolve(Class<T> service) {
+                return SystemBootstrapExtension.this.resolve(service, extensionContext);
+            }
+        });
+        if (service != null) {
+            return service;
+        }
+        throw new ParameterResolutionException("Unsupported parameter type: " + type.getName());
+    }
+
+    @Nullable
+    public <T> T resolve(Class<T> type, ExtensionContext extensionContext) {
         if (type.equals(CallbackEndpoint.class)) {
             var endpoint = attachCallbackEndpoint(dispatchingHandler, extensionContext);
             extensionContext.getStore(CALLBACK_NAMESPACE).put("callback", endpoint);
-            return endpoint;
-        } else {
-            var tags = extensionContext.getTags();
-            var configuration = ServiceConfiguration.Builder.newInstance()
-                    .tags(tags)
-                    .propertyDelegate(k -> extensionContext.getConfigurationParameter(k).orElse(null))
-                    .build();
-            var id = extensionContext.getUniqueId();
-            var service = launcher.getService(type, configuration, id);
-            if (service != null) {
-                return service;
-            }
+            return type.cast(endpoint);
         }
-        throw new ParameterResolutionException("Unsupported parameter type");
+        return null;
     }
 
     private CallbackEndpoint attachCallbackEndpoint(DispatchingHandler dispatchingHandler, ExtensionContext context) {
@@ -119,7 +135,7 @@ public class SystemBootstrapExtension implements BeforeAllCallback, ExtensionCon
         }
     }
 
-    private HttpServer initializeCallbackServer(HttpHandler rootHandler, ExtensionContext context) {
+    private HttpServer initializeCallbackServer(HttpHandler rootHandler) {
         try {
             server = HttpServer.create(new InetSocketAddress(8083), 0);        // XCV align with callback address
             server.createContext("/", rootHandler);

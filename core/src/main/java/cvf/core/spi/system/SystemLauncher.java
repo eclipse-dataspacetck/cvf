@@ -19,10 +19,10 @@ public interface SystemLauncher {
     }
 
     /**
-     * Returns a service of the given type or null for the provided scope. Some services may not be available until {@link #start(SystemConfiguration)} ()} is invoked.
+     * Returns a service of the given type or null. Some services may not be available until {@link #start(SystemConfiguration)} ()} is invoked.
      */
     @Nullable
-    default <T> T getService(Class<T> type, ServiceConfiguration configuration, String scopeId) {
+    default <T> T getService(Class<T> type, ServiceConfiguration configuration, HostServiceResolver resolver) {
         return null;
     }
 
