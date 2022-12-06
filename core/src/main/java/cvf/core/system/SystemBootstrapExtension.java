@@ -1,6 +1,7 @@
 package cvf.core.system;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.apicatalog.jsonld.JsonLdError;
+import com.apicatalog.jsonld.document.JsonDocument;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -9,6 +10,7 @@ import cvf.core.spi.system.ServiceConfiguration;
 import cvf.core.spi.system.SystemConfiguration;
 import cvf.core.spi.system.SystemLauncher;
 import cvf.core.system.injection.InstanceInjector;
+import jakarta.json.JsonStructure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -25,7 +27,9 @@ import java.net.InetSocketAddress;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static cvf.core.api.message.SerializationFunctions.serialize;
+import static com.apicatalog.jsonld.JsonLd.compact;
+import static cvf.core.api.message.MessageSerializer.MAPPER;
+import static cvf.core.api.message.MessageSerializer.serialize;
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
 /**
@@ -34,6 +38,9 @@ import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCallback, ParameterResolver, ExtensionContext.Store.CloseableResource {
     private static final String CVF_CALLBACK_ADDRESS = "cvf.callback.address";
     private static final String CVF_LAUNCHER = "cvf.launcher";
+
+    private static final JsonDocument EMPTY_CONTEXT = JsonDocument.of(JsonStructure.EMPTY_JSON_OBJECT);
+
     private static final ExtensionContext.Namespace CALLBACK_NAMESPACE = org.junit.jupiter.api.extension.ExtensionContext.Namespace.create(new Object());
 
     private static boolean started;
@@ -164,8 +171,6 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
     }
 
     private static class DispatchingHandler implements HttpHandler {
-        private ObjectMapper mapper = new ObjectMapper();
-
         private Queue<DefaultCallbackEndpoint> endpoints = new ConcurrentLinkedQueue<>();
 
         void registerEndpoint(DefaultCallbackEndpoint endpoint) {
@@ -181,16 +186,21 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
             var path = exchange.getRequestURI().getPath();
             for (var endpoint : endpoints) {
                 if (endpoint.handlesPath(path)) {
-                    var message = mapper.readValue(exchange.getRequestBody(), Object.class);
-                    var response = endpoint.apply(path, message);
-                    if (response == null) {
-                        exchange.sendResponseHeaders(200, 0);
-                    } else {
-                        var serialized = serialize(response).getBytes();
-                        exchange.sendResponseHeaders(200, serialized.length);
-                        var responseBody = exchange.getResponseBody();
-                        responseBody.write(serialized);
-                        responseBody.close();
+                    try {
+                        var compacted = compact(JsonDocument.of(exchange.getRequestBody()), EMPTY_CONTEXT);
+                        var message = MAPPER.convertValue(compacted.get(), Object.class);
+                        var response = endpoint.apply(path, message);
+                        if (response == null) {
+                            exchange.sendResponseHeaders(200, 0);
+                        } else {
+                            var serialized = serialize(response).getBytes();
+                            exchange.sendResponseHeaders(200, serialized.length);
+                            var responseBody = exchange.getResponseBody();
+                            responseBody.write(serialized);
+                            responseBody.close();
+                        }
+                    } catch (JsonLdError e) {
+                        throw new RuntimeException(e);
                     }
                     return;
                 }

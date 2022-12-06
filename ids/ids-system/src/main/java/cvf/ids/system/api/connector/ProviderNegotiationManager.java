@@ -30,11 +30,11 @@ public class ProviderNegotiationManager {
     public ContractNegotiation contractRequest(Map<String, Object> contractRequest) {
         var correlationId = stringProperty(ID, contractRequest);  // correlation id is the @id of the message
 
-        var negotiationId = (String) contractRequest.get("negotiationId");
+        var processId = (String) contractRequest.get("processId");
 
-        if (negotiationId != null) {
+        if (processId != null) {
             // the message is a counter-offer
-            return processCounterOffer(contractRequest, negotiationId);
+            return processCounterOffer(contractRequest, processId);
         } else {
             // the message is an initial request
             return processInitialRequest(contractRequest, correlationId);
@@ -42,7 +42,7 @@ public class ProviderNegotiationManager {
     }
 
     public void terminate(Map<String, Object> termination) {
-        var id = (String) requireNonNull(termination.get("negotiationId"));
+        var id = (String) requireNonNull(termination.get("processId"));
         var negotiation = negotiations.get(id);
         negotiation.transition(TERMINATED);
         listeners.forEach(l -> l.terminated(negotiation));
@@ -77,8 +77,8 @@ public class ProviderNegotiationManager {
     }
 
     @NotNull
-    private ContractNegotiation processCounterOffer(Map<String, Object> contractRequest, String negotiationId) {
-        var negotiation = findById(negotiationId);
+    private ContractNegotiation processCounterOffer(Map<String, Object> contractRequest, String processId) {
+        var negotiation = findById(processId);
         var offer = MessageFunctions.mapProperty("offer", contractRequest);
         // TODO add offer
         negotiation.transition(CONSUMER_REQUESTED);

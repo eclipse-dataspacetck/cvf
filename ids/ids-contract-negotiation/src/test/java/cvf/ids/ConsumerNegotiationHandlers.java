@@ -4,6 +4,7 @@ import cvf.ids.system.api.connector.Connector;
 
 import java.util.Map;
 
+import static cvf.ids.system.api.message.IdsConstants.IDS_NAMESPACE;
 import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER_OFFERED;
 
@@ -13,7 +14,7 @@ import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER
 public class ConsumerNegotiationHandlers {
 
     public static Void handleProviderOffer(Map<String, Object> offer, Connector connector) {
-        var id = stringProperty("ids:negotiationId", offer);    // FIXME use JSON-LD to resolve namespace and key
+        var id = stringProperty(IDS_NAMESPACE + "processId", offer);    // FIXME use JSON-LD to resolve namespace and key
         var negotiation = connector.getConsumerNegotiationManager().findByCorrelationId(id);
         negotiation.transition(PROVIDER_OFFERED);
         return null;

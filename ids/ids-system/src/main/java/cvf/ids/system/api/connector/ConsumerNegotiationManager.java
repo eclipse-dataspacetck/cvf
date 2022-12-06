@@ -20,14 +20,14 @@ public class ConsumerNegotiationManager {
 
     private Queue<ConsumerNegotiationListener> listeners = new ConcurrentLinkedQueue<>();
 
-    public void consumerRequested(String negotiationId, String correlationId) {
-        var contractNegotiation = getNegotiations().get(negotiationId);
+    public void consumerRequested(String processId, String correlationId) {
+        var contractNegotiation = getNegotiations().get(processId);
         contractNegotiation.setCorrelationId(correlationId);
         contractNegotiation.transition(CONSUMER_REQUESTED);
     }
 
-    public void consumerCounterRequested(String negotiationId) {
-        var contractNegotiation = getNegotiations().get(negotiationId);
+    public void consumerCounterRequested(String processId) {
+        var contractNegotiation = getNegotiations().get(processId);
         contractNegotiation.transition(CONSUMER_REQUESTED);
     }
 

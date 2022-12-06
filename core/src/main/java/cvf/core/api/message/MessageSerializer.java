@@ -6,10 +6,10 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsonp.JSONPModule;
 
 /**
- * Utility methods for JSON serialization.
+ * Provides a configured {@link ObjectMapper} for serializing and deserializing JSON-LD messages.
  */
-public class SerializationFunctions {
-    private static ObjectMapper MAPPER;
+public class MessageSerializer {
+    public static ObjectMapper MAPPER;
 
     static {
         MAPPER = new ObjectMapper();
@@ -31,6 +31,6 @@ public class SerializationFunctions {
         }
     }
 
-    private SerializationFunctions() {
+    private MessageSerializer() {
     }
 }

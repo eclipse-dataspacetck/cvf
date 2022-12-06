@@ -22,9 +22,9 @@ import static java.util.stream.Collectors.toList;
  */
 public class MessageFunctions {
 
-    public static Map<String, Object> createContractRequest(String negotiationId, String offerId, String datasetId, String callbackAddress) {
+    public static Map<String, Object> createContractRequest(String processId, String offerId, String datasetId, String callbackAddress) {
         var message = createBaseMessage("ids:ContractRequestMessage");
-        message.put(ID, negotiationId); // override id
+        message.put(ID, processId); // override id
         message.put(CONTEXT, createContext());
 
         message.put("offerId", offerId);
@@ -35,37 +35,36 @@ public class MessageFunctions {
         return message;
     }
 
-    public static Map<String, Object> createContractCounterRequest(String negotiationId, String datasetId) {
+    public static Map<String, Object> createContractCounterRequest(String processId, String datasetId) {
         var message = createBaseMessage("ids:ContractRequestMessage"); // do NOT override id
-        message.put("negotiationId", negotiationId);
+        message.put("processId", processId);
         message.put(CONTEXT, createContext());
 
-        message.put("offer", createOffer(negotiationId, UUID.randomUUID().toString(), datasetId));
+        message.put("offer", createOffer(processId, UUID.randomUUID().toString(), datasetId));
         message.put("datasetId", datasetId);
 
         return message;
     }
 
-    public static Map<String, Object> createTermination(String negotiationId, String code, String... reasons) {
+    public static Map<String, Object> createTermination(String processId, String code, String... reasons) {
         var message = createBaseMessage("ids:ContractNegotiationTermination");
         message.put(CONTEXT, createContext());
 
-        message.put("negotiationId", negotiationId);
+        message.put("processId", processId);
         message.put("code", code);
 
         if (reasons != null && reasons.length > 0) {
             message.put("reasons", Arrays.stream(reasons).map(reason -> Map.of("message", reason)).collect(toList()));
         }
-
         return message;
     }
 
-    public static Map<String, Object> createOffer(String negotiationId, String offerId, String datasetId) {
+    public static Map<String, Object> createOffer(String processId, String offerId, String datasetId) {
         var message = createBaseMessage("ids:ContractOfferMessage");
         var context = createContext();
         context.put("odrl", ODRL_NAMESPACE);
         message.put(CONTEXT, context);
-        message.put("ids:negotiationId", negotiationId);
+        message.put("ids:processId", processId);
 
         Map<String, Object> permissions = Map.of("action", "use", "constraints", emptyList());
         var offer = new LinkedHashMap<String, Object>();
