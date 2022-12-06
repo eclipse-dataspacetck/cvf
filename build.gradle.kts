@@ -24,6 +24,11 @@ allprojects {
         implementation("com.squareup.okhttp3:okhttp:4.10.0")
         implementation("org.mockito:mockito-core:4.8.1")
         implementation("org.awaitility:awaitility:4.2.0")
+
+        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp:2.14.1")
+        implementation("com.apicatalog:titanium-json-ld:1.3.1")
+        implementation("org.glassfish:jakarta.json:2.0.0")
+
     }
 
 }
