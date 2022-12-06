@@ -14,7 +14,7 @@ import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER
 public class ConsumerNegotiationHandlers {
 
     public static Void handleProviderOffer(Map<String, Object> offer, Connector connector) {
-        var id = stringProperty(IDS_NAMESPACE + "processId", offer);    // FIXME use JSON-LD to resolve namespace and key
+        var id = stringProperty(IDS_NAMESPACE + "processId", offer);    
         var negotiation = connector.getConsumerNegotiationManager().findByCorrelationId(id);
         negotiation.transition(PROVIDER_OFFERED);
         return null;
