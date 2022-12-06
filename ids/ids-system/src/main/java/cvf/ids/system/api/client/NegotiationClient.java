@@ -20,5 +20,5 @@ public interface NegotiationClient {
     /**
      * Returns a negotiation.
      */
-    Map<String, Object>  getNegotiation(String id);
+    Map<String, Object> getNegotiation(String id);
 }
