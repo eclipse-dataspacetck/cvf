@@ -5,7 +5,7 @@ package cvf.ids.system.api.message;
  */
 public interface IdsConstants {
 
-    String IDS_NAMESPACE = "https://idsa.org/";
+    String IDS_NAMESPACE = "https://w3id.org/idsa/core/";
 
     String ODRL_NAMESPACE = "https://www.w3.org/TR/odrl-model";
 
