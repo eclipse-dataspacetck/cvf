@@ -49,13 +49,13 @@ public class IdsVerification1Test extends AbstractNegotiationVerificationTest {
 
     @Test
     @DisplayName("IDS-01-02: Verify contract request, offer received, consumer counter-offer, provider terminated")
-    public void verify_01_02(NegotiationPipeline negotiationPipeline, @Client Connector connector, ProviderNegotiationMock negotiationMock) {
+    public void verify_01_02() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
         negotiationMock.recordContractRequestedAction((request, negotiation) -> terminate(negotiation));
 
         negotiationPipeline
-                .expectOffer(offer -> handleProviderOffer(offer, connector))
+                .expectOffer(offer -> handleProviderOffer(offer, clientConnector))
                 .sendRequest()
                 .thenWaitForState(PROVIDER_OFFERED)
                 .expectTermination()
