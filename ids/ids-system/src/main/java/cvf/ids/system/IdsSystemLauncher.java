@@ -1,13 +1,13 @@
 package cvf.ids.system;
 
 import cvf.core.api.system.CallbackEndpoint;
-import cvf.core.spi.system.HostServiceResolver;
 import cvf.core.spi.system.ServiceConfiguration;
+import cvf.core.spi.system.ServiceResolver;
 import cvf.core.spi.system.SystemConfiguration;
 import cvf.core.spi.system.SystemLauncher;
 import cvf.ids.system.api.client.NegotiationClient;
-import cvf.ids.system.api.connector.Connector;
 import cvf.ids.system.api.connector.Client;
+import cvf.ids.system.api.connector.Connector;
 import cvf.ids.system.api.mock.ProviderNegotiationMock;
 import cvf.ids.system.api.pipeline.NegotiationPipeline;
 import cvf.ids.system.client.NegotiationClientImpl;
@@ -38,6 +38,12 @@ public class IdsSystemLauncher implements SystemLauncher {
     private Map<String, NegotiationClient> negotiationClients = new ConcurrentHashMap<>();
 
     @Override
+    public void start(SystemConfiguration configuration) {
+        executor = newFixedThreadPool(configuration.getPropertyAsInt(CVF_THREAD_POOL, 10));
+        useLocalConnector = configuration.getPropertyAsBoolean(CVF_LOCAL_CONNECTOR, false);
+    }
+
+    @Override
     public <T> boolean providesService(Class<T> type) {
         return type.equals(NegotiationClient.class)
                 || type.equals(Connector.class)
@@ -45,36 +51,42 @@ public class IdsSystemLauncher implements SystemLauncher {
                 || type.equals(NegotiationPipeline.class);
     }
 
-    @Override
-    public void start(SystemConfiguration configuration) {
-        executor = newFixedThreadPool(configuration.getPropertyAsInt(CVF_THREAD_POOL, 10));
-        useLocalConnector = configuration.getPropertyAsBoolean(CVF_LOCAL_CONNECTOR, false);
-    }
-
     @Nullable
     @Override
-    public <T> T getService(Class<T> type, ServiceConfiguration configuration, HostServiceResolver resolver) {
-        var scopeId = configuration.getScopeId();
+    public <T> T getService(Class<T> type, ServiceConfiguration configuration, ServiceResolver resolver) {
         if (NegotiationPipeline.class.equals(type)) {
-            var negotiationClient = createNegotiationClient(scopeId);
-            var callbackEndpoint = resolver.resolve(CallbackEndpoint.class);
-            var consumerConnector = clientConnectors.computeIfAbsent(scopeId, k -> new Connector());
-            return type.cast(negotiationPipeline(negotiationClient, callbackEndpoint, consumerConnector));
-        }
-        if (Connector.class.equals(type)) {
-            if (configuration.getAnnotations().stream().anyMatch(a->a.annotationType().equals(Client.class))) {
-                return type.cast(clientConnectors.computeIfAbsent(scopeId, k -> new Connector()));
-            }
-            return type.cast(providerConnectors.computeIfAbsent(scopeId, k -> new Connector()));
+            return createPipeline(type, configuration, resolver);
+        } else if (Connector.class.equals(type)) {
+            return createConnector(type, configuration);
         } else if (ProviderNegotiationMock.class.equals(type)) {
-            return type.cast(negotiationMocks.computeIfAbsent(scopeId, k -> {
-                var connector = providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector());
-                return new ProviderNegotiationMockImpl(connector.getProviderNegotiationManager(), executor);
-            }));
+            return createNegotiationMock(type, configuration.getScopeId());
         } else if (NegotiationClient.class.equals(type)) {
-            return type.cast(createNegotiationClient(scopeId));
+            return type.cast(createNegotiationClient(configuration.getScopeId()));
         }
         return null;
+    }
+
+    private <T> T createPipeline(Class<T> type, ServiceConfiguration configuration, ServiceResolver resolver) {
+        var scopeId = configuration.getScopeId();
+        var negotiationClient = createNegotiationClient(scopeId);
+        var callbackEndpoint = (CallbackEndpoint) resolver.resolve(CallbackEndpoint.class, configuration);
+        var consumerConnector = clientConnectors.computeIfAbsent(scopeId, k -> new Connector());
+        return type.cast(negotiationPipeline(negotiationClient, callbackEndpoint, consumerConnector));
+    }
+
+    private <T> T createNegotiationMock(Class<T> type, String scopeId) {
+        return type.cast(negotiationMocks.computeIfAbsent(scopeId, k -> {
+            var connector = providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector());
+            return new ProviderNegotiationMockImpl(connector.getProviderNegotiationManager(), executor);
+        }));
+    }
+
+    private <T> T createConnector(Class<T> type, ServiceConfiguration configuration) {
+        var scopeId = configuration.getScopeId();
+        if (configuration.getAnnotations().stream().anyMatch(a -> a.annotationType().equals(Client.class))) {
+            return type.cast(clientConnectors.computeIfAbsent(scopeId, k -> new Connector()));
+        }
+        return type.cast(providerConnectors.computeIfAbsent(scopeId, k -> new Connector()));
     }
 
     private NegotiationClient createNegotiationClient(String scopeId) {
@@ -83,7 +95,6 @@ public class IdsSystemLauncher implements SystemLauncher {
                 return new NegotiationClientImpl(providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector()));
             }
             return new NegotiationClientImpl();
-
         });
     }
 

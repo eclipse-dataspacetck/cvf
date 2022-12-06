@@ -3,14 +3,14 @@ package cvf.core.spi.system;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Resolves host services
+ * Resolves services.
  */
 @FunctionalInterface
-public interface HostServiceResolver {
+public interface ServiceResolver {
 
     /**
      * Resolves an instance of the type or null if not found.
      */
     @Nullable
-    <T> T resolve(Class<T> service);
+    Object resolve(Class<?> type, ServiceConfiguration configuration);
 }

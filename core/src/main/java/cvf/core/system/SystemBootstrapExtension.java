@@ -5,16 +5,19 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import cvf.core.api.system.CallbackEndpoint;
-import cvf.core.spi.system.HostServiceResolver;
 import cvf.core.spi.system.ServiceConfiguration;
 import cvf.core.spi.system.SystemConfiguration;
 import cvf.core.spi.system.SystemLauncher;
+import cvf.core.system.injection.InstanceInjector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.platform.commons.JUnitException;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -28,7 +31,7 @@ import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 /**
  *
  */
-public class SystemBootstrapExtension implements BeforeAllCallback, ExtensionContext.Store.CloseableResource, ParameterResolver {
+public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCallback, ParameterResolver, ExtensionContext.Store.CloseableResource {
     private static final String CVF_CALLBACK_ADDRESS = "cvf.callback.address";
     private static final String CVF_LAUNCHER = "cvf.launcher";
     private static final ExtensionContext.Namespace CALLBACK_NAMESPACE = org.junit.jupiter.api.extension.ExtensionContext.Namespace.create(new Object());
@@ -60,6 +63,12 @@ public class SystemBootstrapExtension implements BeforeAllCallback, ExtensionCon
     }
 
     @Override
+    public void beforeEach(ExtensionContext context) {
+        new InstanceInjector((service, configuration) ->
+                launcher.getService(service, configuration, (t, c) -> resolveInHierarchy(t, c, context)), context).inject(context.getTestInstance().orElseThrow());
+    }
+
+    @Override
     public void close() {
         if (launcher != null) {
             launcher.close();
@@ -76,36 +85,45 @@ public class SystemBootstrapExtension implements BeforeAllCallback, ExtensionCon
     }
 
     @Override
-    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext context) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getType();
-        var service = resolve(type, extensionContext);
+        var service = resolve(type, context);
         if (service != null) {
             return service;
         }
-        var tags = extensionContext.getTags();
-        var id = extensionContext.getUniqueId();
+        var tags = context.getTags();
+        var id = context.getUniqueId();
         var configuration = ServiceConfiguration.Builder.newInstance()
                 .tags(tags)
                 .scopeId(id)
                 .annotations(parameterContext.getParameter().getAnnotations())
-                .propertyDelegate(k -> extensionContext.getConfigurationParameter(k).orElse(null))
+                .propertyDelegate(k -> context.getConfigurationParameter(k).orElse(null))
                 .build();
-        service = launcher.getService(type, configuration, new HostServiceResolver() {
-            public <T> T resolve(Class<T> service) {
-                return SystemBootstrapExtension.this.resolve(service, extensionContext);
-            }
-        });
+        service = launcher.getService(type, configuration, (t, c) -> resolve(t, context));
         if (service != null) {
             return service;
         }
         throw new ParameterResolutionException("Unsupported parameter type: " + type.getName());
     }
 
+    @NotNull
+    private Object resolveInHierarchy(Class<?> type, ServiceConfiguration configuration, ExtensionContext context) {
+        var resolved = resolve(type, context);
+        if (resolved != null) {
+            return resolved;
+        }
+        resolved = launcher.getService(type, configuration, (t1, c2) -> resolve(type, context));
+        if (resolved != null) {
+            return resolved;
+        }
+        throw new JUnitException("Type not found for injected field: " + type.getName());
+    }
+
     @Nullable
-    public <T> T resolve(Class<T> type, ExtensionContext extensionContext) {
+    private Object resolve(Class<?> type, ExtensionContext context) {
         if (type.equals(CallbackEndpoint.class)) {
-            var endpoint = attachCallbackEndpoint(dispatchingHandler, extensionContext);
-            extensionContext.getStore(CALLBACK_NAMESPACE).put("callback", endpoint);
+            var endpoint = attachCallbackEndpoint(dispatchingHandler, context);
+            context.getStore(CALLBACK_NAMESPACE).put("callback", endpoint);
             return type.cast(endpoint);
         }
         return null;
