@@ -10,6 +10,12 @@ import java.util.function.Consumer;
 public interface ProviderNegotiationMock {
 
     /**
+     * An action to be executed by the mock.
+     */
+    interface Action extends Consumer<ContractNegotiation> {
+    }
+
+    /**
      * Records an action to execute when a contract request is processed on the provider.
      */
     void recordContractRequestedAction(Action action);
@@ -39,10 +45,4 @@ public interface ProviderNegotiationMock {
      */
     void reset();
 
-    /**
-     * An action to be executed by the mock.
-     */
-    interface Action extends Consumer<ContractNegotiation> {
-
-    }
 }
