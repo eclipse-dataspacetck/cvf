@@ -24,6 +24,7 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
 /**
  * Instantiates and bootstraps an IDS test fixture.
  */
+@SuppressWarnings("unused")
 public class IdsSystemLauncher implements SystemLauncher {
     private static final String CVF_LOCAL_CONNECTOR = "cvf.ids.local.connector";
     private static final String CVF_THREAD_POOL = "cvf.ids.thread.pool";
