@@ -6,7 +6,7 @@ import cvf.core.spi.system.ServiceResolver;
 import cvf.core.spi.system.SystemConfiguration;
 import cvf.core.spi.system.SystemLauncher;
 import cvf.ids.system.api.client.NegotiationClient;
-import cvf.ids.system.api.connector.Client;
+import cvf.ids.system.api.connector.Consumer;
 import cvf.ids.system.api.connector.Connector;
 import cvf.ids.system.api.mock.ProviderNegotiationMock;
 import cvf.ids.system.api.pipeline.NegotiationPipeline;
@@ -83,7 +83,7 @@ public class IdsSystemLauncher implements SystemLauncher {
 
     private <T> T createConnector(Class<T> type, ServiceConfiguration configuration) {
         var scopeId = configuration.getScopeId();
-        if (configuration.getAnnotations().stream().anyMatch(a -> a.annotationType().equals(Client.class))) {
+        if (configuration.getAnnotations().stream().anyMatch(a -> a.annotationType().equals(Consumer.class))) {
             return type.cast(clientConnectors.computeIfAbsent(scopeId, k -> new Connector()));
         }
         return type.cast(providerConnectors.computeIfAbsent(scopeId, k -> new Connector()));

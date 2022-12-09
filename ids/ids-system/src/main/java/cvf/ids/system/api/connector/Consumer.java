@@ -16,5 +16,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Inherited
 @Retention(RUNTIME)
 @Target({FIELD, PARAMETER})
-public @interface Client {
+public @interface Consumer {
 }

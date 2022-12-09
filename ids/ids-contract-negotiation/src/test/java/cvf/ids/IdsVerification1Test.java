@@ -1,7 +1,7 @@
 package cvf.ids;
 
 import cvf.core.api.system.Inject;
-import cvf.ids.system.api.connector.Client;
+import cvf.ids.system.api.connector.Consumer;
 import cvf.ids.system.api.connector.Connector;
 import cvf.ids.system.api.mock.ProviderNegotiationMock;
 import cvf.ids.system.api.pipeline.NegotiationPipeline;
@@ -23,7 +23,7 @@ import static java.util.UUID.randomUUID;
 public class IdsVerification1Test extends AbstractNegotiationVerificationTest {
 
     @Inject
-    @Client
+    @Consumer
     private Connector clientConnector;
 
     @Inject
