@@ -7,9 +7,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import static java.util.Objects.requireNonNull;
+import static java.util.regex.Pattern.compile;
 
 /**
  * Implements a callback endpoint.
@@ -34,12 +37,13 @@ class DefaultCallbackEndpoint implements CallbackEndpoint, BiFunction<String, Ob
     }
 
     public boolean handlesPath(String path) {
-        return handlers.containsKey(path);
+        return lookupHandler(path).isPresent();
     }
 
     @Override
     public Object apply(String path, Object message) {
-        return handlers.get(path).apply(message);
+        //noinspection OptionalGetWithoutIsPresent
+        return lookupHandler(path).get().apply(message);
     }
 
     @Override
@@ -81,7 +85,7 @@ class DefaultCallbackEndpoint implements CallbackEndpoint, BiFunction<String, Ob
         }
 
         public DefaultCallbackEndpoint build() {
-            Objects.requireNonNull(endpoint.address);
+            requireNonNull(endpoint.address);
             return endpoint;
         }
 
@@ -90,4 +94,15 @@ class DefaultCallbackEndpoint implements CallbackEndpoint, BiFunction<String, Ob
         }
     }
 
+    /**
+     * Matches the path based on the regular expression.
+     */
+    private Optional<Function<Object, Object>> lookupHandler(String expression) {
+        var pattern = compile(expression);
+        return handlers.entrySet()
+                .stream()
+                .filter(entry -> !pattern.matcher(entry.getKey()).matches())
+                .map(Map.Entry::getValue)
+                .findFirst();
+    }
 }

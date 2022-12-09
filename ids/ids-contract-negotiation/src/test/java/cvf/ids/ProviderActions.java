@@ -18,15 +18,16 @@ import static java.util.UUID.randomUUID;
  * Actions taken by a provider that execute after receiving a message from the client.
  */
 public class ProviderActions {
-    private static final String NEGOTIATION_OFFER_TEMPLATE = "%s/negotiation/offer";
-    private static final String NEGOTIATION_AGREEMENT_TEMPLATE = "%s/negotiation/agreement";
-    private static final String NEGOTIATION_FINALIZE_TEMPLATE = "%s/negotiation/event";
+    private static final String NEGOTIATION_OFFER_TEMPLATE = "%s/negotiations/%s/offer/";
+    private static final String NEGOTIATION_TERMINATE_TEMPLATE = "%s/negotiations/%s/termination/";
+    private static final String NEGOTIATION_AGREEMENT_TEMPLATE = "%s/negotiations/%s/agreement";
+    private static final String NEGOTIATION_FINALIZE_TEMPLATE = "%s/negotiations/%s/events";
 
     public static void postOffer(ContractNegotiation negotiation) {
         var contractOffer = createOffer(negotiation.getId(), randomUUID().toString(), negotiation.getDatasetId());
 
         negotiation.transition(PROVIDER_OFFERED);
-        try (var response = postJson(format(NEGOTIATION_OFFER_TEMPLATE, negotiation.getCallbackAddress()), contractOffer)) {
+        try (var response = postJson(format(NEGOTIATION_OFFER_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), contractOffer)) {
             checkResponse(response);
         }
     }
@@ -35,7 +36,7 @@ public class ProviderActions {
         var agreement = createAgreement(negotiation.getId(), randomUUID().toString(), negotiation.getDatasetId());
 
         negotiation.transition(PROVIDER_AGREED);
-        try (var response = postJson(format(NEGOTIATION_AGREEMENT_TEMPLATE, negotiation.getCallbackAddress()), agreement)) {
+        try (var response = postJson(format(NEGOTIATION_AGREEMENT_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), agreement)) {
             checkResponse(response);
         }
     }
@@ -43,14 +44,14 @@ public class ProviderActions {
     public static void postProviderFinalized(ContractNegotiation negotiation) {
         negotiation.transition(PROVIDER_FINALIZED);
         var event = createFinalizedEvent(negotiation.getId());
-        try (var response = postJson(format(NEGOTIATION_FINALIZE_TEMPLATE, negotiation.getCallbackAddress()), event)) {
+        try (var response = postJson(format(NEGOTIATION_FINALIZE_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), event)) {
             checkResponse(response);
         }
     }
 
     public static void terminate(ContractNegotiation negotiation) {
         var termination = createTermination(negotiation.getId(), "1");
-        try (var response = postJson(format(NEGOTIATION_OFFER_TEMPLATE, negotiation.getCallbackAddress()), termination)) {
+        try (var response = postJson(format(NEGOTIATION_TERMINATE_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), termination)) {
             checkResponse(response);
         }
     }

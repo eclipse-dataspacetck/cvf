@@ -30,6 +30,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class NegotiationPipeline {
     private static final int DEFAULT_WAIT_SECONDS = 15;
 
+    private static final String NEGOTIATIONS_OFFER_PATH = "/negotiations/[^/]+/offer/";
+    private static final String NEGOTIATIONS_AGREEMENT_PATH = "/negotiations/[^/]+/agreement";
+    private static final String NEGOTIATIONS_TERMINATION_PATH = "/negotiations/[^/]+/termination";
+    private static final String NEGOTIATION_EVENT_PATH = "/negotiations/[^/]+/events";
+
     private CallbackEndpoint endpoint;
     private Connector connector;
     private NegotiationClient negotiationClient;
@@ -121,10 +126,10 @@ public class NegotiationPipeline {
 
     public NegotiationPipeline expectOffer(Consumer<Map<String, Object>> action) {
         stages.add(() ->
-                endpoint.registerHandler("negotiation/offer", offer -> {
+                endpoint.registerHandler(NEGOTIATIONS_OFFER_PATH, offer -> {
                     //noinspection unchecked
                     action.accept((Map<String, Object>) offer);
-                    endpoint.deregisterHandler("negotiation/offer");
+                    endpoint.deregisterHandler(NEGOTIATIONS_OFFER_PATH);
                     return null;
                 }));
         return this;
@@ -132,10 +137,10 @@ public class NegotiationPipeline {
 
     public NegotiationPipeline expectAgreement(Consumer<Map<String, Object>> action) {
         stages.add(() ->
-                endpoint.registerHandler("negotiation/agreement", agreement -> {
+                endpoint.registerHandler(NEGOTIATIONS_AGREEMENT_PATH, agreement -> {
                     //noinspection unchecked
                     action.accept((Map<String, Object>) agreement);
-                    endpoint.deregisterHandler("negotiation/agreement");
+                    endpoint.deregisterHandler(NEGOTIATIONS_AGREEMENT_PATH);
                     return null;
                 }));
         return this;
@@ -143,10 +148,10 @@ public class NegotiationPipeline {
 
     public NegotiationPipeline expectFinalized(Consumer<Map<String, Object>> action) {
         stages.add(() ->
-                endpoint.registerHandler("negotiation/event", agreement -> {
+                endpoint.registerHandler(NEGOTIATION_EVENT_PATH, agreement -> {
                     //noinspection unchecked
                     action.accept((Map<String, Object>) agreement);
-                    endpoint.deregisterHandler("negotiation/event");
+                    endpoint.deregisterHandler(NEGOTIATION_EVENT_PATH);
                     return null;
                 }));
         return this;
@@ -154,9 +159,9 @@ public class NegotiationPipeline {
 
     public NegotiationPipeline expectTermination() {
         stages.add(() ->
-                endpoint.registerHandler("negotiation/offer", termination -> {
+                endpoint.registerHandler(NEGOTIATIONS_TERMINATION_PATH, termination -> {
                     clientNegotiation.transition(TERMINATED);
-                    endpoint.deregisterHandler("negotiation/offer");
+                    endpoint.deregisterHandler(NEGOTIATIONS_TERMINATION_PATH);
                     return null;
                 }));
         return this;
