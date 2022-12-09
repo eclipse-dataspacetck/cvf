@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 import static cvf.ids.system.api.message.IdsConstants.ID;
 import static cvf.ids.system.api.message.MessageFunctions.createAcceptedEvent;
-import static cvf.ids.system.api.message.MessageFunctions.createContractCounterOffer;
+import static cvf.ids.system.api.message.MessageFunctions.createCounterOffer;
 import static cvf.ids.system.api.message.MessageFunctions.createContractRequest;
 import static cvf.ids.system.api.message.MessageFunctions.createTermination;
 import static cvf.ids.system.api.message.MessageFunctions.createVerification;
@@ -72,7 +72,7 @@ public class NegotiationPipeline {
 
     public NegotiationPipeline sendCounterRequest() {
         stages.add(() -> {
-            var contractRequest = createContractCounterOffer(clientNegotiation.getCorrelationId(), clientNegotiation.getDatasetId());
+            var contractRequest = createCounterOffer(clientNegotiation.getCorrelationId(), clientNegotiation.getDatasetId());
             connector.getConsumerNegotiationManager().counterOffer(clientNegotiation.getId());
             negotiationClient.contractRequest(contractRequest);
         });

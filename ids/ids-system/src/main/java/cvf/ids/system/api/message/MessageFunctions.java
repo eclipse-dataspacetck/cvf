@@ -36,7 +36,7 @@ public class MessageFunctions {
         return message;
     }
 
-    public static Map<String, Object> createContractCounterOffer(String processId, String datasetId) {
+    public static Map<String, Object> createCounterOffer(String processId, String datasetId) {
         var message = createBaseMessage(IDS_NAMESPACE_PREFIX + "ContractRequestMessage"); // do NOT override id
         message.put(IDS_NAMESPACE_PREFIX + "processId", processId);
         message.put(CONTEXT, createContext());
