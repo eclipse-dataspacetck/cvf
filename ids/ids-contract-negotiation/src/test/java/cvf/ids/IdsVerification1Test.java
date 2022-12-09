@@ -90,6 +90,7 @@ public class IdsVerification1Test extends AbstractNegotiationVerificationTest {
                 .expectAgreement(agreement -> clientConnector.getConsumerNegotiationManager().handleAgreement(agreement))
                 .acceptLastOffer()
                 .thenWaitForState(PROVIDER_AGREED)
+                .sendConsumerVerify()
                 .execute();
 
         negotiationMock.verify();

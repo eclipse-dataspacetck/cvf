@@ -12,6 +12,7 @@ import static cvf.ids.system.api.message.IdsConstants.IDS_NAMESPACE;
 import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_AGREED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_REQUESTED;
+import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_VERIFIED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER_OFFERED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 
@@ -39,8 +40,13 @@ public class ConsumerNegotiationManager {
         contractNegotiation.transition(CONSUMER_AGREED);
     }
 
-    public void terminate(String id) {
-        var negotiation = getNegotiations().get(id);
+    public void consumerVerify(String processId) {
+        var contractNegotiation = getNegotiations().get(processId);
+        contractNegotiation.transition(CONSUMER_VERIFIED);
+    }
+
+    public void terminate(String processId) {
+        var negotiation = getNegotiations().get(processId);
         negotiation.transition(TERMINATED, n -> listeners.forEach(l -> l.terminated(n)));
     }
 

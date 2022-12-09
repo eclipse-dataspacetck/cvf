@@ -17,6 +17,7 @@ import static cvf.ids.system.api.message.MessageFunctions.createAcceptedEvent;
 import static cvf.ids.system.api.message.MessageFunctions.createContractCounterRequest;
 import static cvf.ids.system.api.message.MessageFunctions.createContractRequest;
 import static cvf.ids.system.api.message.MessageFunctions.createTermination;
+import static cvf.ids.system.api.message.MessageFunctions.createVerification;
 import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -86,6 +87,14 @@ public class NegotiationPipeline {
         stages.add(() -> {
             connector.getConsumerNegotiationManager().acceptLastOffer(clientNegotiation.getId());
             negotiationClient.acceptOffer(createAcceptedEvent(clientNegotiation.getCorrelationId()));
+        });
+        return this;
+    }
+
+    public NegotiationPipeline sendConsumerVerify() {
+        stages.add(() -> {
+            connector.getConsumerNegotiationManager().consumerVerify(clientNegotiation.getId());
+            negotiationClient.consumerVerify(createVerification(clientNegotiation.getCorrelationId()));
         });
         return this;
     }

@@ -69,6 +69,14 @@ public class MessageFunctions {
         return message;
     }
 
+    public static Map<String, Object> createVerification(String processId) {
+        var message = createBaseMessage(IDS_NAMESPACE_PREFIX + "ContractAgreementVerificationMessage");
+        message.put(CONTEXT, createContext());
+
+        message.put(IDS_NAMESPACE_PREFIX + "processId", processId);
+        return message;
+    }
+
     public static Map<String, Object> createOffer(String processId, String offerId, String datasetId) {
         var message = createBaseMessage(IDS_NAMESPACE_PREFIX + "ContractOfferMessage");
         var context = createContext();

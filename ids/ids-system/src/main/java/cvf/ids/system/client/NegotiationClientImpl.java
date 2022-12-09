@@ -65,4 +65,14 @@ public class NegotiationClientImpl implements NegotiationClient {
         }
         // TODO implement HTTP invoke
     }
+
+    @Override
+    public void consumerVerify(Map<String, Object> verification) {
+        if (systemConnector != null) {
+            var compacted = compact(verification);
+            var processId = stringProperty(IdsConstants.IDS_NAMESPACE + "processId", compacted);
+            systemConnector.getProviderNegotiationManager().consumerVerification(processId, verification);
+        }
+        // TODO implement HTTP invoke
+    }
 }

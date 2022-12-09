@@ -115,4 +115,8 @@ public class ProviderNegotiationManager {
         return negotiation;
     }
 
+    public void consumerVerification(String processId, Map<String, Object> message) {
+        var negotiation = findById(processId);
+        // TODO verify message
+    }
 }
