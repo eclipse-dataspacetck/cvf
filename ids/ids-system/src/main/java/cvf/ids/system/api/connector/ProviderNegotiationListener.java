@@ -22,4 +22,10 @@ public interface ProviderNegotiationListener extends NegotiationListener {
     default void consumerAgreed(ContractNegotiation negotiation) {
     }
 
+    /**
+     * Invoked after a consumer agreement has been received.
+     */
+    default void consumerVerified(Map<String, Object> verification, ContractNegotiation negotiation) {
+    }
+
 }

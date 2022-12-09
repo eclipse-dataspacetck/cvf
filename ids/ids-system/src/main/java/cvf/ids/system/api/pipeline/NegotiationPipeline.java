@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 import static cvf.ids.system.api.message.IdsConstants.ID;
 import static cvf.ids.system.api.message.MessageFunctions.createAcceptedEvent;
-import static cvf.ids.system.api.message.MessageFunctions.createContractCounterRequest;
+import static cvf.ids.system.api.message.MessageFunctions.createContractCounterOffer;
 import static cvf.ids.system.api.message.MessageFunctions.createContractRequest;
 import static cvf.ids.system.api.message.MessageFunctions.createTermination;
 import static cvf.ids.system.api.message.MessageFunctions.createVerification;
@@ -60,15 +60,15 @@ public class NegotiationPipeline {
 
             var response = negotiationClient.contractRequest(contractRequest);
             var correlationId = stringProperty(ID, response);
-            connector.getConsumerNegotiationManager().consumerRequested(clientNegotiation.getId(), correlationId);
+            connector.getConsumerNegotiationManager().contractRequested(clientNegotiation.getId(), correlationId);
         });
         return this;
     }
 
     public NegotiationPipeline sendCounterRequest() {
         stages.add(() -> {
-            var contractRequest = createContractCounterRequest(clientNegotiation.getCorrelationId(), clientNegotiation.getDatasetId());
-            connector.getConsumerNegotiationManager().consumerCounterRequested(clientNegotiation.getId());
+            var contractRequest = createContractCounterOffer(clientNegotiation.getCorrelationId(), clientNegotiation.getDatasetId());
+            connector.getConsumerNegotiationManager().counterOffer(clientNegotiation.getId());
             negotiationClient.contractRequest(contractRequest);
         });
         return this;
@@ -85,15 +85,15 @@ public class NegotiationPipeline {
 
     public NegotiationPipeline acceptLastOffer() {
         stages.add(() -> {
-            connector.getConsumerNegotiationManager().acceptLastOffer(clientNegotiation.getId());
-            negotiationClient.acceptOffer(createAcceptedEvent(clientNegotiation.getCorrelationId()));
+            connector.getConsumerNegotiationManager().agree(clientNegotiation.getId());
+            negotiationClient.consumerAgree(createAcceptedEvent(clientNegotiation.getCorrelationId()));
         });
         return this;
     }
 
     public NegotiationPipeline sendConsumerVerify() {
         stages.add(() -> {
-            connector.getConsumerNegotiationManager().consumerVerify(clientNegotiation.getId());
+            connector.getConsumerNegotiationManager().verify(clientNegotiation.getId());
             negotiationClient.consumerVerify(createVerification(clientNegotiation.getCorrelationId()));
         });
         return this;
@@ -136,6 +136,17 @@ public class NegotiationPipeline {
                     //noinspection unchecked
                     action.accept((Map<String, Object>) agreement);
                     endpoint.deregisterHandler("negotiation/agreement");
+                    return null;
+                }));
+        return this;
+    }
+
+    public NegotiationPipeline expectFinalized(Consumer<Map<String, Object>> action) {
+        stages.add(() ->
+                endpoint.registerHandler("negotiation/event", agreement -> {
+                    //noinspection unchecked
+                    action.accept((Map<String, Object>) agreement);
+                    endpoint.deregisterHandler("negotiation/event");
                     return null;
                 }));
         return this;

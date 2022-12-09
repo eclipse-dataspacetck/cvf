@@ -20,6 +20,11 @@ public interface ProviderNegotiationMock {
     void recordConsumerAgreedAction(Action action);
 
     /**
+     * Records an action to execute when a consumer verifies an offer.
+     */
+    void recordConsumerVerifyAction(Action action);
+
+    /**
      * Verifies all actions have been executed.
      */
     void verify();

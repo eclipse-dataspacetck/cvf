@@ -14,6 +14,7 @@ import java.util.concurrent.Executor;
 
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_AGREED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_REQUESTED;
+import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_VERIFIED;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
@@ -45,6 +46,11 @@ public class ProviderNegotiationMockImpl implements ProviderNegotiationMock, Pro
     }
 
     @Override
+    public void recordConsumerVerifyAction(Action action) {
+        recordAction(CONSUMER_VERIFIED, action);
+    }
+
+    @Override
     public void contractRequested(Map<String, Object> contractRequest, ContractNegotiation negotiation) {
         var action = actions.getOrDefault(CONSUMER_REQUESTED, EMPTY_QUEUE).poll();
         if (action == null) {
@@ -56,6 +62,15 @@ public class ProviderNegotiationMockImpl implements ProviderNegotiationMock, Pro
     @Override
     public void consumerAgreed(ContractNegotiation negotiation) {
         var action = actions.getOrDefault(CONSUMER_AGREED, EMPTY_QUEUE).poll();
+        if (action == null) {
+            return;
+        }
+        executor.execute(() -> action.accept(negotiation));
+    }
+
+    @Override
+    public void consumerVerified(Map<String, Object> verification, ContractNegotiation negotiation) {
+        var action = actions.getOrDefault(CONSUMER_VERIFIED, EMPTY_QUEUE).poll();
         if (action == null) {
             return;
         }

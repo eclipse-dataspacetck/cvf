@@ -36,7 +36,7 @@ public class MessageFunctions {
         return message;
     }
 
-    public static Map<String, Object> createContractCounterRequest(String processId, String datasetId) {
+    public static Map<String, Object> createContractCounterOffer(String processId, String datasetId) {
         var message = createBaseMessage(IDS_NAMESPACE_PREFIX + "ContractRequestMessage"); // do NOT override id
         message.put(IDS_NAMESPACE_PREFIX + "processId", processId);
         message.put(CONTEXT, createContext());
@@ -61,11 +61,19 @@ public class MessageFunctions {
     }
 
     public static Map<String, Object> createAcceptedEvent(String processId) {
+        return createEvent(processId, "accepted");
+    }
+
+    public static Map<String, Object> createFinalizedEvent(String processId) {
+        return createEvent(processId, "finalized");
+    }
+
+    public static Map<String, Object> createEvent(String processId, String eventType) {
         var message = createBaseMessage(IDS_NAMESPACE_PREFIX + "ContractNegotiationEventMessage");
         message.put(CONTEXT, createContext());
 
         message.put(IDS_NAMESPACE_PREFIX + "processId", processId);
-        message.put(IDS_NAMESPACE_PREFIX + "eventType", "accepted");
+        message.put(IDS_NAMESPACE_PREFIX + "eventType", eventType);
         return message;
     }
 

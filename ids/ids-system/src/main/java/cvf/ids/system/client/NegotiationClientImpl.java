@@ -28,7 +28,7 @@ public class NegotiationClientImpl implements NegotiationClient {
     public Map<String, Object> contractRequest(Map<String, Object> contractRequest) {
         if (systemConnector != null) {
             var compacted = compact(contractRequest);
-            var negotiation = systemConnector.getProviderNegotiationManager().contractRequest(compacted);
+            var negotiation = systemConnector.getProviderNegotiationManager().handleContractRequest(compacted);
             return createNegotiationResponse(negotiation.getId(), negotiation.getState().toString().toLowerCase());
         }
         // TODO implement HTTP invoke
@@ -57,11 +57,11 @@ public class NegotiationClientImpl implements NegotiationClient {
     }
 
     @Override
-    public void acceptOffer(Map<String, Object> event) {
+    public void consumerAgree(Map<String, Object> event) {
         if (systemConnector != null) {
             var compacted = compact(event);
             var processId = stringProperty(IdsConstants.IDS_NAMESPACE + "processId", compacted);
-            systemConnector.getProviderNegotiationManager().acceptOffer(processId);
+            systemConnector.getProviderNegotiationManager().handleConsumerAgreed(processId);
         }
         // TODO implement HTTP invoke
     }
@@ -71,7 +71,7 @@ public class NegotiationClientImpl implements NegotiationClient {
         if (systemConnector != null) {
             var compacted = compact(verification);
             var processId = stringProperty(IdsConstants.IDS_NAMESPACE + "processId", compacted);
-            systemConnector.getProviderNegotiationManager().consumerVerification(processId, verification);
+            systemConnector.getProviderNegotiationManager().handleConsumerVerified(processId, verification);
         }
         // TODO implement HTTP invoke
     }

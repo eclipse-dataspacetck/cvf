@@ -15,6 +15,7 @@ import static cvf.ids.system.api.message.IdsConstants.IDS_NAMESPACE;
 import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_AGREED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_REQUESTED;
+import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_VERIFIED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 import static java.util.Objects.requireNonNull;
 
@@ -29,18 +30,29 @@ public class ProviderNegotiationManager {
     /**
      * Called when a contract request is received.
      */
-    public ContractNegotiation contractRequest(Map<String, Object> contractRequest) {
+    public ContractNegotiation handleContractRequest(Map<String, Object> contractRequest) {
         var correlationId = stringProperty(ID, contractRequest);  // correlation id is the @id of the message
 
         var processId = (String) contractRequest.get(IDS_NAMESPACE + "processId");
 
         if (processId != null) {
             // the message is a counter-offer
-            return processCounterOffer(contractRequest, processId);
+            return handleCounterOffer(contractRequest, processId);
         } else {
             // the message is an initial request
-            return processInitialRequest(contractRequest, correlationId);
+            return handleInitialRequest(contractRequest, correlationId);
         }
+    }
+
+    public void handleConsumerAgreed(String processId) {
+        var negotiation = negotiations.get(processId);
+        negotiation.transition(CONSUMER_AGREED, n -> listeners.forEach(l -> l.consumerAgreed(negotiation)));
+    }
+
+    public void handleConsumerVerified(String processId, Map<String, Object> verification) {
+        var negotiation = findById(processId);
+        // TODO verify message
+        negotiation.transition(CONSUMER_VERIFIED, n-> listeners.forEach(l -> l.consumerVerified(verification, n)));
     }
 
     public void terminate(Map<String, Object> termination) {
@@ -49,9 +61,37 @@ public class ProviderNegotiationManager {
         negotiation.transition(TERMINATED, n -> listeners.forEach(l -> l.terminated(n)));
     }
 
-    public void acceptOffer(String processId) {
-        var negotiation = negotiations.get(processId);
-        negotiation.transition(CONSUMER_AGREED, n -> listeners.forEach(l -> l.consumerAgreed(negotiation)));
+    @NotNull
+    private ContractNegotiation handleCounterOffer(Map<String, Object> contractRequest, String processId) {
+        var negotiation = findById(processId);
+        var offer = MessageFunctions.mapProperty(IDS_NAMESPACE + "offer", contractRequest);
+        negotiation.storeOffer(offer, CONSUMER_REQUESTED, n -> listeners.forEach(l -> l.contractRequested(contractRequest, negotiation)));
+        return negotiation;
+    }
+
+    @NotNull
+    private ContractNegotiation handleInitialRequest(Map<String, Object> contractRequest, String correlationId) {
+        var previousNegotiation = findByCorrelationId(correlationId);
+        if (previousNegotiation != null) {
+            return previousNegotiation;
+        }
+
+        var offerId = stringProperty(IDS_NAMESPACE + "offerId", contractRequest);
+        var datasetId = stringProperty(IDS_NAMESPACE + "datasetId", contractRequest);
+        var callbackAddress = stringProperty(IDS_NAMESPACE + "callbackAddress", contractRequest);
+
+        var builder = ContractNegotiation.Builder.newInstance()
+                .correlationId(correlationId)
+                .offerId(offerId)
+                .state(CONSUMER_REQUESTED)
+                .callbackAddress(callbackAddress)
+                .datasetId(datasetId);
+
+        var negotiation = builder.build();
+        negotiations.put(negotiation.getId(), negotiation);
+        listeners.forEach(l -> l.contractRequested(contractRequest, negotiation));
+
+        return negotiation;
     }
 
     @NotNull
@@ -82,41 +122,4 @@ public class ProviderNegotiationManager {
         listeners.remove(listener);
     }
 
-    @NotNull
-    private ContractNegotiation processCounterOffer(Map<String, Object> contractRequest, String processId) {
-        var negotiation = findById(processId);
-        var offer = MessageFunctions.mapProperty(IDS_NAMESPACE + "offer", contractRequest);
-        negotiation.storeOffer(offer, CONSUMER_REQUESTED, n -> listeners.forEach(l -> l.contractRequested(contractRequest, negotiation)));
-        return negotiation;
-    }
-
-    @NotNull
-    private ContractNegotiation processInitialRequest(Map<String, Object> contractRequest, String correlationId) {
-        var previousNegotiation = findByCorrelationId(correlationId);
-        if (previousNegotiation != null) {
-            return previousNegotiation;
-        }
-
-        var offerId = stringProperty(IDS_NAMESPACE + "offerId", contractRequest);
-        var datasetId = stringProperty(IDS_NAMESPACE + "datasetId", contractRequest);
-        var callbackAddress = stringProperty(IDS_NAMESPACE + "callbackAddress", contractRequest);
-
-        var builder = ContractNegotiation.Builder.newInstance()
-                .correlationId(correlationId)
-                .offerId(offerId)
-                .state(CONSUMER_REQUESTED)
-                .callbackAddress(callbackAddress)
-                .datasetId(datasetId);
-
-        var negotiation = builder.build();
-        negotiations.put(negotiation.getId(), negotiation);
-        listeners.forEach(l -> l.contractRequested(contractRequest, negotiation));
-
-        return negotiation;
-    }
-
-    public void consumerVerification(String processId, Map<String, Object> message) {
-        var negotiation = findById(processId);
-        // TODO verify message
-    }
-}
+ }

@@ -8,9 +8,19 @@ import java.util.Map;
 public interface NegotiationClient {
 
     /**
-     * Creates a contract request.
+     * Creates a contract request. Used for initial requests and client counter-offers.
      */
     Map<String, Object> contractRequest(Map<String, Object> message);
+
+    /**
+     * Accepts the most recent offer.
+     */
+    void consumerAgree(Map<String, Object> offer);
+
+    /**
+     * Verifies the contract agreement with the provider.
+     */
+    void consumerVerify(Map<String, Object> verification);
 
     /**
      * Terminates a negotiation.
@@ -22,13 +32,4 @@ public interface NegotiationClient {
      */
     Map<String, Object> getNegotiation(String processId);
 
-    /**
-     * Accepts the last offer.
-     */
-    void acceptOffer(Map<String, Object> offer);
-
-    /**
-     * Verifies the contract agreement with the provider.
-     */
-    void consumerVerify(Map<String, Object> verification);
 }

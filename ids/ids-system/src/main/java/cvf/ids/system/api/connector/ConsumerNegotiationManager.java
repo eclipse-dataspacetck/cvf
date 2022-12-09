@@ -13,6 +13,7 @@ import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_AGREED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_REQUESTED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_VERIFIED;
+import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER_FINALIZED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER_OFFERED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 
@@ -25,31 +26,50 @@ public class ConsumerNegotiationManager {
 
     private Queue<ConsumerNegotiationListener> listeners = new ConcurrentLinkedQueue<>();
 
-    public void consumerRequested(String processId, String correlationId) {
+    /**
+     * Called after a contract has been requested and the negotiation id is returned by the provider. The provider negotiation id will be set as the correlation id
+     * on the consumer.
+     */
+    public void contractRequested(String processId, String correlationId) {
         var contractNegotiation = getNegotiations().get(processId);
         contractNegotiation.setCorrelationId(correlationId, CONSUMER_REQUESTED);
     }
 
-    public void consumerCounterRequested(String processId) {
+    /**
+     * Transitions the negotiation to {@link ContractNegotiation.State#CONSUMER_REQUESTED} when a counter-offer has been made.
+     */
+    public void counterOffer(String processId) {
         var contractNegotiation = getNegotiations().get(processId);
         contractNegotiation.transition(CONSUMER_REQUESTED);
     }
 
-    public void acceptLastOffer(String processId) {
+    /**
+     * Transitions the negotiation to {@link ContractNegotiation.State#CONSUMER_AGREED} when an offer is accepted by the consumer.
+     */
+    public void agree(String processId) {
         var contractNegotiation = getNegotiations().get(processId);
         contractNegotiation.transition(CONSUMER_AGREED);
     }
 
-    public void consumerVerify(String processId) {
+    /**
+     * Transitions the negotiation to {@link ContractNegotiation.State#CONSUMER_VERIFIED} when a verification is being sent.
+     */
+    public void verify(String processId) {
         var contractNegotiation = getNegotiations().get(processId);
         contractNegotiation.transition(CONSUMER_VERIFIED);
     }
 
+    /**
+     * Transitions the negotiation to {@link ContractNegotiation.State#TERMINATED}.
+     */
     public void terminate(String processId) {
         var negotiation = getNegotiations().get(processId);
         negotiation.transition(TERMINATED, n -> listeners.forEach(l -> l.terminated(n)));
     }
 
+    /**
+     * Creates a contract negotiation for the given dataset.
+     */
     public ContractNegotiation createNegotiation(String datasetId) {
         var negotiation = ContractNegotiation.Builder.newInstance().datasetId(datasetId).build();
         negotiations.put(negotiation.getId(), negotiation);
@@ -59,16 +79,31 @@ public class ConsumerNegotiationManager {
         return negotiation;
     }
 
-    public void providerOffer(Map<String, Object> offer) {
+    /**
+     * Processes an offer received from the provider.
+     */
+    public void handleProviderOffer(Map<String, Object> offer) {
         var id = stringProperty(IDS_NAMESPACE + "processId", offer);
         var negotiation = findByCorrelationId(id);
         negotiation.storeOffer(offer, PROVIDER_OFFERED);
     }
 
+    /**
+     * Processes an agreement received from the provider.
+     */
     public void handleAgreement(Map<String, Object> agreement) {
         var id = stringProperty(IDS_NAMESPACE + "processId", agreement);
         var negotiation = findByCorrelationId(id);
         negotiation.storeAgreement(agreement);
+    }
+
+    /**
+     * Processes a finalize event received from the provider.
+     */
+    public void handleFinalized(Map<String, Object> event) {
+        var id = stringProperty(IDS_NAMESPACE + "processId", event);
+        var negotiation = findByCorrelationId(id);
+        negotiation.transition(PROVIDER_FINALIZED);
     }
 
     @NotNull
