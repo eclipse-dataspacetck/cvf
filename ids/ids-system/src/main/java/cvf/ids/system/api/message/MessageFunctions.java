@@ -11,6 +11,7 @@ import java.util.UUID;
 import static cvf.ids.system.api.message.IdsConstants.CONTEXT;
 import static cvf.ids.system.api.message.IdsConstants.ID;
 import static cvf.ids.system.api.message.IdsConstants.IDS_NAMESPACE;
+import static cvf.ids.system.api.message.IdsConstants.IDS_NAMESPACE_PREFIX;
 import static cvf.ids.system.api.message.IdsConstants.ODRL_NAMESPACE;
 import static cvf.ids.system.api.message.IdsConstants.TYPE;
 import static java.util.Collections.emptyList;
@@ -23,67 +24,95 @@ import static java.util.stream.Collectors.toList;
 public class MessageFunctions {
 
     public static Map<String, Object> createContractRequest(String processId, String offerId, String datasetId, String callbackAddress) {
-        var message = createBaseMessage("ids:ContractRequestMessage");
+        var message = createBaseMessage(IDS_NAMESPACE_PREFIX + "ContractRequestMessage");
         message.put(ID, processId); // override id
         message.put(CONTEXT, createContext());
 
-        message.put("offerId", offerId);
-        message.put("datasetId", datasetId);
+        message.put(IDS_NAMESPACE_PREFIX + "offerId", offerId);
+        message.put(IDS_NAMESPACE_PREFIX + "datasetId", datasetId);
 
-        message.put("callbackAddress", callbackAddress);
+        message.put(IDS_NAMESPACE_PREFIX + "callbackAddress", callbackAddress);
 
         return message;
     }
 
     public static Map<String, Object> createContractCounterRequest(String processId, String datasetId) {
-        var message = createBaseMessage("ids:ContractRequestMessage"); // do NOT override id
-        message.put("processId", processId);
+        var message = createBaseMessage(IDS_NAMESPACE_PREFIX + "ContractRequestMessage"); // do NOT override id
+        message.put(IDS_NAMESPACE_PREFIX + "processId", processId);
         message.put(CONTEXT, createContext());
 
-        message.put("offer", createOffer(processId, UUID.randomUUID().toString(), datasetId));
-        message.put("datasetId", datasetId);
+        message.put(IDS_NAMESPACE_PREFIX + "offer", createOffer(processId, UUID.randomUUID().toString(), datasetId));
+        message.put(IDS_NAMESPACE_PREFIX + "datasetId", datasetId);
 
         return message;
     }
 
     public static Map<String, Object> createTermination(String processId, String code, String... reasons) {
-        var message = createBaseMessage("ids:ContractNegotiationTermination");
+        var message = createBaseMessage(IDS_NAMESPACE_PREFIX + "ContractNegotiationTermination");
         message.put(CONTEXT, createContext());
 
-        message.put("processId", processId);
-        message.put("code", code);
+        message.put(IDS_NAMESPACE_PREFIX + "processId", processId);
+        message.put(IDS_NAMESPACE_PREFIX + "code", code);
 
         if (reasons != null && reasons.length > 0) {
-            message.put("reasons", Arrays.stream(reasons).map(reason -> Map.of("message", reason)).collect(toList()));
+            message.put(IDS_NAMESPACE_PREFIX + "reasons", Arrays.stream(reasons).map(reason -> Map.of("message", reason)).collect(toList()));
         }
         return message;
     }
 
+    public static Map<String, Object> createAcceptedEvent(String processId) {
+        var message = createBaseMessage(IDS_NAMESPACE_PREFIX + "ContractNegotiationEventMessage");
+        message.put(CONTEXT, createContext());
+
+        message.put(IDS_NAMESPACE_PREFIX + "processId", processId);
+        message.put(IDS_NAMESPACE_PREFIX + "eventType", "accepted");
+        return message;
+    }
+
     public static Map<String, Object> createOffer(String processId, String offerId, String datasetId) {
-        var message = createBaseMessage("ids:ContractOfferMessage");
+        var message = createBaseMessage(IDS_NAMESPACE_PREFIX + "ContractOfferMessage");
         var context = createContext();
         context.put("odrl", ODRL_NAMESPACE);
         message.put(CONTEXT, context);
-        message.put("ids:processId", processId);
+        message.put(IDS_NAMESPACE_PREFIX + "processId", processId);
 
-        Map<String, Object> permissions = Map.of("action", "use", "constraints", emptyList());
+        var permissions = Map.of("action", "use", "constraints", emptyList());
         var offer = new LinkedHashMap<String, Object>();
         offer.put(TYPE, "odrl:Offer");
-        offer.put("uid", offerId);
-        offer.put("target", datasetId);
-        offer.put("permissions", List.of(permissions));
+        offer.put(ID, offerId);
+        offer.put(IDS_NAMESPACE_PREFIX + "target", datasetId);
+        offer.put(IDS_NAMESPACE_PREFIX + "permissions", List.of(permissions));
 
-        message.put("offer", offer);
+        message.put(IDS_NAMESPACE_PREFIX + "offer", offer);
+
+        return message;
+    }
+
+    public static Map<String, Object> createAgreement(String processId, String agreementId, String datasetId) {
+        var message = createBaseMessage(IDS_NAMESPACE_PREFIX + "ContractAgreementMessage");
+        var context = createContext();
+        context.put("odrl", ODRL_NAMESPACE);
+        message.put(CONTEXT, context);
+        message.put(IDS_NAMESPACE_PREFIX + "processId", processId);
+
+        var permissions = Map.of("action", "use", "constraints", emptyList());
+        var offer = new LinkedHashMap<String, Object>();
+        offer.put(TYPE, "odrl:Agreement");
+        offer.put(ID, agreementId);
+        offer.put(IDS_NAMESPACE_PREFIX + "target", datasetId);
+        offer.put(IDS_NAMESPACE_PREFIX + "permissions", List.of(permissions));
+
+        message.put(IDS_NAMESPACE_PREFIX + "agreement", offer);
 
         return message;
     }
 
     public static Map<String, Object> createNegotiationResponse(String id, String state) {
-        var message = createBaseMessage("ids:ContractNegotiation");
+        var message = createBaseMessage(IDS_NAMESPACE_PREFIX + "ContractNegotiation");
         var context = createContext();
         message.put(CONTEXT, context);
         message.put(ID, id);
-        message.put("ids:state", state);  // TODO JSON-LD
+        message.put(IDS_NAMESPACE_PREFIX + "state", state);  // TODO JSON-LD
         return message;
     }
 

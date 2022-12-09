@@ -2,10 +2,13 @@ package cvf.ids.system.client;
 
 import cvf.ids.system.api.client.NegotiationClient;
 import cvf.ids.system.api.connector.Connector;
+import cvf.ids.system.api.message.IdsConstants;
 
 import java.util.Map;
 
+import static cvf.core.api.message.MessageSerializer.compact;
 import static cvf.ids.system.api.message.MessageFunctions.createNegotiationResponse;
+import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
 import static java.util.Collections.emptyMap;
 
 /**
@@ -24,7 +27,8 @@ public class NegotiationClientImpl implements NegotiationClient {
     @Override
     public Map<String, Object> contractRequest(Map<String, Object> contractRequest) {
         if (systemConnector != null) {
-            var negotiation = systemConnector.getProviderNegotiationManager().contractRequest(contractRequest);
+            var compacted = compact(contractRequest);
+            var negotiation = systemConnector.getProviderNegotiationManager().contractRequest(compacted);
             return createNegotiationResponse(negotiation.getId(), negotiation.getState().toString().toLowerCase());
         }
         // TODO implement HTTP invoke
@@ -34,20 +38,31 @@ public class NegotiationClientImpl implements NegotiationClient {
     @Override
     public void terminate(Map<String, Object> termination) {
         if (systemConnector != null) {
-            systemConnector.getProviderNegotiationManager().terminate(termination);
+            var compacted = compact(termination);
+            systemConnector.getProviderNegotiationManager().terminate(compacted);
         } else {
             // TODO implement HTTP invoke
         }
     }
 
     @Override
-    public Map<String, Object> getNegotiation(String id) {
+    public Map<String, Object> getNegotiation(String processId) {
         if (systemConnector != null) {
-            var negotiation = systemConnector.getProviderNegotiationManager().findById(id);
+            var negotiation = systemConnector.getProviderNegotiationManager().findById(processId);
             return createNegotiationResponse(negotiation.getId(), negotiation.getState().toString().toLowerCase());
         }
         // TODO implement HTTP invoke
         return emptyMap();
 
+    }
+
+    @Override
+    public void acceptOffer(Map<String, Object> event) {
+        if (systemConnector != null) {
+            var compacted = compact(event);
+            var processId = stringProperty(IdsConstants.IDS_NAMESPACE + "processId", compacted);
+            systemConnector.getProviderNegotiationManager().acceptOffer(processId);
+        }
+        // TODO implement HTTP invoke
     }
 }

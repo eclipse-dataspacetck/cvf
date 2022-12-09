@@ -7,6 +7,8 @@ public interface IdsConstants {
 
     String IDS_NAMESPACE = "https://w3id.org/idsa/core/";
 
+    String IDS_NAMESPACE_PREFIX = "ids:";
+
     String ODRL_NAMESPACE = "https://www.w3.org/TR/odrl-model";
 
     String CONTEXT = "@context";

@@ -30,9 +30,10 @@ class ContractNegotiationTest {
     @EnumSource(value = ContractNegotiation.State.class, names = {"TERMINATED", "CONSUMER_REQUESTED", "PROVIDER_OFFERED"})
     void verifyValidInitialStateTransitions(ContractNegotiation.State state) {
         if (CONSUMER_REQUESTED == state || PROVIDER_OFFERED == state) {
-            negotiation.setCorrelationId(randomUUID().toString());
+            negotiation.setCorrelationId(randomUUID().toString(), state);
+        } else {
+            negotiation.transition(state);
         }
-        negotiation.transition(state);
         assertEquals(state, negotiation.getState());
     }
 

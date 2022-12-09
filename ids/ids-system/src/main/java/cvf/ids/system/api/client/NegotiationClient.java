@@ -20,5 +20,7 @@ public interface NegotiationClient {
     /**
      * Returns a negotiation.
      */
-    Map<String, Object> getNegotiation(String id);
+    Map<String, Object> getNegotiation(String processId);
+
+    void acceptOffer(Map<String, Object> offer);
 }

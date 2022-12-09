@@ -10,7 +10,6 @@ import cvf.core.spi.system.ServiceConfiguration;
 import cvf.core.spi.system.SystemConfiguration;
 import cvf.core.spi.system.SystemLauncher;
 import cvf.core.system.injection.InstanceInjector;
-import jakarta.json.JsonStructure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -28,6 +27,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static com.apicatalog.jsonld.JsonLd.compact;
+import static cvf.core.api.message.MessageSerializer.EMPTY_CONTEXT;
 import static cvf.core.api.message.MessageSerializer.MAPPER;
 import static cvf.core.api.message.MessageSerializer.serialize;
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
@@ -39,7 +39,6 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
     private static final String CVF_CALLBACK_ADDRESS = "cvf.callback.address";
     private static final String CVF_LAUNCHER = "cvf.launcher";
 
-    private static final JsonDocument EMPTY_CONTEXT = JsonDocument.of(JsonStructure.EMPTY_JSON_OBJECT);
 
     private static final ExtensionContext.Namespace CALLBACK_NAMESPACE = org.junit.jupiter.api.extension.ExtensionContext.Namespace.create(new Object());
 
@@ -205,7 +204,7 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
                     return;
                 }
             }
-            throw new IllegalArgumentException("Callback path not registered: " + path);
+            exchange.sendResponseHeaders(404, 0);
         }
     }
 

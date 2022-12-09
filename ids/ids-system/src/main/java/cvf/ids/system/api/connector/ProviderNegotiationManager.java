@@ -11,13 +11,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static cvf.ids.system.api.message.IdsConstants.ID;
+import static cvf.ids.system.api.message.IdsConstants.IDS_NAMESPACE;
 import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
+import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_AGREED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_REQUESTED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Manages contract negotiations on a producer.
+ * Manages contract negotiations on a provider.
  */
 public class ProviderNegotiationManager {
     private Map<String, ContractNegotiation> negotiations = new ConcurrentHashMap<>();
@@ -30,7 +32,7 @@ public class ProviderNegotiationManager {
     public ContractNegotiation contractRequest(Map<String, Object> contractRequest) {
         var correlationId = stringProperty(ID, contractRequest);  // correlation id is the @id of the message
 
-        var processId = (String) contractRequest.get("processId");
+        var processId = (String) contractRequest.get(IDS_NAMESPACE + "processId");
 
         if (processId != null) {
             // the message is a counter-offer
@@ -42,10 +44,14 @@ public class ProviderNegotiationManager {
     }
 
     public void terminate(Map<String, Object> termination) {
-        var id = (String) requireNonNull(termination.get("processId"));
-        var negotiation = negotiations.get(id);
-        negotiation.transition(TERMINATED);
-        listeners.forEach(l -> l.terminated(negotiation));
+        var processId = requireNonNull(stringProperty(IDS_NAMESPACE + "processId", termination));
+        var negotiation = negotiations.get(processId);
+        negotiation.transition(TERMINATED, n -> listeners.forEach(l -> l.terminated(n)));
+    }
+
+    public void acceptOffer(String processId) {
+        var negotiation = negotiations.get(processId);
+        negotiation.transition(CONSUMER_AGREED, n -> listeners.forEach(l -> l.consumerAgreed(negotiation)));
     }
 
     @NotNull
@@ -79,10 +85,8 @@ public class ProviderNegotiationManager {
     @NotNull
     private ContractNegotiation processCounterOffer(Map<String, Object> contractRequest, String processId) {
         var negotiation = findById(processId);
-        var offer = MessageFunctions.mapProperty("offer", contractRequest);
-        // TODO add offer
-        negotiation.transition(CONSUMER_REQUESTED);
-        listeners.forEach(l -> l.contractRequested(contractRequest, negotiation));
+        var offer = MessageFunctions.mapProperty(IDS_NAMESPACE + "offer", contractRequest);
+        negotiation.storeOffer(offer, CONSUMER_REQUESTED, n -> listeners.forEach(l -> l.contractRequested(contractRequest, negotiation)));
         return negotiation;
     }
 
@@ -93,9 +97,9 @@ public class ProviderNegotiationManager {
             return previousNegotiation;
         }
 
-        var offerId = stringProperty("offerId", contractRequest);
-        var datasetId = stringProperty("datasetId", contractRequest);
-        var callbackAddress = stringProperty("callbackAddress", contractRequest);
+        var offerId = stringProperty(IDS_NAMESPACE + "offerId", contractRequest);
+        var datasetId = stringProperty(IDS_NAMESPACE + "datasetId", contractRequest);
+        var callbackAddress = stringProperty(IDS_NAMESPACE + "callbackAddress", contractRequest);
 
         var builder = ContractNegotiation.Builder.newInstance()
                 .correlationId(correlationId)
@@ -106,7 +110,6 @@ public class ProviderNegotiationManager {
 
         var negotiation = builder.build();
         negotiations.put(negotiation.getId(), negotiation);
-
         listeners.forEach(l -> l.contractRequested(contractRequest, negotiation));
 
         return negotiation;

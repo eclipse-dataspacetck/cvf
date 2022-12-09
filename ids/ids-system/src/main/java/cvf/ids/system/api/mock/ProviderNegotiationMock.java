@@ -2,8 +2,7 @@ package cvf.ids.system.api.mock;
 
 import cvf.ids.system.api.statemachine.ContractNegotiation;
 
-import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Mock service for recording provider connector actions.
@@ -13,7 +12,12 @@ public interface ProviderNegotiationMock {
     /**
      * Records an action to execute when a contract request is processed on the provider.
      */
-    void recordContractRequestedAction(BiConsumer<Map<String, Object>, ContractNegotiation> action);
+    void recordContractRequestedAction(Action action);
+
+    /**
+     * Records an action to execute when a consumer agrees to an offer.
+     */
+    void recordConsumerAgreedAction(Action action);
 
     /**
      * Verifies all actions have been executed.
@@ -29,4 +33,11 @@ public interface ProviderNegotiationMock {
      * Resets the mock and all recorded actions.
      */
     void reset();
+
+    /**
+     * An action to be executed by the mock.
+     */
+    interface Action extends Consumer<ContractNegotiation> {
+
+    }
 }

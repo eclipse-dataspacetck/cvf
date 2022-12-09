@@ -8,7 +8,11 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static cvf.ids.system.api.message.IdsConstants.IDS_NAMESPACE;
+import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
+import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_AGREED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.CONSUMER_REQUESTED;
+import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER_OFFERED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 
 /**
@@ -22,8 +26,7 @@ public class ConsumerNegotiationManager {
 
     public void consumerRequested(String processId, String correlationId) {
         var contractNegotiation = getNegotiations().get(processId);
-        contractNegotiation.setCorrelationId(correlationId);
-        contractNegotiation.transition(CONSUMER_REQUESTED);
+        contractNegotiation.setCorrelationId(correlationId, CONSUMER_REQUESTED);
     }
 
     public void consumerCounterRequested(String processId) {
@@ -31,10 +34,14 @@ public class ConsumerNegotiationManager {
         contractNegotiation.transition(CONSUMER_REQUESTED);
     }
 
+    public void acceptLastOffer(String processId) {
+        var contractNegotiation = getNegotiations().get(processId);
+        contractNegotiation.transition(CONSUMER_AGREED);
+    }
+
     public void terminate(String id) {
         var negotiation = getNegotiations().get(id);
-        negotiation.transition(TERMINATED);
-        listeners.forEach(l -> l.terminated(negotiation));
+        negotiation.transition(TERMINATED, n -> listeners.forEach(l -> l.terminated(n)));
     }
 
     public ContractNegotiation createNegotiation(String datasetId) {
@@ -44,6 +51,18 @@ public class ConsumerNegotiationManager {
         listeners.forEach(l -> l.negotiationCreated(negotiation));
 
         return negotiation;
+    }
+
+    public void providerOffer(Map<String, Object> offer) {
+        var id = stringProperty(IDS_NAMESPACE + "processId", offer);
+        var negotiation = findByCorrelationId(id);
+        negotiation.storeOffer(offer, PROVIDER_OFFERED);
+    }
+
+    public void handleAgreement(Map<String, Object> agreement) {
+        var id = stringProperty(IDS_NAMESPACE + "processId", agreement);
+        var negotiation = findByCorrelationId(id);
+        negotiation.storeAgreement(agreement);
     }
 
     @NotNull
@@ -65,4 +84,5 @@ public class ConsumerNegotiationManager {
     public void deregisterListener(ConsumerNegotiationListener listener) {
         listeners.remove(listener);
     }
+
 }

@@ -25,8 +25,10 @@ public class HttpFunctions {
         var httpClient = new OkHttpClient.Builder().build();
         try {
             var response = httpClient.newCall(httpRequest).execute();
-            if (!response.isSuccessful()) {
-                throw new RuntimeException("Unexpected response code: " + response.code()); // TODO fix
+            if (404 == response.code()) {
+                throw new RuntimeException("Unexpected callback received: " + url);
+            } else if (!response.isSuccessful()) {
+                throw new RuntimeException("Unexpected response code: " + response.code());
             }
             return response;
         } catch (IOException e) {
