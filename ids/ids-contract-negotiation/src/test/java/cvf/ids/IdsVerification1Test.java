@@ -1,19 +1,20 @@
 package cvf.ids;
 
 import cvf.core.api.system.Inject;
-import cvf.ids.system.api.connector.Consumer;
 import cvf.ids.system.api.connector.Connector;
+import cvf.ids.system.api.connector.Consumer;
 import cvf.ids.system.api.mock.ProviderNegotiationMock;
 import cvf.ids.system.api.pipeline.NegotiationPipeline;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import static cvf.ids.NegotiationSetup.getDatasetId;
+import static cvf.ids.NegotiationSetup.getOfferId;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER_AGREED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER_FINALIZED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER_OFFERED;
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.TERMINATED;
-import static java.util.UUID.randomUUID;
 
 /**
  *
@@ -37,8 +38,8 @@ public class IdsVerification1Test extends AbstractNegotiationVerificationTest {
     public void verify_01_01() {
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
 
-        var datasetId = randomUUID().toString();
-        var offerId = randomUUID().toString();
+        var datasetId = getDatasetId("CN_DS_01_01");
+        var offerId = getOfferId("CN_O_01_01");
 
         negotiationPipeline
                 .expectOffer(offer -> clientConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
@@ -58,8 +59,8 @@ public class IdsVerification1Test extends AbstractNegotiationVerificationTest {
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
         negotiationMock.recordContractRequestedAction(ProviderActions::terminate);
 
-        var datasetId = randomUUID().toString();
-        var offerId = randomUUID().toString();
+        var datasetId = getDatasetId("CN_DS_01_02");
+        var offerId = getOfferId("CN_O_01_02");
 
         negotiationPipeline
                 .expectOffer(offer -> clientConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
@@ -74,15 +75,15 @@ public class IdsVerification1Test extends AbstractNegotiationVerificationTest {
     }
 
     @Test
-    @DisplayName("IDS-01-02: Verify contract request, offer received, consumer accepted, provider agreement, consumer verified, provider finalized")
+    @DisplayName("IDS-01-03: Verify contract request, offer received, consumer accepted, provider agreement, consumer verified, provider finalized")
     public void verify_01_03() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
         negotiationMock.recordConsumerAgreedAction(ProviderActions::postProviderAgreed);
         negotiationMock.recordConsumerVerifyAction(ProviderActions::postProviderFinalized);
 
-        var datasetId = randomUUID().toString();
-        var offerId = randomUUID().toString();
+        var datasetId = getDatasetId("CN_DS_01_03");
+        var offerId = getOfferId("CN_O_01_03");
 
         negotiationPipeline
                 .expectOffer(offer -> clientConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
