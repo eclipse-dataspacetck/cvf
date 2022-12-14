@@ -52,6 +52,7 @@ public class NegotiationPipeline {
         return pipeline;
     }
 
+    @SuppressWarnings("unused")
     public NegotiationPipeline waitTime(long waitTime) {
         this.waitTime = waitTime;
         return this;
@@ -167,14 +168,17 @@ public class NegotiationPipeline {
         return this;
     }
 
+    @SuppressWarnings("unused")
     public NegotiationPipeline thenVerify(Runnable runnable) {
         return then(runnable);
     }
 
+    @SuppressWarnings("unused")
     public NegotiationPipeline thenVerifyNegotiation(Consumer<ContractNegotiation> consumer) {
         return then(() -> consumer.accept(clientNegotiation));
     }
 
+    @SuppressWarnings("unused")
     public NegotiationPipeline thenVerifyState(ContractNegotiation.State state) {
         stages.add(() -> assertEquals(state, clientNegotiation.getState()));
         return this;
