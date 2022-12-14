@@ -5,7 +5,7 @@ import cvf.core.api.system.Inject;
 import cvf.core.api.system.MandatoryTest;
 import cvf.ids.system.api.connector.Connector;
 import cvf.ids.system.api.connector.Consumer;
-import cvf.ids.system.api.mock.ProviderNegotiationMock;
+import cvf.ids.system.api.mock.NegotiationProviderMock;
 import cvf.ids.system.api.pipeline.NegotiationPipeline;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -31,7 +31,7 @@ public class IdsContractNegotiationMandatory01Test extends AbstractNegotiationVe
     private NegotiationPipeline negotiationPipeline;
 
     @Inject
-    protected ProviderNegotiationMock negotiationMock;
+    protected NegotiationProviderMock negotiationMock;
 
     @ConfigParam
     protected String offerId = randomUUID().toString();
@@ -97,7 +97,7 @@ public class IdsContractNegotiationMandatory01Test extends AbstractNegotiationVe
 
         negotiationMock.verify();
     }
-    
+
     @MandatoryTest
     @DisplayName("Verify contract request, provider agreement, consumer verified, provider finalized")
     public void cn_01_04() {

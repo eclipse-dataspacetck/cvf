@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 /**
  * Mock service for recording provider connector actions.
  */
-public interface ProviderNegotiationMock {
+public interface NegotiationProviderMock {
 
     /**
      * An action to be executed by the mock.

@@ -2,7 +2,7 @@ package cvf.ids.system.mock;
 
 import cvf.ids.system.api.connector.ProviderNegotiationListener;
 import cvf.ids.system.api.connector.ProviderNegotiationManager;
-import cvf.ids.system.api.mock.ProviderNegotiationMock;
+import cvf.ids.system.api.mock.NegotiationProviderMock;
 import cvf.ids.system.api.statemachine.ContractNegotiation;
 
 import java.util.ArrayDeque;
@@ -22,14 +22,14 @@ import static java.util.stream.Collectors.toList;
 /**
  * Default mock implementation.
  */
-public class ProviderNegotiationMockImpl implements ProviderNegotiationMock, ProviderNegotiationListener {
+public class NegotiationProviderMockImpl implements NegotiationProviderMock, ProviderNegotiationListener {
     private ProviderNegotiationManager manager;
     private Executor executor;
     private static final Queue<Action> EMPTY_QUEUE = new ArrayDeque<>();
 
     private Map<ContractNegotiation.State, Queue<Action>> actions = new ConcurrentHashMap<>();
 
-    public ProviderNegotiationMockImpl(ProviderNegotiationManager manager, Executor executor) {
+    public NegotiationProviderMockImpl(ProviderNegotiationManager manager, Executor executor) {
         this.manager = manager;
         this.executor = executor;
         manager.registerListener(this);

@@ -8,10 +8,10 @@ import cvf.core.spi.system.SystemLauncher;
 import cvf.ids.system.api.client.NegotiationClient;
 import cvf.ids.system.api.connector.Consumer;
 import cvf.ids.system.api.connector.Connector;
-import cvf.ids.system.api.mock.ProviderNegotiationMock;
+import cvf.ids.system.api.mock.NegotiationProviderMock;
 import cvf.ids.system.api.pipeline.NegotiationPipeline;
 import cvf.ids.system.client.NegotiationClientImpl;
-import cvf.ids.system.mock.ProviderNegotiationMockImpl;
+import cvf.ids.system.mock.NegotiationProviderMockImpl;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -35,7 +35,7 @@ public class IdsSystemLauncher implements SystemLauncher {
     private Map<String, Connector> clientConnectors = new ConcurrentHashMap<>();
     private Map<String, Connector> providerConnectors = new ConcurrentHashMap<>();
 
-    private Map<String, ProviderNegotiationMock> negotiationMocks = new ConcurrentHashMap<>();
+    private Map<String, NegotiationProviderMock> negotiationMocks = new ConcurrentHashMap<>();
     private Map<String, NegotiationClient> negotiationClients = new ConcurrentHashMap<>();
 
     @Override
@@ -48,7 +48,7 @@ public class IdsSystemLauncher implements SystemLauncher {
     public <T> boolean providesService(Class<T> type) {
         return type.equals(NegotiationClient.class)
                 || type.equals(Connector.class)
-                || type.equals(ProviderNegotiationMock.class)
+                || type.equals(NegotiationProviderMock.class)
                 || type.equals(NegotiationPipeline.class);
     }
 
@@ -59,7 +59,7 @@ public class IdsSystemLauncher implements SystemLauncher {
             return createPipeline(type, configuration, resolver);
         } else if (Connector.class.equals(type)) {
             return createConnector(type, configuration);
-        } else if (ProviderNegotiationMock.class.equals(type)) {
+        } else if (NegotiationProviderMock.class.equals(type)) {
             return createNegotiationMock(type, configuration.getScopeId());
         } else if (NegotiationClient.class.equals(type)) {
             return type.cast(createNegotiationClient(configuration.getScopeId()));
@@ -78,7 +78,7 @@ public class IdsSystemLauncher implements SystemLauncher {
     private <T> T createNegotiationMock(Class<T> type, String scopeId) {
         return type.cast(negotiationMocks.computeIfAbsent(scopeId, k -> {
             var connector = providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector());
-            return new ProviderNegotiationMockImpl(connector.getProviderNegotiationManager(), executor);
+            return new NegotiationProviderMockImpl(connector.getProviderNegotiationManager(), executor);
         }));
     }
 
