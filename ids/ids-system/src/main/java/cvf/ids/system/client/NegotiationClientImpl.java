@@ -2,11 +2,11 @@ package cvf.ids.system.client;
 
 import cvf.ids.system.api.client.NegotiationClient;
 import cvf.ids.system.api.connector.Connector;
-import cvf.ids.system.api.message.IdsConstants;
 
 import java.util.Map;
 
 import static cvf.core.api.message.MessageSerializer.compact;
+import static cvf.ids.system.api.message.IdsConstants.IDS_NAMESPACE;
 import static cvf.ids.system.api.message.MessageFunctions.createNegotiationResponse;
 import static cvf.ids.system.api.message.MessageFunctions.stringProperty;
 import static java.util.Collections.emptyMap;
@@ -60,7 +60,7 @@ public class NegotiationClientImpl implements NegotiationClient {
     public void consumerAgree(Map<String, Object> event) {
         if (systemConnector != null) {
             var compacted = compact(event);
-            var processId = stringProperty(IdsConstants.IDS_NAMESPACE + "processId", compacted);
+            var processId = stringProperty(IDS_NAMESPACE + "processId", compacted);
             systemConnector.getProviderNegotiationManager().handleConsumerAgreed(processId);
         }
         // TODO implement HTTP invoke
@@ -70,7 +70,7 @@ public class NegotiationClientImpl implements NegotiationClient {
     public void consumerVerify(Map<String, Object> verification) {
         if (systemConnector != null) {
             var compacted = compact(verification);
-            var processId = stringProperty(IdsConstants.IDS_NAMESPACE + "processId", compacted);
+            var processId = stringProperty(IDS_NAMESPACE + "processId", compacted);
             systemConnector.getProviderNegotiationManager().handleConsumerVerified(processId, verification);
         }
         // TODO implement HTTP invoke
