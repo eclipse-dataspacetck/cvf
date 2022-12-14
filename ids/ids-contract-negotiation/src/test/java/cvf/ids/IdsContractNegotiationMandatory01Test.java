@@ -42,6 +42,7 @@ public class IdsContractNegotiationMandatory01Test extends AbstractNegotiationVe
     @MandatoryTest
     @DisplayName("Verify contract request, offer received, consumer terminated")
     public void cn_01_01() {
+        
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
 
         negotiationPipeline
