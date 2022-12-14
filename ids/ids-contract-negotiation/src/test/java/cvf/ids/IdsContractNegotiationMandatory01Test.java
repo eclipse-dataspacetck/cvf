@@ -97,8 +97,7 @@ public class IdsContractNegotiationMandatory01Test extends AbstractNegotiationVe
 
         negotiationMock.verify();
     }
-
-
+    
     @MandatoryTest
     @DisplayName("Verify contract request, provider agreement, consumer verified, provider finalized")
     public void cn_01_04() {
