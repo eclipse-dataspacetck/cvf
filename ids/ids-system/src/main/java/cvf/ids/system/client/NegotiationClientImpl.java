@@ -53,7 +53,6 @@ public class NegotiationClientImpl implements NegotiationClient {
         }
         // TODO implement HTTP invoke
         return emptyMap();
-
     }
 
     @Override
