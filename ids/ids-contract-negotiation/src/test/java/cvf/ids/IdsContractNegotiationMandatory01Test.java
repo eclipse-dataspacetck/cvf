@@ -98,4 +98,24 @@ public class IdsContractNegotiationMandatory01Test extends AbstractNegotiationVe
     }
 
 
+    @MandatoryTest
+    @DisplayName("Verify contract request, provider agreement, consumer verified, provider finalized")
+    public void cn_01_04() {
+
+        negotiationMock.recordContractRequestedAction(ProviderActions::postProviderAgreed);
+        negotiationMock.recordConsumerVerifyAction(ProviderActions::postProviderFinalized);
+
+        negotiationPipeline
+                .expectAgreement(agreement -> clientConnector.getConsumerNegotiationManager().handleAgreement(agreement))
+                .sendRequest(datasetId, offerId)
+                .thenWaitForState(PROVIDER_AGREED)
+                .expectFinalized(event -> clientConnector.getConsumerNegotiationManager().handleFinalized(event))
+                .sendConsumerVerify()
+                .thenWaitForState(PROVIDER_FINALIZED)
+                .execute();
+
+        negotiationMock.verify();
+    }
+
+
 }
