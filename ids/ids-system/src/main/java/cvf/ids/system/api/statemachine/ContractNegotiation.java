@@ -35,7 +35,7 @@ import static java.util.UUID.randomUUID;
 
 /**
  * The contract negotiation entity.
- * <p/>
+ * <p>
  * This implementation is thread-safe.
  */
 public class ContractNegotiation {

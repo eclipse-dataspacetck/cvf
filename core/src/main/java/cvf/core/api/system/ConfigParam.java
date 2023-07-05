@@ -23,7 +23,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Denotes a configuration parameter whose value is injected from an environment variable.
- * <p/>
+ * <p>
  * The environment variable key is constructed by concatenating the currently executing test method name and the field name using the `_` character and converting to uppercase.
  */
 @Retention(RUNTIME)
