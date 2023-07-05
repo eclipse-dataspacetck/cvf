@@ -1,0 +1,22 @@
+#
+#  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+#
+#  This program and the accompanying materials are made available under the
+#  terms of the Apache License, Version 2.0 which is available at
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+#  SPDX-License-Identifier: Apache-2.0
+#
+#  Contributors:
+#    Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+#
+
+---
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question or get support
+    url: https://github.com/eclipse-edc/Connector/discussions/categories/q-a
+    about: Ask a question or request support for using the Eclipse Dataspace Connector
+  - name: Take a look at the documentation
+    url: https://github.com/eclipse-edc/Connector/tree/main/docs
+    about: Browse the documentation for more information

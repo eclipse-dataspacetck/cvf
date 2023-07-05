@@ -1,3 +1,18 @@
+/*
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ *
+ */
+
 package cvf.ids.system.api.pipeline;
 
 import cvf.core.api.system.CallbackEndpoint;
@@ -14,8 +29,8 @@ import java.util.function.Consumer;
 
 import static cvf.ids.system.api.message.IdsConstants.ID;
 import static cvf.ids.system.api.message.MessageFunctions.createAcceptedEvent;
-import static cvf.ids.system.api.message.MessageFunctions.createCounterOffer;
 import static cvf.ids.system.api.message.MessageFunctions.createContractRequest;
+import static cvf.ids.system.api.message.MessageFunctions.createCounterOffer;
 import static cvf.ids.system.api.message.MessageFunctions.createTermination;
 import static cvf.ids.system.api.message.MessageFunctions.createVerification;
 import static cvf.ids.system.api.message.MessageFunctions.stringProperty;

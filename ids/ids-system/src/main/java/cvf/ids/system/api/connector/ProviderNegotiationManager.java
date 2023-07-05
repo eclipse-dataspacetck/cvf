@@ -1,3 +1,18 @@
+/*
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ *
+ */
+
 package cvf.ids.system.api.connector;
 
 import cvf.ids.system.api.message.MessageFunctions;
@@ -52,7 +67,7 @@ public class ProviderNegotiationManager {
     public void handleConsumerVerified(String processId, Map<String, Object> verification) {
         var negotiation = findById(processId);
         // TODO verify message
-        negotiation.transition(CONSUMER_VERIFIED, n-> listeners.forEach(l -> l.consumerVerified(verification, n)));
+        negotiation.transition(CONSUMER_VERIFIED, n -> listeners.forEach(l -> l.consumerVerified(verification, n)));
     }
 
     public void terminate(Map<String, Object> termination) {
@@ -122,4 +137,4 @@ public class ProviderNegotiationManager {
         listeners.remove(listener);
     }
 
- }
+}

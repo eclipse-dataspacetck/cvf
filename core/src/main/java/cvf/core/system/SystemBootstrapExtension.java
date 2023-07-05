@@ -1,3 +1,18 @@
+/*
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ *
+ */
+
 package cvf.core.system;
 
 import com.apicatalog.jsonld.JsonLdError;
@@ -32,9 +47,6 @@ import static cvf.core.api.message.MessageSerializer.MAPPER;
 import static cvf.core.api.message.MessageSerializer.serialize;
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
-/**
- *
- */
 public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCallback, ParameterResolver, ExtensionContext.Store.CloseableResource {
     private static final String CVF_CALLBACK_ADDRESS = "cvf.callback.address";
     private static final String CVF_LAUNCHER = "cvf.launcher";
@@ -87,7 +99,7 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext context) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getType();
-        return launcher.providesService(type) || type.equals(CallbackEndpoint.class) || launcher.providesService(type);
+        return launcher.providesService(type) || type.equals(CallbackEndpoint.class);
     }
 
     @Override
@@ -154,7 +166,7 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
             try {
                 return (SystemLauncher) getClass().getClassLoader().loadClass(launcherClass.get()).getDeclaredConstructor().newInstance();
             } catch (ClassNotFoundException | InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-                throw new RuntimeException("Unable to create Launcher class: " + launcherClass, e);
+                throw new RuntimeException("Unable to create Launcher class: " + launcherClass.get(), e);
             }
         }
     }
