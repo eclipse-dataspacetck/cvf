@@ -99,7 +99,7 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext context) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getType();
-        return launcher.providesService(type) || type.equals(CallbackEndpoint.class) || launcher.providesService(type);
+        return launcher.providesService(type) || type.equals(CallbackEndpoint.class);
     }
 
     @Override
@@ -166,7 +166,7 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
             try {
                 return (SystemLauncher) getClass().getClassLoader().loadClass(launcherClass.get()).getDeclaredConstructor().newInstance();
             } catch (ClassNotFoundException | InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-                throw new RuntimeException("Unable to create Launcher class: " + launcherClass, e);
+                throw new RuntimeException("Unable to create Launcher class: " + launcherClass.get(), e);
             }
         }
     }

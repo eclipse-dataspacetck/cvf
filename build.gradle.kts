@@ -33,7 +33,7 @@ allprojects {
 
     tasks.test {
         useJUnitPlatform()
-        systemProperty("cvf.launcher", "cvf.sample.tf.gx.launcher.GxSystemLauncher")
+        systemProperty("cvf.launcher", "cvf.sample.tf.gx.system.GxSystemLauncher")
     }
 
     dependencies {
