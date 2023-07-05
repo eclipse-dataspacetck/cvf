@@ -40,7 +40,7 @@ public abstract class AbstractConfiguration {
         return propertyDelegate.apply(key);
     }
 
-    public static abstract class Builder<B extends Builder<?>> {
+    public abstract static class Builder<B extends Builder<?>> {
 
         @SuppressWarnings("unchecked")
         public B property(String key, String value) {

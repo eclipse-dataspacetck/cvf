@@ -52,7 +52,7 @@ public class ProviderNegotiationManager {
     public void handleConsumerVerified(String processId, Map<String, Object> verification) {
         var negotiation = findById(processId);
         // TODO verify message
-        negotiation.transition(CONSUMER_VERIFIED, n-> listeners.forEach(l -> l.consumerVerified(verification, n)));
+        negotiation.transition(CONSUMER_VERIFIED, n -> listeners.forEach(l -> l.consumerVerified(verification, n)));
     }
 
     public void terminate(Map<String, Object> termination) {
@@ -122,4 +122,4 @@ public class ProviderNegotiationManager {
         listeners.remove(listener);
     }
 
- }
+}

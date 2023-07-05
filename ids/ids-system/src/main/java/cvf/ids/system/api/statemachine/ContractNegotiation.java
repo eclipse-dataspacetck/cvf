@@ -154,41 +154,40 @@ public class ContractNegotiation {
         lockManager.writeLock(() -> {
             var oldState = state;
             switch (state) {
-                case INITIALIZED:
+                case INITIALIZED -> {
                     assertStates(newState, CONSUMER_REQUESTED, State.PROVIDER_OFFERED, TERMINATED);
                     verifyCorrelationId(newState);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
-                    break;
-                case CONSUMER_REQUESTED:
+                }
+                case CONSUMER_REQUESTED -> {
                     assertStates(newState, CONSUMER_REQUESTED, State.PROVIDER_OFFERED, PROVIDER_AGREED, TERMINATED);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
-                    break;
-                case PROVIDER_OFFERED:
+                }
+                case PROVIDER_OFFERED -> {
                     assertStates(newState, CONSUMER_REQUESTED, State.PROVIDER_OFFERED, CONSUMER_AGREED, TERMINATED);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
-                    break;
-                case CONSUMER_AGREED:
+                }
+                case CONSUMER_AGREED -> {
                     assertStates(newState, PROVIDER_AGREED, TERMINATED);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
-                    break;
-                case PROVIDER_AGREED:
+                }
+                case PROVIDER_AGREED -> {
                     assertStates(newState, CONSUMER_VERIFIED, TERMINATED);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
-                    break;
-                case CONSUMER_VERIFIED:
+                }
+                case CONSUMER_VERIFIED -> {
                     assertStates(newState, PROVIDER_FINALIZED, TERMINATED);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
-                    break;
-                case PROVIDER_FINALIZED:
-                    throw new IllegalStateException(PROVIDER_FINALIZED + " is a final state");
-                case TERMINATED:
-                    throw new IllegalStateException(TERMINATED + " is a final state");
+                }
+                case PROVIDER_FINALIZED -> throw new IllegalStateException(PROVIDER_FINALIZED + " is a final state");
+                case TERMINATED -> throw new IllegalStateException(TERMINATED + " is a final state");
+                default -> throw new IllegalStateException("Unexpected value: " + state);
             }
             work.accept(this);
             return null;

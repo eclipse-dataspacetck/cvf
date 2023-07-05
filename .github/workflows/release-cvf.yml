@@ -1,0 +1,75 @@
+name: Create CVF Release
+on:
+  workflow_dispatch:
+    inputs:
+      cvf_version:
+        description: 'Version string that is used for publishing (e.g. "1.0.0", NOT "v1.0.0"). Appending -SNAPSHOT will create a snapshot release.'
+        required: true
+        type: string
+
+
+env:
+  CVF_VERSION: ${{ github.event.inputs.cvf_version || inputs.cvf_version }}
+
+jobs:
+  Prepare-Release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # create tag on the current branch using GitHub's own API
+      - name: Create tag on current branch (main)
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/v${{ env.CVF_VERSION }}',
+              sha: context.sha
+            })
+
+      # create merge commit main -> releases encoding the version in the commit message
+      - name: Merge main -> releases
+        uses: everlytic/branch-merge@1.1.5
+        with:
+          github_token: ${{ github.token }}
+          source_ref: ${{ github.ref }}
+          target_branch: 'releases'
+          commit_message_template: 'Merge commit for release of version v${{ env.CVF_VERSION }}'
+
+    outputs:
+      cvf-version: ${{ env.CVF_VERSION }}
+
+  Github-Release:
+    # cannot use the workflow-level env yet as it does not yet exist, must take output from previous job
+    if: ${{ !endsWith( needs.Prepare-Release.outputs.cvf-version, '-SNAPSHOT') }}
+    needs:
+      - Prepare-Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: main
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          generateReleaseNotes: true
+          tag: "v${{ env.CVF_VERSION }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          removeArtifacts: true
+
+  Bump-Version:
+    name: 'Update release version'
+    # cannot use the workflow-level env yet as it does not yet exist, must take output from previous job
+    if: ${{ !endsWith( needs.Prepare-Release.outputs.cvf-version, '-SNAPSHOT') }}
+    needs: [ Prepare-Release, Github-Release ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/bump-version
+        with:
+          target_branch: "main"
+          base_version: ${{ needs.Prepare-Release.outputs.cvf-version }}

@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    checkstyle
 }
 
 
@@ -11,6 +12,7 @@ allprojects {
     }
 
     apply(plugin = "java-library")
+    apply(plugin = "checkstyle")
 
     tasks.test {
         useJUnitPlatform()
@@ -35,3 +37,8 @@ allprojects {
 
 // needed for running the dash tool
 tasks.register("allDependencies", DependencyReportTask::class)
+
+// disallow any errors
+checkstyle {
+    maxErrors = 0
+}

@@ -32,9 +32,6 @@ import static cvf.core.api.message.MessageSerializer.MAPPER;
 import static cvf.core.api.message.MessageSerializer.serialize;
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
-/**
- *
- */
 public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCallback, ParameterResolver, ExtensionContext.Store.CloseableResource {
     private static final String CVF_CALLBACK_ADDRESS = "cvf.callback.address";
     private static final String CVF_LAUNCHER = "cvf.launcher";

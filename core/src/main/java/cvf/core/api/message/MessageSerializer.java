@@ -18,7 +18,7 @@ import java.util.Map;
 public class MessageSerializer {
     public static final JsonDocument EMPTY_CONTEXT = JsonDocument.of(JsonStructure.EMPTY_JSON_OBJECT);
 
-    public static ObjectMapper MAPPER;
+    public static final ObjectMapper MAPPER;
 
     static {
         MAPPER = new ObjectMapper();

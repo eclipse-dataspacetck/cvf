@@ -1,7 +1,7 @@
 package cvf.sample.tf.gx.system;
 
-import cvf.core.spi.system.ServiceResolver;
 import cvf.core.spi.system.ServiceConfiguration;
+import cvf.core.spi.system.ServiceResolver;
 import cvf.core.spi.system.SystemConfiguration;
 import cvf.core.spi.system.SystemLauncher;
 import cvf.sample.tf.gx.system.api.GxSystemClient;
@@ -17,9 +17,6 @@ import java.util.concurrent.Executors;
 
 import static java.util.Objects.requireNonNull;
 
-/**
- *
- */
 public class GxSystemLauncher implements SystemLauncher {
     private static final Set<Class<?>> TYPES = Set.of(GxSystemClient.class);
 

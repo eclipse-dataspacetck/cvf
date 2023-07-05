@@ -5,9 +5,6 @@ import cvf.sample.tf.gx.system.api.GxSystemClient;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/**
- *
- */
 @Tag("level1")
 public class Verification1Test extends AbstractGxVerificationTest {
 

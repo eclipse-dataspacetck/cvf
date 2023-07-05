@@ -13,7 +13,7 @@ import static java.lang.String.format;
 import static java.util.Arrays.stream;
 
 /**
- * Injects fields on an instance annotated with {@link @Inject} in a type hierarchy.
+ * Injects fields on an instance annotated with {@link Inject} in a type hierarchy.
  */
 public class InstanceInjector {
     private ServiceResolver resolver;

@@ -14,8 +14,8 @@ import java.util.function.Consumer;
 
 import static cvf.ids.system.api.message.IdsConstants.ID;
 import static cvf.ids.system.api.message.MessageFunctions.createAcceptedEvent;
-import static cvf.ids.system.api.message.MessageFunctions.createCounterOffer;
 import static cvf.ids.system.api.message.MessageFunctions.createContractRequest;
+import static cvf.ids.system.api.message.MessageFunctions.createCounterOffer;
 import static cvf.ids.system.api.message.MessageFunctions.createTermination;
 import static cvf.ids.system.api.message.MessageFunctions.createVerification;
 import static cvf.ids.system.api.message.MessageFunctions.stringProperty;

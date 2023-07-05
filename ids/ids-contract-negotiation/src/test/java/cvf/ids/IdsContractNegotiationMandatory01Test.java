@@ -16,9 +16,6 @@ import static cvf.ids.system.api.statemachine.ContractNegotiation.State.PROVIDER
 import static cvf.ids.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 import static java.util.UUID.randomUUID;
 
-/**
- *
- */
 @Tag("base-compliance")
 @DisplayName("CN_01: Contract request scenarios")
 public class IdsContractNegotiationMandatory01Test extends AbstractNegotiationVerificationTest {

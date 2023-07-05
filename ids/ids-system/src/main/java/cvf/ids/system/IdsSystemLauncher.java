@@ -6,8 +6,8 @@ import cvf.core.spi.system.ServiceResolver;
 import cvf.core.spi.system.SystemConfiguration;
 import cvf.core.spi.system.SystemLauncher;
 import cvf.ids.system.api.client.NegotiationClient;
-import cvf.ids.system.api.connector.Consumer;
 import cvf.ids.system.api.connector.Connector;
+import cvf.ids.system.api.connector.Consumer;
 import cvf.ids.system.api.mock.NegotiationProviderMock;
 import cvf.ids.system.api.pipeline.NegotiationPipeline;
 import cvf.ids.system.client.NegotiationClientImpl;
@@ -46,10 +46,10 @@ public class IdsSystemLauncher implements SystemLauncher {
 
     @Override
     public <T> boolean providesService(Class<T> type) {
-        return type.equals(NegotiationClient.class)
-                || type.equals(Connector.class)
-                || type.equals(NegotiationProviderMock.class)
-                || type.equals(NegotiationPipeline.class);
+        return type.equals(NegotiationClient.class) ||
+                type.equals(Connector.class) ||
+                type.equals(NegotiationProviderMock.class) ||
+                type.equals(NegotiationPipeline.class);
     }
 
     @Nullable
