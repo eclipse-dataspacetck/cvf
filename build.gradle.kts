@@ -32,3 +32,6 @@ allprojects {
     }
 
 }
+
+// needed for running the dash tool
+tasks.register("allDependencies", DependencyReportTask::class)
