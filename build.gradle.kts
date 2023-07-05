@@ -16,6 +16,8 @@
 plugins {
     `java-library`
     checkstyle
+    jacoco
+    `jacoco-report-aggregation`
 }
 
 
