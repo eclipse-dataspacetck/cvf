@@ -46,7 +46,7 @@ allprojects {
 
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp:2.15.2")
         implementation("com.apicatalog:titanium-json-ld:1.3.2")
-        implementation("org.glassfish:jakarta.json:2.0.0")
+        implementation("org.glassfish:jakarta.json:2.0.1")
 
     }
 
