@@ -33,7 +33,7 @@ jobs:
   Verify-License-Headers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v4
       - name: "Check for files without a license header"
         run: |-
           # checks all java, yaml, kts and sql files for an Apache 2.0 license header
@@ -51,7 +51,7 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-build
 
       - name: Run Checkstyle
@@ -60,7 +60,7 @@ jobs:
   Javadoc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-build
 
       - name: Run Javadoc
@@ -71,7 +71,7 @@ jobs:
     env:
       JACOCO: true
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-build
 
       - name: Run unit tests
