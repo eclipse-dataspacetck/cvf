@@ -37,7 +37,7 @@ allprojects {
     }
 
     dependencies {
-        implementation("org.junit.jupiter:junit-jupiter:5.9.3")
+        implementation("org.junit.jupiter:junit-jupiter:5.10.1")
         implementation("org.junit.platform:junit-platform-suite-engine:1.8.1")
         implementation("com.fasterxml.jackson.core:jackson-databind:2.15.3")
         implementation("com.squareup.okhttp3:okhttp:4.12.0")
