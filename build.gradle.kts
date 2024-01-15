@@ -41,7 +41,7 @@ allprojects {
         implementation("org.junit.platform:junit-platform-suite-engine:1.8.1")
         implementation("com.fasterxml.jackson.core:jackson-databind:2.15.3")
         implementation("com.squareup.okhttp3:okhttp:4.12.0")
-        implementation("org.mockito:mockito-core:5.6.0")
+        implementation("org.mockito:mockito-core:5.9.0")
         implementation("org.awaitility:awaitility:4.2.0")
 
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp:2.15.3")
