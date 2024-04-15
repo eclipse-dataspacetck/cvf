@@ -20,11 +20,13 @@ package org.eclipse.dataspacetck.dsp.system.api.message;
  */
 public interface DspConstants {
 
-    String DSP_NAMESPACE = "https://w3id.org/idsa/core/";
+    String DSP_NAMESPACE = "https://w3id.org/dspace/v0.8/";
 
-    String DSP_NAMESPACE_PREFIX = "dsp:";
+    String DSP_NAMESPACE_KEY = "dspace";
 
-    String ODRL_NAMESPACE = "https://www.w3.org/TR/odrl-model";
+    String DSP_NAMESPACE_PREFIX = DSP_NAMESPACE_KEY + ":";
+
+    String ODRL_NAMESPACE = "http://www.w3.org/ns/odrl/2/";
 
     String CONTEXT = "@context";
 

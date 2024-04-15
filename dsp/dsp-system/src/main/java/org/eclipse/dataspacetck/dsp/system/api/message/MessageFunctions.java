@@ -28,6 +28,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.CONTEXT;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE_KEY;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE_PREFIX;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ODRL_NAMESPACE;
@@ -168,7 +169,7 @@ public class MessageFunctions {
 
     private static Map<String, Object> createContext() {
         var context = new LinkedHashMap<String, Object>();
-        context.put("dsp", DSP_NAMESPACE);
+        context.put(DSP_NAMESPACE_KEY, DSP_NAMESPACE);
         return context;
     }
 

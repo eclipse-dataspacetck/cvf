@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE_PREFIX;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAcceptedEvent;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createContractRequest;
@@ -201,7 +202,7 @@ public class NegotiationPipeline {
     public NegotiationPipeline thenVerifyProviderState(ContractNegotiation.State state) {
         stages.add(() -> {
             var providerNegotiation = negotiationClient.getNegotiation(clientNegotiation.getCorrelationId());
-            assertEquals(state, ContractNegotiation.State.valueOf(stringProperty("dsp:state", providerNegotiation).toUpperCase())); // TODO JSON-LD
+            assertEquals(state, ContractNegotiation.State.valueOf(stringProperty(DSP_NAMESPACE_PREFIX + "state", providerNegotiation).toUpperCase())); // TODO JSON-LD
         });
         return this;
     }
