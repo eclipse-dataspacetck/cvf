@@ -25,10 +25,10 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
 import static java.util.Objects.requireNonNull;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
 
 /**
  * Manages contract negotiations on a provider.

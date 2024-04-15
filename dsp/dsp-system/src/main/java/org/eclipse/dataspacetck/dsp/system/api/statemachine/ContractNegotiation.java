@@ -23,15 +23,15 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
+import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.CONSUMER_AGREED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.CONSUMER_REQUESTED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.CONSUMER_VERIFIED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_AGREED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_FINALIZED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.TERMINATED;
-import static java.lang.String.format;
-import static java.util.Objects.requireNonNull;
-import static java.util.UUID.randomUUID;
 
 /**
  * The contract negotiation entity.

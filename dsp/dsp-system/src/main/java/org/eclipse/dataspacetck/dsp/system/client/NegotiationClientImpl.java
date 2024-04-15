@@ -20,11 +20,11 @@ import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 
 import java.util.Map;
 
+import static java.util.Collections.emptyMap;
 import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.compact;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createNegotiationResponse;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
-import static java.util.Collections.emptyMap;
 
 /**
  * Default implementation that supports dispatch to a local, in-memory test connector or a remote connector system via HTTP.

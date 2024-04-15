@@ -15,11 +15,11 @@
 
 package org.eclipse.dataspacetck.dsp.system.api.pipeline;
 
+import org.awaitility.core.ConditionTimeoutException;
 import org.eclipse.dataspacetck.core.api.system.CallbackEndpoint;
 import org.eclipse.dataspacetck.dsp.system.api.client.NegotiationClient;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
-import org.awaitility.core.ConditionTimeoutException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAcceptedEvent;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createContractRequest;
@@ -34,8 +36,6 @@ import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.c
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createTermination;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createVerification;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**

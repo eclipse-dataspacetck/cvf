@@ -23,15 +23,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.CONTEXT;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE_PREFIX;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ODRL_NAMESPACE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.TYPE;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.CONTEXT;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE_PREFIX;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ODRL_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.TYPE;
 
 /**
  * Utility methods for creating DSP messages.
