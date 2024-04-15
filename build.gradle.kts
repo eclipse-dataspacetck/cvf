@@ -33,7 +33,7 @@ allprojects {
 
     tasks.test {
         useJUnitPlatform()
-        systemProperty("cvf.launcher", "cvf.sample.tf.gx.system.GxSystemLauncher")
+        systemProperty("cvf.launcher", "org.eclipse.dataspacetck.dsp.system.DspSystemLauncher")
     }
 
     dependencies {
