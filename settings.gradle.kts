@@ -25,7 +25,5 @@
 
 rootProject.name = "cvf"
 include("core")
-include("ids:ids-contract-negotiation")
-include("ids:ids-system")
-include("gx:gx-tf")
-include("gx:gx-system")
+include("dsp:dsp-contract-negotiation")
+include("dsp:dsp-system")
