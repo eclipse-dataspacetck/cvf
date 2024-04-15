@@ -25,11 +25,11 @@ import org.eclipse.dataspacetck.dsp.system.api.pipeline.NegotiationPipeline;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 
+import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_AGREED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_FINALIZED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_OFFERED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.TERMINATED;
-import static java.util.UUID.randomUUID;
 
 @Tag("base-compliance")
 @DisplayName("CN_01: Contract request scenarios")

@@ -15,9 +15,11 @@
 
 package org.eclipse.dataspacetck.dsp.verification.cn;
 
-import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 import okhttp3.Response;
+import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 
+import static java.lang.String.format;
+import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspacetck.dsp.system.api.http.HttpFunctions.postJson;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAgreement;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createFinalizedEvent;
@@ -26,8 +28,6 @@ import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.c
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_AGREED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_FINALIZED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_OFFERED;
-import static java.lang.String.format;
-import static java.util.UUID.randomUUID;
 
 /**
  * Actions taken by a provider that execute after receiving a message from the client.
