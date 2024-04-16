@@ -56,10 +56,11 @@ public class MessageSerializer {
     }
 
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> compact(Map<String, Object> message) {
+    public static Map<String, Object> processJsonLd(Map<String, Object> message) {
         var document = JsonDocument.of(MAPPER.convertValue(message, JsonObject.class));
         try {
-            var compacted = JsonLd.compact(document, EMPTY_CONTEXT).get();
+            var expanded = JsonLd.expand(document).get();
+            var compacted = JsonLd.compact(JsonDocument.of(MAPPER.convertValue(expanded.getFirst(), JsonObject.class)), EMPTY_CONTEXT).get();
             return MAPPER.convertValue(compacted, Map.class);
         } catch (JsonLdError e) {
             throw new RuntimeException(e);

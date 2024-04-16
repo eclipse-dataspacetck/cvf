@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE_PREFIX;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE_PREFIX;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAcceptedEvent;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createContractRequest;
@@ -73,11 +73,11 @@ public class NegotiationPipeline {
         return this;
     }
 
-    public NegotiationPipeline sendRequest(String datasetId, String offerId) {
+    public NegotiationPipeline sendRequest(String datasetId, String offerId, String targetId) {
         stages.add(() -> {
             clientNegotiation = connector.getConsumerNegotiationManager().createNegotiation(datasetId);
 
-            var contractRequest = createContractRequest(clientNegotiation.getId(), offerId, datasetId, endpoint.getAddress());
+            var contractRequest = createContractRequest(clientNegotiation.getId(), offerId, targetId, endpoint.getAddress());
 
             var response = negotiationClient.contractRequest(contractRequest);
             var correlationId = stringProperty(ID, response);
@@ -88,7 +88,7 @@ public class NegotiationPipeline {
 
     public NegotiationPipeline sendCounterRequest() {
         stages.add(() -> {
-            var contractRequest = createCounterOffer(clientNegotiation.getCorrelationId(), clientNegotiation.getDatasetId());
+            var contractRequest = createCounterOffer(clientNegotiation.getCorrelationId(), clientNegotiation.getId());
             connector.getConsumerNegotiationManager().counterOffer(clientNegotiation.getId());
             negotiationClient.contractRequest(contractRequest);
         });
@@ -97,7 +97,7 @@ public class NegotiationPipeline {
 
     public NegotiationPipeline sendTermination() {
         stages.add(() -> {
-            var termination = createTermination(clientNegotiation.getCorrelationId(), "1");
+            var termination = createTermination(clientNegotiation.getCorrelationId(), clientNegotiation.getId(), "1");
             negotiationClient.terminate(termination);
             connector.getConsumerNegotiationManager().terminate(clientNegotiation.getId());
         });
@@ -107,7 +107,7 @@ public class NegotiationPipeline {
     public NegotiationPipeline acceptLastOffer() {
         stages.add(() -> {
             connector.getConsumerNegotiationManager().agree(clientNegotiation.getId());
-            negotiationClient.consumerAgree(createAcceptedEvent(clientNegotiation.getCorrelationId()));
+            negotiationClient.consumerAgree(createAcceptedEvent(clientNegotiation.getCorrelationId(), clientNegotiation.getId()));
         });
         return this;
     }
@@ -202,7 +202,7 @@ public class NegotiationPipeline {
     public NegotiationPipeline thenVerifyProviderState(ContractNegotiation.State state) {
         stages.add(() -> {
             var providerNegotiation = negotiationClient.getNegotiation(clientNegotiation.getCorrelationId());
-            assertEquals(state, ContractNegotiation.State.valueOf(stringProperty(DSP_NAMESPACE_PREFIX + "state", providerNegotiation).toUpperCase())); // TODO JSON-LD
+            assertEquals(state, ContractNegotiation.State.valueOf(stringProperty(DSPACE_NAMESPACE_PREFIX + "state", providerNegotiation).toUpperCase())); // TODO JSON-LD
         });
         return this;
     }

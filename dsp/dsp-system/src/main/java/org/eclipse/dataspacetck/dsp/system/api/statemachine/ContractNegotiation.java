@@ -24,7 +24,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static java.util.Objects.requireNonNull;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.CONSUMER_AGREED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.CONSUMER_REQUESTED;
@@ -268,7 +267,6 @@ public class ContractNegotiation {
         }
 
         public ContractNegotiation build() {
-            requireNonNull(negotiation.datasetId);
             negotiation.id = randomUUID().toString();
             negotiation.verifyCorrelationId(negotiation.state);
             return negotiation;

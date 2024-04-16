@@ -59,7 +59,7 @@ public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVe
 
         negotiationPipeline
                 .expectOffer(offer -> clientConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
-                .sendRequest(datasetId, offerId)
+                .sendRequest(datasetId, offerId, datasetId)
                 .thenWaitForState(PROVIDER_OFFERED)
                 .sendTermination()
                 .thenVerifyProviderState(TERMINATED)
@@ -77,7 +77,7 @@ public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVe
 
         negotiationPipeline
                 .expectOffer(offer -> clientConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
-                .sendRequest(datasetId, offerId)
+                .sendRequest(datasetId, offerId, datasetId)
                 .thenWaitForState(PROVIDER_OFFERED)
                 .expectTermination()
                 .sendCounterRequest()
@@ -97,7 +97,7 @@ public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVe
 
         negotiationPipeline
                 .expectOffer(offer -> clientConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
-                .sendRequest(datasetId, offerId)
+                .sendRequest(datasetId, offerId, datasetId)
                 .thenWaitForState(PROVIDER_OFFERED)
                 .expectAgreement(agreement -> clientConnector.getConsumerNegotiationManager().handleAgreement(agreement))
                 .acceptLastOffer()
@@ -119,7 +119,7 @@ public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVe
 
         negotiationPipeline
                 .expectAgreement(agreement -> clientConnector.getConsumerNegotiationManager().handleAgreement(agreement))
-                .sendRequest(datasetId, offerId)
+                .sendRequest(datasetId, offerId, datasetId)
                 .thenWaitForState(PROVIDER_AGREED)
                 .expectFinalized(event -> clientConnector.getConsumerNegotiationManager().handleFinalized(event))
                 .sendConsumerVerify()

@@ -21,8 +21,8 @@ import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
-import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.compact;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE;
+import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.processJsonLd;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createNegotiationResponse;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
 
@@ -42,7 +42,7 @@ public class NegotiationClientImpl implements NegotiationClient {
     @Override
     public Map<String, Object> contractRequest(Map<String, Object> contractRequest) {
         if (systemConnector != null) {
-            var compacted = compact(contractRequest);
+            var compacted = processJsonLd(contractRequest);
             var negotiation = systemConnector.getProviderNegotiationManager().handleContractRequest(compacted);
             return createNegotiationResponse(negotiation.getId(), negotiation.getState().toString().toLowerCase());
         }
@@ -53,7 +53,7 @@ public class NegotiationClientImpl implements NegotiationClient {
     @Override
     public void terminate(Map<String, Object> termination) {
         if (systemConnector != null) {
-            var compacted = compact(termination);
+            var compacted = processJsonLd(termination);
             systemConnector.getProviderNegotiationManager().terminate(compacted);
         } else {
             // TODO implement HTTP invoke
@@ -73,8 +73,8 @@ public class NegotiationClientImpl implements NegotiationClient {
     @Override
     public void consumerAgree(Map<String, Object> event) {
         if (systemConnector != null) {
-            var compacted = compact(event);
-            var processId = stringProperty(DSP_NAMESPACE + "processId", compacted);
+            var compacted = processJsonLd(event);
+            var processId = stringProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, compacted);
             systemConnector.getProviderNegotiationManager().handleConsumerAgreed(processId);
         }
         // TODO implement HTTP invoke
@@ -83,8 +83,8 @@ public class NegotiationClientImpl implements NegotiationClient {
     @Override
     public void consumerVerify(Map<String, Object> verification) {
         if (systemConnector != null) {
-            var compacted = compact(verification);
-            var processId = stringProperty(DSP_NAMESPACE + "processId", compacted);
+            var compacted = processJsonLd(verification);
+            var processId = stringProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, compacted);
             systemConnector.getProviderNegotiationManager().handleConsumerVerified(processId, verification);
         }
         // TODO implement HTTP invoke

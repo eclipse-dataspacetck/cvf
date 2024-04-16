@@ -23,7 +23,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
 
 /**
@@ -92,8 +92,8 @@ public class ConsumerNegotiationManager {
      * Processes an offer received from the provider.
      */
     public void handleProviderOffer(Map<String, Object> offer) {
-        var id = stringProperty(DSP_NAMESPACE + "processId", offer);
-        var negotiation = findByCorrelationId(id);
+        var id = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, offer);
+        var negotiation = findById(id);
         negotiation.storeOffer(offer, ContractNegotiation.State.PROVIDER_OFFERED);
     }
 
@@ -101,8 +101,8 @@ public class ConsumerNegotiationManager {
      * Processes an agreement received from the provider.
      */
     public void handleAgreement(Map<String, Object> agreement) {
-        var id = stringProperty(DSP_NAMESPACE + "processId", agreement);
-        var negotiation = findByCorrelationId(id);
+        var id = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, agreement);
+        var negotiation = findById(id);
         negotiation.storeAgreement(agreement);
     }
 
@@ -110,17 +110,9 @@ public class ConsumerNegotiationManager {
      * Processes a finalize event received from the provider.
      */
     public void handleFinalized(Map<String, Object> event) {
-        var id = stringProperty(DSP_NAMESPACE + "processId", event);
-        var negotiation = findByCorrelationId(id);
+        var id = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, event);
+        var negotiation = findById(id);
         negotiation.transition(ContractNegotiation.State.PROVIDER_FINALIZED);
-    }
-
-    @NotNull
-    public ContractNegotiation findByCorrelationId(String id) {
-        return negotiations.values().stream()
-                .filter(n -> id.equals(n.getCorrelationId()))
-                .findAny()
-                .orElseThrow(() -> new IllegalArgumentException("Negotiation not found for correlation id: " + id));
     }
 
     public Map<String, ContractNegotiation> getNegotiations() {
@@ -135,4 +127,12 @@ public class ConsumerNegotiationManager {
         listeners.remove(listener);
     }
 
+    @NotNull
+    private ContractNegotiation findById(String id) {
+        var negotiation = negotiations.get(id);
+        if (negotiation == null) {
+            throw new IllegalArgumentException("Contract negotiation not found for id: " + id);
+        }
+        return negotiation;
+    }
 }
