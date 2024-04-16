@@ -26,9 +26,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 
 import static java.util.UUID.randomUUID;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_AGREED;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_FINALIZED;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_OFFERED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.AGREED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.FINALIZED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.OFFERED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 
 @Tag("base-compliance")
@@ -60,7 +60,7 @@ public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVe
         negotiationPipeline
                 .expectOffer(offer -> clientConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
                 .sendRequest(datasetId, offerId, datasetId)
-                .thenWaitForState(PROVIDER_OFFERED)
+                .thenWaitForState(OFFERED)
                 .sendTermination()
                 .thenVerifyProviderState(TERMINATED)
                 .execute();
@@ -78,7 +78,7 @@ public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVe
         negotiationPipeline
                 .expectOffer(offer -> clientConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
                 .sendRequest(datasetId, offerId, datasetId)
-                .thenWaitForState(PROVIDER_OFFERED)
+                .thenWaitForState(OFFERED)
                 .expectTermination()
                 .sendCounterRequest()
                 .thenWaitForState(TERMINATED)
@@ -98,13 +98,13 @@ public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVe
         negotiationPipeline
                 .expectOffer(offer -> clientConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
                 .sendRequest(datasetId, offerId, datasetId)
-                .thenWaitForState(PROVIDER_OFFERED)
+                .thenWaitForState(OFFERED)
                 .expectAgreement(agreement -> clientConnector.getConsumerNegotiationManager().handleAgreement(agreement))
                 .acceptLastOffer()
-                .thenWaitForState(PROVIDER_AGREED)
+                .thenWaitForState(AGREED)
                 .expectFinalized(event -> clientConnector.getConsumerNegotiationManager().handleFinalized(event))
                 .sendConsumerVerify()
-                .thenWaitForState(PROVIDER_FINALIZED)
+                .thenWaitForState(FINALIZED)
                 .execute();
 
         negotiationMock.verify();
@@ -120,10 +120,10 @@ public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVe
         negotiationPipeline
                 .expectAgreement(agreement -> clientConnector.getConsumerNegotiationManager().handleAgreement(agreement))
                 .sendRequest(datasetId, offerId, datasetId)
-                .thenWaitForState(PROVIDER_AGREED)
+                .thenWaitForState(AGREED)
                 .expectFinalized(event -> clientConnector.getConsumerNegotiationManager().handleFinalized(event))
                 .sendConsumerVerify()
-                .thenWaitForState(PROVIDER_FINALIZED)
+                .thenWaitForState(FINALIZED)
                 .execute();
 
         negotiationMock.verify();

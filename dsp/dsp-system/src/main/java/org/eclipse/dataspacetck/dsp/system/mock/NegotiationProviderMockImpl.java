@@ -49,22 +49,22 @@ public class NegotiationProviderMockImpl implements NegotiationProviderMock, Pro
 
     @Override
     public void recordContractRequestedAction(Action action) {
-        recordAction(ContractNegotiation.State.CONSUMER_REQUESTED, action);
+        recordAction(ContractNegotiation.State.REQUESTED, action);
     }
 
     @Override
     public void recordConsumerAgreedAction(Action action) {
-        recordAction(ContractNegotiation.State.CONSUMER_AGREED, action);
+        recordAction(ContractNegotiation.State.ACCEPTED, action);
     }
 
     @Override
     public void recordConsumerVerifyAction(Action action) {
-        recordAction(ContractNegotiation.State.CONSUMER_VERIFIED, action);
+        recordAction(ContractNegotiation.State.VERIFIED, action);
     }
 
     @Override
     public void contractRequested(Map<String, Object> contractRequest, ContractNegotiation negotiation) {
-        var action = actions.getOrDefault(ContractNegotiation.State.CONSUMER_REQUESTED, EMPTY_QUEUE).poll();
+        var action = actions.getOrDefault(ContractNegotiation.State.REQUESTED, EMPTY_QUEUE).poll();
         if (action == null) {
             return;
         }
@@ -73,7 +73,7 @@ public class NegotiationProviderMockImpl implements NegotiationProviderMock, Pro
 
     @Override
     public void consumerAgreed(ContractNegotiation negotiation) {
-        var action = actions.getOrDefault(ContractNegotiation.State.CONSUMER_AGREED, EMPTY_QUEUE).poll();
+        var action = actions.getOrDefault(ContractNegotiation.State.ACCEPTED, EMPTY_QUEUE).poll();
         if (action == null) {
             return;
         }
@@ -82,7 +82,7 @@ public class NegotiationProviderMockImpl implements NegotiationProviderMock, Pro
 
     @Override
     public void consumerVerified(Map<String, Object> verification, ContractNegotiation negotiation) {
-        var action = actions.getOrDefault(ContractNegotiation.State.CONSUMER_VERIFIED, EMPTY_QUEUE).poll();
+        var action = actions.getOrDefault(ContractNegotiation.State.VERIFIED, EMPTY_QUEUE).poll();
         if (action == null) {
             return;
         }

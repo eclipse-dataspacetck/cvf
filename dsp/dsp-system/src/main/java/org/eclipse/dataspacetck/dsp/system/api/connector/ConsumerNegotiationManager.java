@@ -41,31 +41,31 @@ public class ConsumerNegotiationManager {
      */
     public void contractRequested(String processId, String correlationId) {
         var contractNegotiation = getNegotiations().get(processId);
-        contractNegotiation.setCorrelationId(correlationId, ContractNegotiation.State.CONSUMER_REQUESTED);
+        contractNegotiation.setCorrelationId(correlationId, ContractNegotiation.State.REQUESTED);
     }
 
     /**
-     * Transitions the negotiation to {@link ContractNegotiation.State#CONSUMER_REQUESTED} when a counter-offer has been made.
+     * Transitions the negotiation to {@link ContractNegotiation.State#REQUESTED} when a counter-offer has been made.
      */
     public void counterOffer(String processId) {
         var contractNegotiation = getNegotiations().get(processId);
-        contractNegotiation.transition(ContractNegotiation.State.CONSUMER_REQUESTED);
+        contractNegotiation.transition(ContractNegotiation.State.REQUESTED);
     }
 
     /**
-     * Transitions the negotiation to {@link ContractNegotiation.State#CONSUMER_AGREED} when an offer is accepted by the consumer.
+     * Transitions the negotiation to {@link ContractNegotiation.State#ACCEPTED} when an offer is accepted by the consumer.
      */
     public void agree(String processId) {
         var contractNegotiation = getNegotiations().get(processId);
-        contractNegotiation.transition(ContractNegotiation.State.CONSUMER_AGREED);
+        contractNegotiation.transition(ContractNegotiation.State.ACCEPTED);
     }
 
     /**
-     * Transitions the negotiation to {@link ContractNegotiation.State#CONSUMER_VERIFIED} when a verification is being sent.
+     * Transitions the negotiation to {@link ContractNegotiation.State#VERIFIED} when a verification is being sent.
      */
     public void verify(String processId) {
         var contractNegotiation = getNegotiations().get(processId);
-        contractNegotiation.transition(ContractNegotiation.State.CONSUMER_VERIFIED);
+        contractNegotiation.transition(ContractNegotiation.State.VERIFIED);
     }
 
     /**
@@ -94,7 +94,7 @@ public class ConsumerNegotiationManager {
     public void handleProviderOffer(Map<String, Object> offer) {
         var id = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, offer);
         var negotiation = findById(id);
-        negotiation.storeOffer(offer, ContractNegotiation.State.PROVIDER_OFFERED);
+        negotiation.storeOffer(offer, ContractNegotiation.State.OFFERED);
     }
 
     /**
@@ -112,7 +112,7 @@ public class ConsumerNegotiationManager {
     public void handleFinalized(Map<String, Object> event) {
         var id = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, event);
         var negotiation = findById(id);
-        negotiation.transition(ContractNegotiation.State.PROVIDER_FINALIZED);
+        negotiation.transition(ContractNegotiation.State.FINALIZED);
     }
 
     public Map<String, ContractNegotiation> getNegotiations() {

@@ -58,13 +58,13 @@ public class ProviderNegotiationManager {
 
     public void handleConsumerAgreed(String processId) {
         var negotiation = negotiations.get(processId);
-        negotiation.transition(ContractNegotiation.State.CONSUMER_AGREED, n -> listeners.forEach(l -> l.consumerAgreed(negotiation)));
+        negotiation.transition(ContractNegotiation.State.ACCEPTED, n -> listeners.forEach(l -> l.consumerAgreed(negotiation)));
     }
 
     public void handleConsumerVerified(String processId, Map<String, Object> verification) {
         var negotiation = findById(processId);
         // TODO verify message
-        negotiation.transition(ContractNegotiation.State.CONSUMER_VERIFIED, n -> listeners.forEach(l -> l.consumerVerified(verification, n)));
+        negotiation.transition(ContractNegotiation.State.VERIFIED, n -> listeners.forEach(l -> l.consumerVerified(verification, n)));
     }
 
     public void terminate(Map<String, Object> termination) {
@@ -77,7 +77,7 @@ public class ProviderNegotiationManager {
     private ContractNegotiation handleCounterOffer(Map<String, Object> contractRequest, String processId) {
         var negotiation = findById(processId);
         var offer = mapProperty(DSPACE_PROPERTY_OFFER_EXPANDED, contractRequest);
-        negotiation.storeOffer(offer, ContractNegotiation.State.CONSUMER_REQUESTED, n -> listeners.forEach(l -> l.contractRequested(contractRequest, negotiation)));
+        negotiation.storeOffer(offer, ContractNegotiation.State.REQUESTED, n -> listeners.forEach(l -> l.contractRequested(contractRequest, negotiation)));
         return negotiation;
     }
 
@@ -97,7 +97,7 @@ public class ProviderNegotiationManager {
         var builder = ContractNegotiation.Builder.newInstance()
                 .correlationId(consumerId)
                 .offerId(offerId)
-                .state(ContractNegotiation.State.CONSUMER_REQUESTED)
+                .state(ContractNegotiation.State.REQUESTED)
                 .callbackAddress(callbackAddress);
 
         var negotiation = builder.build();
