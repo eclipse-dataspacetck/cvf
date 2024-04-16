@@ -27,6 +27,7 @@ import org.eclipse.dataspacetck.dsp.system.api.mock.NegotiationProviderMock;
 import org.eclipse.dataspacetck.dsp.system.api.pipeline.NegotiationPipeline;
 import org.eclipse.dataspacetck.dsp.system.client.NegotiationClientImpl;
 import org.eclipse.dataspacetck.dsp.system.mock.NegotiationProviderMockImpl;
+import org.eclipse.dataspacetck.dsp.system.mock.NoOpNegotiationProviderMock;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -91,8 +92,12 @@ public class DspSystemLauncher implements SystemLauncher {
 
     private <T> T createNegotiationMock(Class<T> type, String scopeId) {
         return type.cast(negotiationMocks.computeIfAbsent(scopeId, k -> {
-            var connector = providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector());
-            return new NegotiationProviderMockImpl(connector.getProviderNegotiationManager(), executor);
+            if (useLocalConnector) {
+                var connector = providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector());
+                return new NegotiationProviderMockImpl(connector.getProviderNegotiationManager(), executor);
+            } else {
+                return new NoOpNegotiationProviderMock();
+            }
         }));
     }
 
