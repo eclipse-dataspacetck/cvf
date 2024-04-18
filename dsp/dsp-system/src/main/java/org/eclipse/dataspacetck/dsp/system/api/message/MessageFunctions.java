@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspacetck.dsp.system.api.message;
 
+import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -38,7 +39,6 @@ import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPAC
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_REASON;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_STATE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_TARGET;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.TYPE;
 import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_AGREEMENT_TYPE;
@@ -48,6 +48,7 @@ import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL
 import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_ACTION;
 import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_CONSTRAINTS;
 import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_PERMISSION;
+import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_TARGET;
 import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_USE;
 
 /**
@@ -62,9 +63,10 @@ public class MessageFunctions {
 
         var offer = new LinkedHashMap<String, Object>();
         offer.put(ID, offerId);
+        offer.put(ODRL_PROPERTY_TARGET, targetId);
+        offer.put(TYPE, ODRL_NAMESPACE + "Offer");    // WORKAROUND: REMOVE - @type
 
         message.put(DSPACE_PROPERTY_OFFER, offer);
-        message.put(DSPACE_PROPERTY_TARGET, targetId);
 
         message.put(DSPACE_PROPERTY_CALLBACK_ADDRESS, callbackAddress);
 
@@ -83,7 +85,7 @@ public class MessageFunctions {
     }
 
     public static Map<String, Object> createTermination(String providerId, String consumerId, String code, String... reasons) {
-        var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractNegotiationTermination");
+        var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractNegotiationTerminationMessage");
         message.put(CONTEXT, createContext());
 
         message.put(DSPACE_PROPERTY_PROVIDER_PID, providerId);
@@ -130,7 +132,7 @@ public class MessageFunctions {
         message.put(DSPACE_PROPERTY_CONSUMER_PID, consumerId);
 
         var offer = new LinkedHashMap<String, Object>();
-        offer.put(TYPE, ODRL_OFFER_TYPE);
+        offer.put(TYPE, ODRL_OFFER_TYPE); // WORKAROUND: REMOVE @type
         offer.put(ID, offerId);
         var permissions = Map.of(ODRL_PROPERTY_ACTION, ODRL_USE, ODRL_PROPERTY_CONSTRAINTS, emptyList());
         offer.put(ODRL_PROPERTY_PERMISSION, List.of(permissions));
@@ -151,7 +153,7 @@ public class MessageFunctions {
         var offer = new LinkedHashMap<String, Object>();
         offer.put(TYPE, ODRL_AGREEMENT_TYPE);
         offer.put(ID, agreementId);
-        offer.put(DSPACE_PROPERTY_TARGET, target);
+        offer.put(ODRL_PROPERTY_TARGET, target);
         offer.put(ODRL_PROPERTY_PERMISSION, List.of(permissions));
 
         message.put(DSPACE_NAMESPACE_PREFIX + "agreement", offer);
@@ -159,12 +161,23 @@ public class MessageFunctions {
         return message;
     }
 
-    public static Map<String, Object> createNegotiationResponse(String id, String state) {
+    public static Map<String, Object> createNegotiationResponse(String providerPid, String consumerPid, String state) {
         var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractNegotiation");
         var context = createContext();
         message.put(CONTEXT, context);
-        message.put(ID, id);
+        message.put(DSPACE_PROPERTY_PROVIDER_PID, providerPid);
+        message.put(DSPACE_PROPERTY_CONSUMER_PID, consumerPid);
         message.put(DSPACE_PROPERTY_STATE, state);
+        return message;
+    }
+
+    public static Map<String, Object> createOfferAck(String providerId, String consumerId, State state) {
+        var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractNegotiation");
+        var context = createContext();
+        message.put(CONTEXT, context);
+        message.put(DSPACE_PROPERTY_PROVIDER_PID, providerId);
+        message.put(DSPACE_PROPERTY_CONSUMER_PID, consumerId);
+        message.put(DSPACE_PROPERTY_STATE, state.toString());
         return message;
     }
 
@@ -191,9 +204,12 @@ public class MessageFunctions {
         var context = new LinkedHashMap<String, Object>();
         context.put(DSPACE_NAMESPACE_KEY, DSPACE_NAMESPACE);
         context.put(ODRL_NAMESPACE_KEY, ODRL_NAMESPACE);
+        context.put("target", "odrl:target");
+        context.put("odrl:target", Map.of("@type", "@id"));
         return context;
     }
 
     private MessageFunctions() {
     }
+
 }

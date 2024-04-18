@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createOfferAck;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
 
 /**
@@ -91,10 +92,11 @@ public class ConsumerNegotiationManager {
     /**
      * Processes an offer received from the provider.
      */
-    public void handleProviderOffer(Map<String, Object> offer) {
+    public Map<String, Object> handleProviderOffer(Map<String, Object> offer) {
         var id = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, offer);
         var negotiation = findById(id);
         negotiation.storeOffer(offer, ContractNegotiation.State.OFFERED);
+        return createOfferAck(negotiation.getCorrelationId(), negotiation.getId(), ContractNegotiation.State.OFFERED);
     }
 
     /**

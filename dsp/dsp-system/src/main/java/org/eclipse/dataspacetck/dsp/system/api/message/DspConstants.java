@@ -46,6 +46,8 @@ public interface DspConstants {
 
     String DSPACE_PROPERTY_STATE = DSPACE_NAMESPACE_PREFIX + "state";
 
+    String DSPACE_PROPERTY_STATE_EXPANDED = DSPACE_NAMESPACE + "state";
+
     String DSPACE_PROPERTY_EVENT_TYPE = DSPACE_NAMESPACE_PREFIX + "eventType";
 
     String DSPACE_PROPERTY_CALLBACK_ADDRESS = DSPACE_NAMESPACE_PREFIX + "callbackAddress";
@@ -55,7 +57,5 @@ public interface DspConstants {
     String DSPACE_PROPERTY_OFFER = DSPACE_NAMESPACE_PREFIX + "offer";
 
     String DSPACE_PROPERTY_OFFER_EXPANDED = DSPACE_NAMESPACE + "offer";
-
-    String DSPACE_PROPERTY_TARGET = DSPACE_NAMESPACE_PREFIX + "target";
 
 }
