@@ -48,7 +48,7 @@ public class ProviderActions {
     }
 
     public static void postProviderAgreed(ContractNegotiation negotiation) {
-        var agreement = createAgreement(negotiation.getId(),negotiation.getCorrelationId(),  randomUUID().toString(), negotiation.getDatasetId());
+        var agreement = createAgreement(negotiation.getId(), negotiation.getCorrelationId(), randomUUID().toString(), negotiation.getDatasetId());
 
         negotiation.transition(AGREED);
         try (var response = postJson(format(NEGOTIATION_AGREEMENT_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), agreement)) {
