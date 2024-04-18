@@ -75,7 +75,11 @@ public class MessageSerializer {
     @SuppressWarnings("unchecked")
     private static Map<String, Object> processJsonLd(JsonDocument document) {
         try {
-            var expanded = expand(document).get().getFirst();
+            var jsonArray = expand(document).get();
+            if (jsonArray.isEmpty()) {
+                throw new AssertionError("Invalid Json document, expecting a non-empty array");
+            }
+            @SuppressWarnings("SequencedCollectionMethodCanBeUsed") var expanded = jsonArray.get(0);
             var compacted = compact(JsonDocument.of(MAPPER.convertValue(expanded, JsonObject.class)), EMPTY_CONTEXT).get();
             return MAPPER.convertValue(compacted, Map.class);
         } catch (JsonLdError e) {
