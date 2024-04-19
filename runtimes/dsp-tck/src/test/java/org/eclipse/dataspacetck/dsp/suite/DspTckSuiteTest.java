@@ -29,7 +29,7 @@ class DspTckSuiteTest {
                 .addPackage("org.eclipse.dataspacetck.dsp.verification")
                 .build().execute();
 
-       assertThat(result.getTestsSucceededCount()).isNotZero();
-       assertThat(result.getFailures()).isEmpty();
+        assertThat(result.getTestsSucceededCount()).isNotZero();
+        assertThat(result.getFailures()).isEmpty();
     }
 }
