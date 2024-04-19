@@ -27,3 +27,5 @@ rootProject.name = "cvf"
 include("core")
 include("dsp:dsp-contract-negotiation")
 include("dsp:dsp-system")
+include("runtimes:tck-runtime")
+include("runtimes:dsp-tck")
