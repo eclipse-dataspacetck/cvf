@@ -49,6 +49,7 @@ allprojects {
         implementation(rootProject.libs.junit.platform.engine)
         implementation(rootProject.libs.mockito.core)
         implementation(rootProject.libs.awaitility)
+        testImplementation(rootProject.libs.assertj)
     }
 
 }

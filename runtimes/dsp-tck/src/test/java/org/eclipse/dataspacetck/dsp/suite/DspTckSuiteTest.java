@@ -15,15 +15,21 @@
 package org.eclipse.dataspacetck.dsp.suite;
 
 import org.eclipse.dataspacetck.runtime.TckRuntime;
+import org.junit.jupiter.api.Test;
 
-/**
- * Launches the DSP TCK and runs the test suite.
- */
-public class DspTckSuite {
-    public static void main(String... args) {
+import static org.assertj.core.api.Assertions.assertThat;
+
+class DspTckSuiteTest {
+
+    @Test
+    void verifyTestSuite() {
         var result = TckRuntime.Builder.newInstance()
                 .launcherClass("org.eclipse.dataspacetck.dsp.system.DspSystemLauncher")
+                .property("dataspacetck.dsp.local.connector", "true")
                 .addPackage("org.eclipse.dataspacetck.dsp.verification")
                 .build().execute();
+
+       assertThat(result.getTestsSucceededCount()).isNotZero();
+       assertThat(result.getFailures()).isEmpty();
     }
 }

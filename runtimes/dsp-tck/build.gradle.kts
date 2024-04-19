@@ -24,4 +24,6 @@ dependencies {
     implementation(project(":dsp:dsp-system"))
     implementation(project(":runtimes:tck-runtime"))
     implementation(libs.junit.platform.launcher)
+
+    testImplementation(project(":dsp:dsp-contract-negotiation"))
 }
