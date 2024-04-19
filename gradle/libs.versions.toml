@@ -17,3 +17,7 @@ awaitility = { module = "org.awaitility:awaitility", version = "4.2.0" }
 titanium = { module = "com.apicatalog:titanium-json-ld", version = "1.3.2" }
 json-api = { module = "org.glassfish:jakarta.json", version = "2.0.0" }
 assertj = { module = "org.assertj:assertj-core", version = "3.25.3" }
+
+[plugins]
+docker = { id = "com.bmuschko.docker-remote-api", version = "9.4.0" }
+shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }

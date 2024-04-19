@@ -20,7 +20,7 @@ plugins {
     checkstyle
     jacoco
     `jacoco-report-aggregation`
-    id("com.bmuschko.docker-remote-api") version "9.4.0"
+    alias(libs.plugins.docker)
 }
 
 
@@ -50,6 +50,11 @@ allprojects {
         implementation(rootProject.libs.mockito.core)
         implementation(rootProject.libs.awaitility)
         testImplementation(rootProject.libs.assertj)
+    }
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_19
+        targetCompatibility = JavaVersion.VERSION_19
     }
 
 }
@@ -103,3 +108,4 @@ tasks.register("allDependencies", DependencyReportTask::class)
 checkstyle {
     maxErrors = 0
 }
+
