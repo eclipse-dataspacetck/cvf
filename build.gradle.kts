@@ -52,11 +52,6 @@ allprojects {
         testImplementation(rootProject.libs.assertj)
     }
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_19
-        targetCompatibility = JavaVersion.VERSION_19
-    }
-
 }
 
 // the "dockerize" task is added to all projects that use the `shadowJar` plugin, e.g. runtimes
