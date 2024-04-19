@@ -27,6 +27,7 @@ import org.eclipse.dataspacetck.dsp.system.api.mock.NegotiationProviderMock;
 import org.eclipse.dataspacetck.dsp.system.api.pipeline.NegotiationPipeline;
 import org.eclipse.dataspacetck.dsp.system.client.NegotiationClientImpl;
 import org.eclipse.dataspacetck.dsp.system.mock.NegotiationProviderMockImpl;
+import org.eclipse.dataspacetck.dsp.system.mock.NoOpNegotiationProviderMock;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -40,10 +41,12 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
  */
 @SuppressWarnings("unused")
 public class DspSystemLauncher implements SystemLauncher {
-    private static final String CVF_LOCAL_CONNECTOR = "dataspacetck.dsp.local.connector";
-    private static final String CVF_THREAD_POOL = "dataspacetck.dsp.thread.pool";
+    private static final String LOCAL_CONNECTOR_CONFIG = "dataspacetck.dsp.local.connector";
+    private static final String CONNECTOR_BASE_URL_CONFIG = "dataspacetck.dsp.connector.http.url";
+    private static final String THREAD_POOL_CONFIG = "dataspacetck.dsp.thread.pool";
 
     private ExecutorService executor;
+    private String baseConnectorUrl;
     private boolean useLocalConnector;
 
     private Map<String, Connector> clientConnectors = new ConcurrentHashMap<>();
@@ -54,8 +57,14 @@ public class DspSystemLauncher implements SystemLauncher {
 
     @Override
     public void start(SystemConfiguration configuration) {
-        executor = newFixedThreadPool(configuration.getPropertyAsInt(CVF_THREAD_POOL, 10));
-        useLocalConnector = configuration.getPropertyAsBoolean(CVF_LOCAL_CONNECTOR, false);
+        executor = newFixedThreadPool(configuration.getPropertyAsInt(THREAD_POOL_CONFIG, 10));
+        useLocalConnector = configuration.getPropertyAsBoolean(LOCAL_CONNECTOR_CONFIG, false);
+        if (!useLocalConnector) {
+            baseConnectorUrl = configuration.getPropertyAsString(CONNECTOR_BASE_URL_CONFIG, null);
+            if (baseConnectorUrl == null) {
+                throw new RuntimeException("Required configuration not set: " + CONNECTOR_BASE_URL_CONFIG);
+            }
+        }
     }
 
     @Override
@@ -91,8 +100,12 @@ public class DspSystemLauncher implements SystemLauncher {
 
     private <T> T createNegotiationMock(Class<T> type, String scopeId) {
         return type.cast(negotiationMocks.computeIfAbsent(scopeId, k -> {
-            var connector = providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector());
-            return new NegotiationProviderMockImpl(connector.getProviderNegotiationManager(), executor);
+            if (useLocalConnector) {
+                var connector = providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector());
+                return new NegotiationProviderMockImpl(connector.getProviderNegotiationManager(), executor);
+            } else {
+                return new NoOpNegotiationProviderMock();
+            }
         }));
     }
 
@@ -109,7 +122,7 @@ public class DspSystemLauncher implements SystemLauncher {
             if (useLocalConnector) {
                 return new NegotiationClientImpl(providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector()));
             }
-            return new NegotiationClientImpl();
+            return new NegotiationClientImpl(baseConnectorUrl);
         });
     }
 

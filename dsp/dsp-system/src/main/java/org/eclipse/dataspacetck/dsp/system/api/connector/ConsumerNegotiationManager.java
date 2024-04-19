@@ -23,7 +23,8 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createOfferAck;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
 
 /**
@@ -41,31 +42,31 @@ public class ConsumerNegotiationManager {
      */
     public void contractRequested(String processId, String correlationId) {
         var contractNegotiation = getNegotiations().get(processId);
-        contractNegotiation.setCorrelationId(correlationId, ContractNegotiation.State.CONSUMER_REQUESTED);
+        contractNegotiation.setCorrelationId(correlationId, ContractNegotiation.State.REQUESTED);
     }
 
     /**
-     * Transitions the negotiation to {@link ContractNegotiation.State#CONSUMER_REQUESTED} when a counter-offer has been made.
+     * Transitions the negotiation to {@link ContractNegotiation.State#REQUESTED} when a counter-offer has been made.
      */
     public void counterOffer(String processId) {
         var contractNegotiation = getNegotiations().get(processId);
-        contractNegotiation.transition(ContractNegotiation.State.CONSUMER_REQUESTED);
+        contractNegotiation.transition(ContractNegotiation.State.REQUESTED);
     }
 
     /**
-     * Transitions the negotiation to {@link ContractNegotiation.State#CONSUMER_AGREED} when an offer is accepted by the consumer.
+     * Transitions the negotiation to {@link ContractNegotiation.State#ACCEPTED} when an offer is accepted by the consumer.
      */
     public void agree(String processId) {
         var contractNegotiation = getNegotiations().get(processId);
-        contractNegotiation.transition(ContractNegotiation.State.CONSUMER_AGREED);
+        contractNegotiation.transition(ContractNegotiation.State.ACCEPTED);
     }
 
     /**
-     * Transitions the negotiation to {@link ContractNegotiation.State#CONSUMER_VERIFIED} when a verification is being sent.
+     * Transitions the negotiation to {@link ContractNegotiation.State#VERIFIED} when a verification is being sent.
      */
     public void verify(String processId) {
         var contractNegotiation = getNegotiations().get(processId);
-        contractNegotiation.transition(ContractNegotiation.State.CONSUMER_VERIFIED);
+        contractNegotiation.transition(ContractNegotiation.State.VERIFIED);
     }
 
     /**
@@ -91,18 +92,19 @@ public class ConsumerNegotiationManager {
     /**
      * Processes an offer received from the provider.
      */
-    public void handleProviderOffer(Map<String, Object> offer) {
-        var id = stringProperty(DSP_NAMESPACE + "processId", offer);
-        var negotiation = findByCorrelationId(id);
-        negotiation.storeOffer(offer, ContractNegotiation.State.PROVIDER_OFFERED);
+    public Map<String, Object> handleProviderOffer(Map<String, Object> offer) {
+        var id = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, offer);
+        var negotiation = findById(id);
+        negotiation.storeOffer(offer, ContractNegotiation.State.OFFERED);
+        return createOfferAck(negotiation.getCorrelationId(), negotiation.getId(), ContractNegotiation.State.OFFERED);
     }
 
     /**
      * Processes an agreement received from the provider.
      */
     public void handleAgreement(Map<String, Object> agreement) {
-        var id = stringProperty(DSP_NAMESPACE + "processId", agreement);
-        var negotiation = findByCorrelationId(id);
+        var id = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, agreement);
+        var negotiation = findById(id);
         negotiation.storeAgreement(agreement);
     }
 
@@ -110,17 +112,9 @@ public class ConsumerNegotiationManager {
      * Processes a finalize event received from the provider.
      */
     public void handleFinalized(Map<String, Object> event) {
-        var id = stringProperty(DSP_NAMESPACE + "processId", event);
-        var negotiation = findByCorrelationId(id);
-        negotiation.transition(ContractNegotiation.State.PROVIDER_FINALIZED);
-    }
-
-    @NotNull
-    public ContractNegotiation findByCorrelationId(String id) {
-        return negotiations.values().stream()
-                .filter(n -> id.equals(n.getCorrelationId()))
-                .findAny()
-                .orElseThrow(() -> new IllegalArgumentException("Negotiation not found for correlation id: " + id));
+        var id = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, event);
+        var negotiation = findById(id);
+        negotiation.transition(ContractNegotiation.State.FINALIZED);
     }
 
     public Map<String, ContractNegotiation> getNegotiations() {
@@ -135,4 +129,12 @@ public class ConsumerNegotiationManager {
         listeners.remove(listener);
     }
 
+    @NotNull
+    private ContractNegotiation findById(String id) {
+        var negotiation = negotiations.get(id);
+        if (negotiation == null) {
+            throw new IllegalArgumentException("Contract negotiation not found for id: " + id);
+        }
+        return negotiation;
+    }
 }

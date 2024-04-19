@@ -15,7 +15,6 @@
 
 package org.eclipse.dataspacetck.dsp.system.api.connector;
 
-import org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,8 +25,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static java.util.Objects.requireNonNull;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSP_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CALLBACK_ADDRESS_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_OFFER_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.mapProperty;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
 
 /**
@@ -42,32 +45,30 @@ public class ProviderNegotiationManager {
      * Called when a contract request is received.
      */
     public ContractNegotiation handleContractRequest(Map<String, Object> contractRequest) {
-        var correlationId = stringProperty(ID, contractRequest);  // correlation id is the @id of the message
-
-        var processId = (String) contractRequest.get(DSP_NAMESPACE + "processId");
+        var processId = (String) contractRequest.get(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED);
 
         if (processId != null) {
             // the message is a counter-offer
             return handleCounterOffer(contractRequest, processId);
         } else {
             // the message is an initial request
-            return handleInitialRequest(contractRequest, correlationId);
+            return handleInitialRequest(contractRequest);
         }
     }
 
     public void handleConsumerAgreed(String processId) {
         var negotiation = negotiations.get(processId);
-        negotiation.transition(ContractNegotiation.State.CONSUMER_AGREED, n -> listeners.forEach(l -> l.consumerAgreed(negotiation)));
+        negotiation.transition(ContractNegotiation.State.ACCEPTED, n -> listeners.forEach(l -> l.consumerAgreed(negotiation)));
     }
 
     public void handleConsumerVerified(String processId, Map<String, Object> verification) {
         var negotiation = findById(processId);
         // TODO verify message
-        negotiation.transition(ContractNegotiation.State.CONSUMER_VERIFIED, n -> listeners.forEach(l -> l.consumerVerified(verification, n)));
+        negotiation.transition(ContractNegotiation.State.VERIFIED, n -> listeners.forEach(l -> l.consumerVerified(verification, n)));
     }
 
     public void terminate(Map<String, Object> termination) {
-        var processId = requireNonNull(stringProperty(DSP_NAMESPACE + "processId", termination));
+        var processId = requireNonNull(stringProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, termination));
         var negotiation = negotiations.get(processId);
         negotiation.transition(ContractNegotiation.State.TERMINATED, n -> listeners.forEach(l -> l.terminated(n)));
     }
@@ -75,28 +76,29 @@ public class ProviderNegotiationManager {
     @NotNull
     private ContractNegotiation handleCounterOffer(Map<String, Object> contractRequest, String processId) {
         var negotiation = findById(processId);
-        var offer = MessageFunctions.mapProperty(DSP_NAMESPACE + "offer", contractRequest);
-        negotiation.storeOffer(offer, ContractNegotiation.State.CONSUMER_REQUESTED, n -> listeners.forEach(l -> l.contractRequested(contractRequest, negotiation)));
+        var offer = mapProperty(DSPACE_PROPERTY_OFFER_EXPANDED, contractRequest);
+        negotiation.storeOffer(offer, ContractNegotiation.State.REQUESTED, n -> listeners.forEach(l -> l.contractRequested(contractRequest, negotiation)));
         return negotiation;
     }
 
     @NotNull
-    private ContractNegotiation handleInitialRequest(Map<String, Object> contractRequest, String correlationId) {
-        var previousNegotiation = findByCorrelationId(correlationId);
+    private ContractNegotiation handleInitialRequest(Map<String, Object> contractRequest) {
+        var consumerId = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, contractRequest);
+        var previousNegotiation = findByCorrelationId(consumerId);
         if (previousNegotiation != null) {
             return previousNegotiation;
         }
 
-        var offerId = stringProperty(DSP_NAMESPACE + "offerId", contractRequest);
-        var datasetId = stringProperty(DSP_NAMESPACE + "datasetId", contractRequest);
-        var callbackAddress = stringProperty(DSP_NAMESPACE + "callbackAddress", contractRequest);
+        var offer = mapProperty(DSPACE_PROPERTY_OFFER_EXPANDED, contractRequest);
+
+        var offerId = stringProperty(ID, offer);
+        var callbackAddress = stringProperty(DSPACE_PROPERTY_CALLBACK_ADDRESS_EXPANDED, contractRequest);
 
         var builder = ContractNegotiation.Builder.newInstance()
-                .correlationId(correlationId)
+                .correlationId(consumerId)
                 .offerId(offerId)
-                .state(ContractNegotiation.State.CONSUMER_REQUESTED)
-                .callbackAddress(callbackAddress)
-                .datasetId(datasetId);
+                .state(ContractNegotiation.State.REQUESTED)
+                .callbackAddress(callbackAddress);
 
         var negotiation = builder.build();
         negotiations.put(negotiation.getId(), negotiation);

@@ -24,14 +24,14 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static java.util.Objects.requireNonNull;
 import static java.util.UUID.randomUUID;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.CONSUMER_AGREED;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.CONSUMER_REQUESTED;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.CONSUMER_VERIFIED;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_AGREED;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_FINALIZED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.ACCEPTED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.AGREED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.FINALIZED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.OFFERED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.REQUESTED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.TERMINATED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.VERIFIED;
 
 /**
  * The contract negotiation entity.
@@ -42,12 +42,12 @@ public class ContractNegotiation {
 
     public enum State {
         INITIALIZED,
-        CONSUMER_REQUESTED,
-        PROVIDER_OFFERED,
-        CONSUMER_AGREED,
-        PROVIDER_AGREED,
-        CONSUMER_VERIFIED,
-        PROVIDER_FINALIZED,
+        REQUESTED,
+        OFFERED,
+        ACCEPTED,
+        AGREED,
+        VERIFIED,
+        FINALIZED,
         TERMINATED
     }
 
@@ -148,7 +148,7 @@ public class ContractNegotiation {
      */
     public void storeAgreement(Map<String, Object> agreement, Consumer<ContractNegotiation> work) {
         lockManager.writeLock(() -> {
-            transition(PROVIDER_AGREED);
+            transition(AGREED);
             this.agreement = agreement;
             return null;
         });
@@ -170,37 +170,37 @@ public class ContractNegotiation {
             var oldState = state;
             switch (state) {
                 case INITIALIZED -> {
-                    assertStates(newState, CONSUMER_REQUESTED, State.PROVIDER_OFFERED, TERMINATED);
+                    assertStates(newState, REQUESTED, OFFERED, TERMINATED);
                     verifyCorrelationId(newState);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
                 }
-                case CONSUMER_REQUESTED -> {
-                    assertStates(newState, CONSUMER_REQUESTED, State.PROVIDER_OFFERED, PROVIDER_AGREED, TERMINATED);
+                case REQUESTED -> {
+                    assertStates(newState, REQUESTED, OFFERED, AGREED, TERMINATED);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
                 }
-                case PROVIDER_OFFERED -> {
-                    assertStates(newState, CONSUMER_REQUESTED, State.PROVIDER_OFFERED, CONSUMER_AGREED, TERMINATED);
+                case OFFERED -> {
+                    assertStates(newState, REQUESTED, OFFERED, ACCEPTED, TERMINATED);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
                 }
-                case CONSUMER_AGREED -> {
-                    assertStates(newState, PROVIDER_AGREED, TERMINATED);
+                case ACCEPTED -> {
+                    assertStates(newState, AGREED, TERMINATED);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
                 }
-                case PROVIDER_AGREED -> {
-                    assertStates(newState, CONSUMER_VERIFIED, TERMINATED);
+                case AGREED -> {
+                    assertStates(newState, VERIFIED, TERMINATED);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
                 }
-                case CONSUMER_VERIFIED -> {
-                    assertStates(newState, PROVIDER_FINALIZED, TERMINATED);
+                case VERIFIED -> {
+                    assertStates(newState, FINALIZED, TERMINATED);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
                 }
-                case PROVIDER_FINALIZED -> throw new IllegalStateException(PROVIDER_FINALIZED + " is a final state");
+                case FINALIZED -> throw new IllegalStateException(FINALIZED + " is a final state");
                 case TERMINATED -> throw new IllegalStateException(TERMINATED + " is a final state");
                 default -> throw new IllegalStateException("Unexpected value: " + state);
             }
@@ -210,7 +210,7 @@ public class ContractNegotiation {
     }
 
     private void verifyCorrelationId(State newState) {
-        if (newState == CONSUMER_REQUESTED || newState == State.PROVIDER_OFFERED) {
+        if (newState == REQUESTED || newState == OFFERED) {
             if (correlationId == null) {
                 throw new IllegalStateException("Correlation id not set");
             }
@@ -268,7 +268,6 @@ public class ContractNegotiation {
         }
 
         public ContractNegotiation build() {
-            requireNonNull(negotiation.datasetId);
             negotiation.id = randomUUID().toString();
             negotiation.verifyCorrelationId(negotiation.state);
             return negotiation;

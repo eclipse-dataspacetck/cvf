@@ -34,6 +34,7 @@ public class HttpFunctions {
         var requestBody = RequestBody.create(serialize(message), MediaType.get("application/json"));
         var httpRequest = new Request.Builder()
                 .url(url)
+                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")  // WORKAROUND: REMOVE - claims
                 .post(requestBody)
                 .build();
 
@@ -41,9 +42,30 @@ public class HttpFunctions {
         try {
             var response = httpClient.newCall(httpRequest).execute();
             if (404 == response.code()) {
-                throw new RuntimeException("Unexpected callback received: " + url);
+                throw new AssertionError("Unexpected 404 received for request: " + url);
             } else if (!response.isSuccessful()) {
-                throw new RuntimeException("Unexpected response code: " + response.code());
+                throw new AssertionError("Unexpected response code: " + response.code());
+            }
+            return response;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Response getJson(String url) {
+        var httpRequest = new Request.Builder()
+                .url(url)
+                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
+                .get()
+                .build();
+
+        var httpClient = new OkHttpClient.Builder().build();
+        try {
+            var response = httpClient.newCall(httpRequest).execute();
+            if (404 == response.code()) {
+                throw new AssertionError("Unexpected 404 received for request: " + url);
+            } else if (!response.isSuccessful()) {
+                throw new AssertionError("Unexpected response code: " + response.code());
             }
             return response;
         } catch (IOException e) {

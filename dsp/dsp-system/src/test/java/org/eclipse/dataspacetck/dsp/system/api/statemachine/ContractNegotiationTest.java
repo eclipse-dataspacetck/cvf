@@ -23,9 +23,9 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.util.function.BiConsumer;
 
 import static java.util.UUID.randomUUID;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.CONSUMER_REQUESTED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.INITIALIZED;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_OFFERED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.OFFERED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.REQUESTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
@@ -38,9 +38,9 @@ class ContractNegotiationTest {
     ContractNegotiation negotiation;
 
     @ParameterizedTest
-    @EnumSource(value = ContractNegotiation.State.class, names = {"TERMINATED", "CONSUMER_REQUESTED", "PROVIDER_OFFERED"})
+    @EnumSource(value = ContractNegotiation.State.class, names = {"TERMINATED", "REQUESTED", "OFFERED" })
     void verifyValidInitialStateTransitions(ContractNegotiation.State state) {
-        if (CONSUMER_REQUESTED == state || PROVIDER_OFFERED == state) {
+        if (REQUESTED == state || OFFERED == state) {
             negotiation.setCorrelationId(randomUUID().toString(), state);
         } else {
             negotiation.transition(state);
@@ -49,13 +49,13 @@ class ContractNegotiationTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = ContractNegotiation.State.class, names = {"CONSUMER_REQUESTED", "PROVIDER_OFFERED"})
+    @EnumSource(value = ContractNegotiation.State.class, names = { "REQUESTED", "OFFERED" })
     void verifyInvalidValidCorrelationIdTransitions(ContractNegotiation.State state) {
         assertThrows(IllegalStateException.class, () -> negotiation.transition(state));
     }
 
     @ParameterizedTest
-    @EnumSource(value = ContractNegotiation.State.class, names = {"INITIALIZED", "CONSUMER_AGREED", "PROVIDER_AGREED", "CONSUMER_VERIFIED", "PROVIDER_FINALIZED"})
+    @EnumSource(value = ContractNegotiation.State.class, names = {"INITIALIZED", "ACCEPTED", "AGREED", "VERIFIED", "FINALIZED" })
     void verifyInValidInitialStateTransitions(ContractNegotiation.State state) {
         assertThrows(IllegalStateException.class, () -> negotiation.transition(state));
     }
@@ -64,7 +64,7 @@ class ContractNegotiationTest {
     void verifyListenerCalled() {
         @SuppressWarnings("unchecked") BiConsumer<ContractNegotiation.State, ContractNegotiation> listener = mock(BiConsumer.class);
         negotiation = ContractNegotiation.Builder.newInstance().datasetId(randomUUID().toString()).correlationId(randomUUID().toString()).listener(listener).build();
-        negotiation.transition(CONSUMER_REQUESTED);
+        negotiation.transition(REQUESTED);
 
         verify(listener, times(1)).accept(eq(INITIALIZED), isA(ContractNegotiation.class));
     }

@@ -25,9 +25,9 @@ import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.c
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createFinalizedEvent;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createOffer;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createTermination;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_AGREED;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_FINALIZED;
-import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.PROVIDER_OFFERED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.AGREED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.FINALIZED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.OFFERED;
 
 /**
  * Actions taken by a provider that execute after receiving a message from the client.
@@ -39,33 +39,33 @@ public class ProviderActions {
     private static final String NEGOTIATION_FINALIZE_TEMPLATE = "%s/negotiations/%s/events";
 
     public static void postOffer(ContractNegotiation negotiation) {
-        var contractOffer = createOffer(negotiation.getId(), randomUUID().toString(), negotiation.getDatasetId());
+        var contractOffer = createOffer(negotiation.getId(), negotiation.getCorrelationId(), randomUUID().toString());
 
-        negotiation.transition(PROVIDER_OFFERED);
+        negotiation.transition(OFFERED);
         try (var response = postJson(format(NEGOTIATION_OFFER_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), contractOffer)) {
             checkResponse(response);
         }
     }
 
     public static void postProviderAgreed(ContractNegotiation negotiation) {
-        var agreement = createAgreement(negotiation.getId(), randomUUID().toString(), negotiation.getDatasetId());
+        var agreement = createAgreement(negotiation.getId(), negotiation.getCorrelationId(), randomUUID().toString(), negotiation.getDatasetId());
 
-        negotiation.transition(PROVIDER_AGREED);
+        negotiation.transition(AGREED);
         try (var response = postJson(format(NEGOTIATION_AGREEMENT_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), agreement)) {
             checkResponse(response);
         }
     }
 
     public static void postProviderFinalized(ContractNegotiation negotiation) {
-        negotiation.transition(PROVIDER_FINALIZED);
-        var event = createFinalizedEvent(negotiation.getId());
+        negotiation.transition(FINALIZED);
+        var event = createFinalizedEvent(negotiation.getId(), negotiation.getCorrelationId());
         try (var response = postJson(format(NEGOTIATION_FINALIZE_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), event)) {
             checkResponse(response);
         }
     }
 
     public static void terminate(ContractNegotiation negotiation) {
-        var termination = createTermination(negotiation.getId(), "1");
+        var termination = createTermination(negotiation.getId(), negotiation.getCorrelationId(), "1");
         try (var response = postJson(format(NEGOTIATION_TERMINATE_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), termination)) {
             checkResponse(response);
         }
