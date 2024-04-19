@@ -23,6 +23,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.eclipse.dataspacetck.core.api.message.MessageSerializer;
 import org.eclipse.dataspacetck.core.api.system.CallbackEndpoint;
+import org.eclipse.dataspacetck.core.api.system.SystemsConstants;
 import org.eclipse.dataspacetck.core.spi.system.ServiceConfiguration;
 import org.eclipse.dataspacetck.core.spi.system.SystemConfiguration;
 import org.eclipse.dataspacetck.core.spi.system.SystemLauncher;
@@ -46,8 +47,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
 public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCallback, ParameterResolver, ExtensionContext.Store.CloseableResource {
-    private static final String CVF_CALLBACK_ADDRESS = "cvf.callback.address";
-    private static final String CVF_LAUNCHER = "cvf.launcher";
 
 
     private static final ExtensionContext.Namespace CALLBACK_NAMESPACE = org.junit.jupiter.api.extension.ExtensionContext.Namespace.create(new Object());
@@ -147,7 +146,7 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
 
     private CallbackEndpoint attachCallbackEndpoint(DispatchingHandler dispatchingHandler, ExtensionContext context) {
         var endpointBuilder = DefaultCallbackEndpoint.Builder.newInstance();
-        endpointBuilder.address(context.getConfigurationParameter(CVF_CALLBACK_ADDRESS).orElse("http://localhost:8083")); // xcv
+        endpointBuilder.address(context.getConfigurationParameter(SystemsConstants.CVF_CALLBACK_ADDRESS).orElse("http://localhost:8083")); // xcv
         endpointBuilder.listener(dispatchingHandler::deregisterEndpoint);
 
         var endpoint = endpointBuilder.build();
@@ -156,7 +155,7 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
     }
 
     private SystemLauncher initializeLauncher(ExtensionContext context) {
-        var launcherClass = context.getConfigurationParameter(CVF_LAUNCHER);
+        var launcherClass = context.getConfigurationParameter(SystemsConstants.CVF_LAUNCHER);
 
         if (launcherClass.isEmpty()) {
             return new NoOpSystemLauncher();
