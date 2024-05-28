@@ -54,7 +54,7 @@ allprojects {
 
 }
 
-// the "dockerize" task is added to all projects that use the `shadowJar` plugin, e.g. runtimes
+// the "dockerize" task is added to all projects that contain a src/main/docker/Dockerfile
 subprojects {
     afterEvaluate {
         if (file("${project.projectDir}/src/main/docker/Dockerfile").exists()) {
@@ -88,9 +88,8 @@ subprojects {
                 buildArgs.put("ADDITIONAL_FILES", "build/legal/*")
                 inputDir.set(file(dockerContextDir))
             }
-            // make sure  always runs after "dockerize" and after "copyOtel"
-            dockerTask
-                .dependsOn(copyLegalDocs)
+            // make sure "dockerize" always runs after "copyLegalDocs"
+            dockerTask.dependsOn(copyLegalDocs)
         }
     }
 }

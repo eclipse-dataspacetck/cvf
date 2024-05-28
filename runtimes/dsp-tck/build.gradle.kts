@@ -19,7 +19,10 @@
  *
  */
 
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
+    `java-library`
     id("application")
     alias(libs.plugins.shadow)
 }
@@ -30,16 +33,16 @@ dependencies {
     implementation(project(":dsp:dsp-contract-negotiation"))
     implementation(project(":runtimes:tck-runtime"))
     implementation(libs.junit.platform.launcher)
-
     testImplementation(project(":dsp:dsp-contract-negotiation"))
+}
 
-    tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
-        exclude("**/pom.properties", "**/pom.xm")
-        mergeServiceFiles()
-        archiveFileName.set("${project.name}.jar")
-    }
+tasks.withType<ShadowJar> {
+    exclude("**/pom.properties", "**/pom.xml")
+    mergeServiceFiles()
+    archiveFileName.set("${project.name}-runtime.jar") // should be something other than "dsp-tck.jar", to avoid erroneous task dependencies
 
-    application {
-        mainClass.set("org.eclipse.dataspacetck.dsp.suite.DspTckSuite")
-    }
+}
+
+application {
+    mainClass.set("org.eclipse.dataspacetck.dsp.suite.DspTckSuite")
 }
