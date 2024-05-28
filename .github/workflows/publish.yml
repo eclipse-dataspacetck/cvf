@@ -1,0 +1,92 @@
+#
+#  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+#
+#  This program and the accompanying materials are made available under the
+#  terms of the Apache License, Version 2.0 which is available at
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+#  SPDX-License-Identifier: Apache-2.0
+#
+#  Contributors:
+#    Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+#
+
+---
+name: "Publish Artefacts"
+
+on:
+  workflow_run:
+    workflows: [ "Run Tests" ]
+    branches:
+      - main
+      - releases
+      - release/*
+    types:
+      - completed
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+
+concurrency:
+  # cancel only running jobs on pull requests
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  Check-Credentials:
+    runs-on: ubuntu-latest
+    outputs:
+      HAS_DOCKER: ${{ steps.check-credentials.outputs.HAS_DOCKER }}
+      HAS_OSSRH: ${{ steps.check-credentials.outputs.HAS_OSSRH }}
+    steps:
+      - name: Check whether secrets exist
+        id: check-credentials
+        run: |
+          [ ! -z "${{ secrets.DOCKER_HUB_TOKEN }}" ] && echo "HAS_DOCKER=true" >> $GITHUB_OUTPUT
+          [ ! -z "${{ secrets.GPG_PASSPHRASE }}" ] &&
+          [ ! -z "${{ secrets.GPG_PRIVATE_KEY }}" ] &&
+          [ ! -z "${{ secrets.OSSRH_USERNAME }}" ] &&
+          [ ! -z "${{ secrets.OSSRH_PASSWORD }}" ]  && echo "HAS_OSSRH=true" >> $GITHUB_OUTPUT
+          exit 0
+
+
+  Publish-Maven-Artefacts:
+    name: "Publish artefacts to OSSRH Snapshots / MavenCentral"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    needs: [ Check-Credentials ]
+
+    # do not run on PR branches, do not run on releases
+    if: |
+      needs.Check-Credentials.outputs.HAS_OSSRH && github.event_name != 'pull_request' && github.ref != 'refs/heads/releases'
+    steps:
+      - uses: actions/checkout@v4
+
+      # Import GPG Key
+      - uses: ./.github/actions/import-gpg-key
+        name: "Import GPG Key"
+        with:
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - uses: ./.github/actions/setup-build
+      # publish snapshots or releases
+      - name: Publish version
+        env:
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        run: |-
+          VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')
+          cmd=""
+          if [[ $VERSION != *-SNAPSHOT ]]
+          then
+            cmd="closeAndReleaseSonatypeStagingRepository";
+            echo "::debug::Publishing Version $VERSION to MavenCentral"
+          else
+            echo "::debug::Publishing Version $VERSION to OSSRH Snapshots"
+          fi
+          ./gradlew publishToSonatype ${cmd} --no-parallel -Pversion=$VERSION -Psigning.gnupg.executable=gpg -Psigning.gnupg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
+

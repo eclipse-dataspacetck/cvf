@@ -1,0 +1,63 @@
+#
+#  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+#
+#  This program and the accompanying materials are made available under the
+#  terms of the Apache License, Version 2.0 which is available at
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+#  SPDX-License-Identifier: Apache-2.0
+#
+#  Contributors:
+#    Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+#
+
+---
+name: 'DASH Dependency Check'
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  Dash-Verify-Licenses:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-build
+      - name: Download latest Eclipse Dash
+        run: |
+          curl -L https://repo.eclipse.org/service/local/artifact/maven/redirect\?r\=dash-licenses\&g\=org.eclipse.dash\&a\=org.eclipse.dash.licenses\&v\=LATEST --output dash.jar
+      - name: generate DEP file
+        run: |
+          # dash returns a nonzero exit code if there are libs that need review. the "|| true" avoids that
+          ./gradlew allDependencies | grep -Poh "(?<=\s)[\w.-]+:[\w.-]+:[^:\s\[\]]+" | sort | uniq | java -jar dash.jar - -summary DEPENDENCIES-gen || true
+
+          # error if DEPENDENCIES is empty
+          grep -E 'maven' DEPENDENCIES-gen | if test $(wc -l) -lt 1; then
+            echo "::error file=DEPENDENCIES-gen,title=Dependencies file is invalid"
+            exit 1
+          fi
+
+          # log error and fail job if rejected deps are found
+          grep -E 'rejected' DEPENDENCIES-gen | if test $(wc -l) -gt 0; then
+            echo "::error file=DEPENDENCIES,title=Rejected Dependencies found::Please remove all rejected dependencies."
+            exit 1
+          fi
+
+      - name: Check for differences
+        run: |
+          if diff DEPENDENCIES DEPENDENCIES-gen ; then
+            echo "DEPENDENCIES unchanged"
+          else
+            diff DEPENDENCIES DEPENDENCIES-gen || true
+            echo "------------------------------------------------------------"
+            echo "=== Please copy the following content back to DEPENDENCIES ==="
+            cat DEPENDENCIES-gen
+            echo "=== end of content ==="
+            echo "::error file=DEPENDENCIES,title=Dependencies outdated::The DEPENDENCIES file was outdated and must be regenerated. Check the output of this job for more information"
+            exit 1
+          fi

@@ -31,8 +31,8 @@ runs:
       shell: bash
       run: |
         # Prepare git env
-        git config user.name "eclipse-edc-bot"
-        git config user.email "edc-bot@eclipse.org"
+        git config user.name "eclipse-dataspacetck-bot"
+        git config user.email "dataspacetck-bot@eclipse.org"
 
         # checkout target
         git fetch origin
