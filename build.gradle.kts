@@ -115,6 +115,46 @@ subprojects {
             // make sure "dockerize" always runs after "copyLegalDocs"
             dockerTask.dependsOn(copyLegalDocs)
         }
+
+        publishing {
+            publications.forEach { i ->
+                val mp = (i as MavenPublication)
+                mp.pom {
+                    name.set(project.name)
+                    description.set("Compliance Verification Toolkit")
+                    url.set("https://projects.eclipse.org/projects/technology.dataspacetck")
+
+                    licenses {
+                        license {
+                            name.set("The Apache License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
+                        developers {
+                            developer {
+                                id.set("JimMarino")
+                                name.set("Jim Marino")
+                                email.set("jmarino@metaformsystems.com")
+                            }
+                            developer {
+                                id.set("PaulLatzelsperger")
+                                name.set("Paul Latzelsperger")
+                                email.set("paul.latzelsperger@beardyinc.com")
+                            }
+                            developer {
+                                id.set("EnricoRisa")
+                                name.set("Enrico Risa")
+                                email.set("enrico.risa@gmail.com")
+                            }
+                        }
+                        scm {
+                            connection.set("scm:git:git@github.com:eclipse-dataspacetck/cvf.git")
+                            url.set("https://github.com/eclipse-dataspacetck/cvf.git")
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     publishing {
@@ -141,8 +181,8 @@ nexusPublishing {
         sonatype {  //only for users registered in Sonatype after 24 Feb 2021
             nexusUrl.set(uri("https://oss.sonatype.org/service/local/"))
             snapshotRepositoryUrl.set(uri("https://oss.sonatype.org/content/repositories/snapshots/"))
-            username = System.getenv("OSSRH_USERNAME")
-            password = System.getenv("OSSRH_PASSWORD")
+            username.set( System.getenv("OSSRH_USERNAME") ?: return@sonatype)
+            password.set(System.getenv("OSSRH_PASSWORD")?: return@sonatype)
         }
     }
 }
