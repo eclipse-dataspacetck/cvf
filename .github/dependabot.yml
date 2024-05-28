@@ -34,4 +34,4 @@ updates:
       - "dependencies"
       - "java"
     ignore:
-      - dependency-name: "org.eclipse.edc:cvf-versions"
+      - dependency-name: "org.eclipse.dataspacetck:cvf-versions"

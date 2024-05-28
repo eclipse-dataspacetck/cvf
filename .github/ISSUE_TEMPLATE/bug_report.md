@@ -34,8 +34,8 @@ Steps to reproduce the behavior:
 
 _Add any other context about the problem here._
 
-- Used version [e.g. EDC v1.0.0]
-- OS: [e.g. iOS, Windows]
+- Used version [e.g. CVF v1.0.0]
+- OS: [e.g. Debian 12, Windows]
 - ...
 
 ## Detailed Description
