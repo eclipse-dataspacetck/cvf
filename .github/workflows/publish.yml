@@ -117,3 +117,11 @@ jobs:
           fi
           ./gradlew publishToSonatype ${cmd} --no-parallel -Pversion=$VERSION -Psigning.gnupg.executable=gpg -Psigning.gnupg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
 
+
+  # If we have a release version, also invoke the GH release job, bump versions, etc.
+  Create-GitHub-Release:
+    needs: [ Publish-Maven-Artefacts, Determine-Version ]
+    if: ${{ !endsWith(needs.Determine-Version.outputs.VERSION, '-SNAPSHOT') }}
+    uses: ./.github/workflows/release-cvf.yml
+    with:
+      cvf_version: ${{ needs.Determine-Version.outputs.VERSION }}
