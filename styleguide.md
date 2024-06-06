@@ -45,9 +45,3 @@ If you are using Jetbrains IntelliJ IDEA, we have created a specific code style 
 format your source code according to that style guide. This should eliminate most of the potential Checkstyle violations
 right from the get-go. You will need to reformat your code manually or in a pre-commit hook though.
 
-## [Optional] Generic `.editorConfig`
-
-For most other editors and IDEs we've supplied an [.editorConfig](config/edc-codestyle.editorconfig) file that can be
-placed at the appropriate location. The specific location will largely depend on your editor and your OS, please refer
-to the
-[official documentation](https://editorconfig.org) for details.

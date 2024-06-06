@@ -2,7 +2,7 @@
 
 ## As an author
 
-Submitting pull requests in EDC should be done while adhering to a couple of simple rules.
+Submitting pull requests should be done while adhering to a couple of simple rules.
 
 - Familiarize yourself with [coding style](styleguide.md)
 - No surprise PRs please. Before you submit a PR, open a discussion or an issue outlining your planned work and give
