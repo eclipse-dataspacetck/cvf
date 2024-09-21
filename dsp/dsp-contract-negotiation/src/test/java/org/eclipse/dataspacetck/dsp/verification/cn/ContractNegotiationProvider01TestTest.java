@@ -15,5 +15,5 @@
 
 package org.eclipse.dataspacetck.dsp.verification.cn;
 
-public class DspContractNegotiationMandatory01TestTest extends DspContractNegotiationMandatory01Test {
+public class ContractNegotiationProvider01TestTest extends ContractNegotiationProvider01Test {
 }

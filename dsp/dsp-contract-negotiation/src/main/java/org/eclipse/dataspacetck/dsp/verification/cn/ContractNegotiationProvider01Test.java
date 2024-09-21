@@ -33,7 +33,7 @@ import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegot
 
 @Tag("base-compliance")
 @DisplayName("CN_01: Contract request scenarios")
-public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVerificationTest {
+public class ContractNegotiationProvider01Test extends AbstractNegotiationVerificationTest {
 
     @Inject
     @Consumer
