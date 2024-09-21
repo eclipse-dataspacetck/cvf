@@ -129,8 +129,8 @@ public class ContractNegotiation {
      */
     public void storeOffer(Map<String, Object> offer, State state, Consumer<ContractNegotiation> work) {
         lockManager.writeLock(() -> {
-            transition(state);
             offers.add(offer);
+            transition(state);
             return null;
         });
         work.accept(this);
@@ -148,8 +148,8 @@ public class ContractNegotiation {
      */
     public void storeAgreement(Map<String, Object> agreement, Consumer<ContractNegotiation> work) {
         lockManager.writeLock(() -> {
-            transition(AGREED);
             this.agreement = agreement;
+            transition(AGREED);
             return null;
         });
         work.accept(this);

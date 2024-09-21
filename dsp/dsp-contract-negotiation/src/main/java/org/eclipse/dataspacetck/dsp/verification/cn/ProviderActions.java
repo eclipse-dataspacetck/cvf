@@ -39,7 +39,7 @@ public class ProviderActions {
     private static final String NEGOTIATION_FINALIZE_TEMPLATE = "%s/negotiations/%s/events";
 
     public static void postOffer(ContractNegotiation negotiation) {
-        var contractOffer = createOffer(negotiation.getId(), negotiation.getCorrelationId(), randomUUID().toString());
+        var contractOffer = createOffer(negotiation.getId(), negotiation.getCorrelationId(), randomUUID().toString(), randomUUID().toString());
 
         negotiation.transition(OFFERED);
         try (var response = postJson(format(NEGOTIATION_OFFER_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), contractOffer)) {

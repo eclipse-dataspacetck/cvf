@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspacetck.runtime;
 
+import org.eclipse.dataspacetck.core.spi.boot.Monitor;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
@@ -25,25 +26,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.lang.System.setProperty;
 import static org.junit.platform.engine.discovery.ClassNameFilter.includeClassNamePatterns;
 
 /**
  * Bootstraps the JUnit platform using the Jupiter engine and executes configured TCK tests.
  */
 public class TckRuntime {
-    private static final String CVF_LAUNCHER = "cvf.launcher";
     private static final String TEST_POSTFIX = ".*Test";
 
-    private String launcherClass;
+    private Monitor monitor;
+
     private List<String> packages = new ArrayList<>();
     private Map<String, String> properties = new HashMap<>();
 
     public TestExecutionSummary execute() {
-        var listener = new SummaryGeneratingListener();
-
-        setProperty(CVF_LAUNCHER, launcherClass);
         properties.forEach(System::setProperty);
+
+        var summaryListener = new SummaryGeneratingListener();
 
         var request = LauncherDiscoveryRequestBuilder.request()
                 .filters(includeClassNamePatterns(TEST_POSTFIX))
@@ -51,11 +50,12 @@ public class TckRuntime {
                 .build();
 
         var launcher = LauncherFactory.create();
-        launcher.registerTestExecutionListeners(listener);
+        launcher.registerTestExecutionListeners(new TckExecutionListener(monitor));
+        launcher.registerTestExecutionListeners(summaryListener);
         launcher.discover(request);
         launcher.execute(request);
 
-        return listener.getSummary();
+        return summaryListener.getSummary();
     }
 
     private TckRuntime() {
@@ -68,13 +68,13 @@ public class TckRuntime {
             return new Builder();
         }
 
-        public Builder launcherClass(String clazz) {
-            launcher.launcherClass = clazz;
+        public Builder property(String key, String value) {
+            launcher.properties.put(key, value);
             return this;
         }
 
-        public Builder property(String key, String value) {
-            launcher.properties.put(key, value);
+        public Builder properties(Map<String, String> properties) {
+            launcher.properties.putAll(properties);
             return this;
         }
 
@@ -90,5 +90,12 @@ public class TckRuntime {
         private Builder() {
             launcher = new TckRuntime();
         }
+
+        public Builder monitor(Monitor monitor) {
+            this.launcher.monitor = monitor;
+            return this;
+        }
+
     }
+
 }

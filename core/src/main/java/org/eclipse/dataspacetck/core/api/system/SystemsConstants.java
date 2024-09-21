@@ -18,6 +18,8 @@ package org.eclipse.dataspacetck.core.api.system;
  * Constants for system configuration.
  */
 public interface SystemsConstants {
-    String CVF_CALLBACK_ADDRESS = "cvf.callback.address";
-    String CVF_LAUNCHER = "cvf.launcher";
+    String TCK_PREFIX = "dataspacetck";
+    String TCK_CALLBACK_ADDRESS = TCK_PREFIX + ".callback.address";
+    String TCK_DEFAULT_CALLBACK_ADDRESS = "http://localhost:8083";
+    String TCK_LAUNCHER = TCK_PREFIX + ".launcher";
 }

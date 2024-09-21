@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspacetck.dsp.system.api.connector;
 
+import org.eclipse.dataspacetck.core.spi.boot.Monitor;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,56 +25,62 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createOfferAck;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
 
 /**
  * Manages contract negotiations on a consumer.
  */
 public class ConsumerNegotiationManager {
+    private Monitor monitor;
 
     private Map<String, ContractNegotiation> negotiations = new ConcurrentHashMap<>();
 
     private Queue<ConsumerNegotiationListener> listeners = new ConcurrentLinkedQueue<>();
 
+    public ConsumerNegotiationManager(Monitor monitor) {
+        this.monitor = monitor;
+    }
+
     /**
      * Called after a contract has been requested and the negotiation id is returned by the provider. The provider negotiation id will be set as the correlation id
      * on the consumer.
      */
-    public void contractRequested(String processId, String correlationId) {
-        var contractNegotiation = getNegotiations().get(processId);
-        contractNegotiation.setCorrelationId(correlationId, ContractNegotiation.State.REQUESTED);
+    public void contractRequested(String consumerId, String providerId) {
+        var contractNegotiation = getNegotiations().get(consumerId);
+        contractNegotiation.setCorrelationId(providerId, ContractNegotiation.State.REQUESTED);
     }
 
     /**
      * Transitions the negotiation to {@link ContractNegotiation.State#REQUESTED} when a counter-offer has been made.
      */
-    public void counterOffer(String processId) {
-        var contractNegotiation = getNegotiations().get(processId);
+    public void counterOffer(String consumerId) {
+        var contractNegotiation = getNegotiations().get(consumerId);
         contractNegotiation.transition(ContractNegotiation.State.REQUESTED);
     }
 
     /**
      * Transitions the negotiation to {@link ContractNegotiation.State#ACCEPTED} when an offer is accepted by the consumer.
      */
-    public void agree(String processId) {
-        var contractNegotiation = getNegotiations().get(processId);
+    public void agree(String consumerId) {
+        var contractNegotiation = getNegotiations().get(consumerId);
         contractNegotiation.transition(ContractNegotiation.State.ACCEPTED);
     }
 
     /**
      * Transitions the negotiation to {@link ContractNegotiation.State#VERIFIED} when a verification is being sent.
      */
-    public void verify(String processId) {
-        var contractNegotiation = getNegotiations().get(processId);
+    public void verify(String consumerId) {
+        var contractNegotiation = getNegotiations().get(consumerId);
         contractNegotiation.transition(ContractNegotiation.State.VERIFIED);
     }
 
     /**
      * Transitions the negotiation to {@link ContractNegotiation.State#TERMINATED}.
      */
-    public void terminate(String processId) {
-        var negotiation = getNegotiations().get(processId);
+    public void terminate(String consumerId) {
+        var negotiation = getNegotiations().get(consumerId);
         negotiation.transition(ContractNegotiation.State.TERMINATED, n -> listeners.forEach(l -> l.terminated(n)));
     }
 
@@ -93,8 +100,10 @@ public class ConsumerNegotiationManager {
      * Processes an offer received from the provider.
      */
     public Map<String, Object> handleProviderOffer(Map<String, Object> offer) {
-        var id = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, offer);
-        var negotiation = findById(id);
+        var providerId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, offer); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+        monitor.debug("Received provider offer: " + providerId);
+        var consumerId = stringIdProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, offer); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+        var negotiation = findById(consumerId);
         negotiation.storeOffer(offer, ContractNegotiation.State.OFFERED);
         return createOfferAck(negotiation.getCorrelationId(), negotiation.getId(), ContractNegotiation.State.OFFERED);
     }
@@ -103,8 +112,10 @@ public class ConsumerNegotiationManager {
      * Processes an agreement received from the provider.
      */
     public void handleAgreement(Map<String, Object> agreement) {
-        var id = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, agreement);
-        var negotiation = findById(id);
+        var providerId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, agreement); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+        monitor.debug("Received provider agreement: " + providerId);
+        var consumerId = stringIdProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, agreement); // // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+        var negotiation = findById(consumerId);
         negotiation.storeAgreement(agreement);
     }
 
@@ -112,8 +123,10 @@ public class ConsumerNegotiationManager {
      * Processes a finalize event received from the provider.
      */
     public void handleFinalized(Map<String, Object> event) {
-        var id = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, event);
-        var negotiation = findById(id);
+        var providerId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, event); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+        monitor.debug("Received provider finalize: " + providerId);
+        var consumerId = stringIdProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, event); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+        var negotiation = findById(consumerId);
         negotiation.transition(ContractNegotiation.State.FINALIZED);
     }
 

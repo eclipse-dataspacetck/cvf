@@ -16,81 +16,116 @@
 package org.eclipse.dataspacetck.dsp.system.api.pipeline;
 
 import org.awaitility.core.ConditionTimeoutException;
+import org.eclipse.dataspacetck.core.api.message.MessageSerializer;
 import org.eclipse.dataspacetck.core.api.system.CallbackEndpoint;
+import org.eclipse.dataspacetck.core.spi.boot.Monitor;
 import org.eclipse.dataspacetck.dsp.system.api.client.NegotiationClient;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_STATE_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAcceptedEvent;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createContractRequest;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createCounterOffer;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createTermination;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createVerification;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * A test pipeline to create and execute message interaction tests.
  */
 public class NegotiationPipeline {
-    private static final int DEFAULT_WAIT_SECONDS = 15;
+    private static final CountDownLatch NO_WAIT_LATCH = new CountDownLatch(0);
 
     private static final String NEGOTIATIONS_OFFER_PATH = "/negotiations/[^/]+/offer/";
     private static final String NEGOTIATIONS_AGREEMENT_PATH = "/negotiations/[^/]+/agreement";
     private static final String NEGOTIATIONS_TERMINATION_PATH = "/negotiations/[^/]+/termination";
     private static final String NEGOTIATION_EVENT_PATH = "/negotiations/[^/]+/events";
+    private final long waitTime;
+
+    private Monitor monitor;
 
     private CallbackEndpoint endpoint;
     private Connector connector;
     private NegotiationClient negotiationClient;
 
-    private long waitTime = DEFAULT_WAIT_SECONDS;
     private List<Runnable> stages = new ArrayList<>();
 
-    private ContractNegotiation clientNegotiation;
+    private ContractNegotiation negotiation;
 
-    public static NegotiationPipeline negotiationPipeline(NegotiationClient negotiationClient, CallbackEndpoint endpoint, Connector connector) {
-        var pipeline = new NegotiationPipeline();
-        pipeline.negotiationClient = negotiationClient;
-        pipeline.connector = connector;
-        pipeline.endpoint = endpoint;
-        return pipeline;
+    /*
+     Used by {@link #thenWait} methods to synchronize with the completion of a recorded expectXXX(..) method to avoid message interleaving.
+     For example given:
+
+     <pre>
+         .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+         .sendRequest(datasetId, offerId)
+         .thenWaitForState(OFFERED)
+         .expectAgreement(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
+     </pre>
+
+     When sendRequest is executed and the pipeline waits for the OFFERED state, it must ensure that after OFFERED is set the
+     expectOffer() runnable has completed before executing the next step, expectAgreement(). Otherwise, the send agreement message
+     could arrive at the provider before the expectOffer() runnable is completed, which closes the HTTP socket the provider opened to
+     send the offer.
+
+     Every expectXXXX(..) method places a latch on the deque which is then popped by the subsequent {@link #thenWait} method.
+     The {@link #thenWait} method waits on the latch, which is released after the expectXXXX(..) method completes.
+     */
+    private Deque<CountDownLatch> expectLatches = new ArrayDeque<>();
+
+    public NegotiationPipeline(NegotiationClient negotiationClient,
+                               CallbackEndpoint endpoint,
+                               Connector connector,
+                               Monitor monitor,
+                               long waitTime) {
+        this.negotiationClient = negotiationClient;
+        this.connector = connector;
+        this.endpoint = endpoint;
+        this.monitor = monitor;
+        this.waitTime = waitTime;
     }
 
     @SuppressWarnings("unused")
-    public NegotiationPipeline waitTime(long waitTime) {
-        this.waitTime = waitTime;
-        return this;
-    }
-
-    public NegotiationPipeline sendRequest(String datasetId, String offerId, String targetId) {
+    public NegotiationPipeline sendRequest(String datasetId, String offerId) {
         stages.add(() -> {
-            clientNegotiation = connector.getConsumerNegotiationManager().createNegotiation(datasetId);
+            negotiation = connector.getConsumerNegotiationManager().createNegotiation(datasetId);
 
-            var contractRequest = createContractRequest(clientNegotiation.getId(), offerId, targetId, endpoint.getAddress());
+            var contractRequest = createContractRequest(negotiation.getId(), offerId, datasetId, endpoint.getAddress());
 
+            monitor.debug("Sending contract request");
             var response = negotiationClient.contractRequest(contractRequest);
-            var correlationId = stringProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, response);
-            connector.getConsumerNegotiationManager().contractRequested(clientNegotiation.getId(), correlationId);
+            var correlationId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, response); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+            connector.getConsumerNegotiationManager().contractRequested(negotiation.getId(), correlationId);
         });
         return this;
     }
 
-    public NegotiationPipeline sendCounterRequest() {
+    public NegotiationPipeline sendCounterRequest(String offerId, String targetId) {
         stages.add(() -> {
-            var contractRequest = createCounterOffer(clientNegotiation.getCorrelationId(), clientNegotiation.getId());
-            connector.getConsumerNegotiationManager().counterOffer(clientNegotiation.getId());
+            var providerId = negotiation.getCorrelationId();
+            var consumerId = negotiation.getId();
+            var contractRequest = createCounterOffer(providerId, consumerId, offerId, targetId, endpoint.getAddress());
+
+            monitor.debug("Sending counter offer: " + providerId);
+            connector.getConsumerNegotiationManager().counterOffer(consumerId);
             negotiationClient.contractRequest(contractRequest);
         });
         return this;
@@ -98,25 +133,35 @@ public class NegotiationPipeline {
 
     public NegotiationPipeline sendTermination() {
         stages.add(() -> {
-            var termination = createTermination(clientNegotiation.getCorrelationId(), clientNegotiation.getId(), "1");
+            var providerId = negotiation.getCorrelationId();
+            var consumerId = negotiation.getId();
+            var termination = createTermination(providerId, consumerId, "1");
+
+            monitor.debug("Sending termination: " + providerId);
             negotiationClient.terminate(termination);
-            connector.getConsumerNegotiationManager().terminate(clientNegotiation.getId());
+            connector.getConsumerNegotiationManager().terminate(consumerId);
         });
         return this;
     }
 
     public NegotiationPipeline acceptLastOffer() {
         stages.add(() -> {
-            connector.getConsumerNegotiationManager().agree(clientNegotiation.getId());
-            negotiationClient.consumerAgree(createAcceptedEvent(clientNegotiation.getCorrelationId(), clientNegotiation.getId()));
+            var providerId = negotiation.getCorrelationId();
+            var consumerId = negotiation.getId();
+            monitor.debug("Accepting offer: " + providerId);
+            connector.getConsumerNegotiationManager().agree(consumerId);
+            negotiationClient.consumerAccept(createAcceptedEvent(providerId, consumerId));
         });
         return this;
     }
 
     public NegotiationPipeline sendConsumerVerify() {
         stages.add(() -> {
-            connector.getConsumerNegotiationManager().verify(clientNegotiation.getId());
-            negotiationClient.consumerVerify(createVerification(clientNegotiation.getCorrelationId()));
+            var providerId = negotiation.getCorrelationId();
+            var consumerId = negotiation.getId();
+            monitor.debug("Sending verification: " + providerId);
+            connector.getConsumerNegotiationManager().verify(consumerId);
+            negotiationClient.consumerVerify(createVerification(providerId, consumerId));
         });
         return this;
     }
@@ -127,61 +172,55 @@ public class NegotiationPipeline {
     }
 
     public NegotiationPipeline thenWaitForState(ContractNegotiation.State state) {
-        return thenWait("state to transition to " + state, () -> state == clientNegotiation.getState());
+        return thenWait("state to transition to " + state, () -> state == negotiation.getState());
     }
 
     public NegotiationPipeline thenWait(String description, Callable<Boolean> condition) {
+        var latch = expectLatches.isEmpty() ? NO_WAIT_LATCH : expectLatches.pop();
         stages.add(() -> {
             try {
+                try {
+                    if (!latch.await(waitTime, SECONDS)) {
+                        throw new RuntimeException("Timeout waiting for " + description);
+                    }
+                } catch (InterruptedException e) {
+                    Thread.interrupted();
+                    throw new RuntimeException("Interrupted while waiting for " + description, e);
+                }
                 await().atMost(waitTime, SECONDS).until(condition);
+                monitor.debug("Done waiting for " + description);
             } catch (ConditionTimeoutException e) {
                 throw new AssertionError("Timeout waiting for " + description);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         });
         return this;
     }
 
     public NegotiationPipeline expectOffer(Function<Map<String, Object>, Map<String, Object>> action) {
+        var latch = new CountDownLatch(1);
+        expectLatches.add(latch);
         stages.add(() ->
                 endpoint.registerHandler(NEGOTIATIONS_OFFER_PATH, offer -> {
-                    //noinspection unchecked
-                    var negotiation = action.apply((Map<String, Object>) offer);
+                    var negotiation = action.apply((MessageSerializer.processJsonLd(offer, createDspContext())));
                     endpoint.deregisterHandler(NEGOTIATIONS_OFFER_PATH);
-                    return negotiation;
+                    latch.countDown();
+                    return MessageSerializer.serialize(negotiation);
                 }));
         return this;
     }
 
     public NegotiationPipeline expectAgreement(Consumer<Map<String, Object>> action) {
-        stages.add(() ->
-                endpoint.registerHandler(NEGOTIATIONS_AGREEMENT_PATH, agreement -> {
-                    //noinspection unchecked
-                    action.accept((Map<String, Object>) agreement);
-                    endpoint.deregisterHandler(NEGOTIATIONS_AGREEMENT_PATH);
-                    return null;
-                }));
-        return this;
+        return addHandlerAction(NEGOTIATIONS_AGREEMENT_PATH, action);
     }
 
     public NegotiationPipeline expectFinalized(Consumer<Map<String, Object>> action) {
-        stages.add(() ->
-                endpoint.registerHandler(NEGOTIATION_EVENT_PATH, agreement -> {
-                    //noinspection unchecked
-                    action.accept((Map<String, Object>) agreement);
-                    endpoint.deregisterHandler(NEGOTIATION_EVENT_PATH);
-                    return null;
-                }));
-        return this;
+        return addHandlerAction(NEGOTIATION_EVENT_PATH, action);
     }
 
     public NegotiationPipeline expectTermination() {
-        stages.add(() ->
-                endpoint.registerHandler(NEGOTIATIONS_TERMINATION_PATH, termination -> {
-                    clientNegotiation.transition(ContractNegotiation.State.TERMINATED);
-                    endpoint.deregisterHandler(NEGOTIATIONS_TERMINATION_PATH);
-                    return null;
-                }));
-        return this;
+        return addHandlerAction(NEGOTIATIONS_TERMINATION_PATH, d -> negotiation.transition(TERMINATED));
     }
 
     @SuppressWarnings("unused")
@@ -191,20 +230,20 @@ public class NegotiationPipeline {
 
     @SuppressWarnings("unused")
     public NegotiationPipeline thenVerifyNegotiation(Consumer<ContractNegotiation> consumer) {
-        return then(() -> consumer.accept(clientNegotiation));
+        return then(() -> consumer.accept(negotiation));
     }
 
     @SuppressWarnings("unused")
     public NegotiationPipeline thenVerifyState(ContractNegotiation.State state) {
-        stages.add(() -> assertEquals(state, clientNegotiation.getState()));
+        stages.add(() -> assertEquals(state, negotiation.getState()));
         return this;
     }
 
     public NegotiationPipeline thenVerifyProviderState(ContractNegotiation.State state) {
         stages.add(() -> {
-            var providerNegotiation = negotiationClient.getNegotiation(clientNegotiation.getCorrelationId());
-            var actual = stringProperty(DSPACE_PROPERTY_STATE_EXPANDED, providerNegotiation);
-            assertEquals(state.toString(), actual);
+            var providerNegotiation = negotiationClient.getNegotiation(negotiation.getCorrelationId());
+            var actual = stringIdProperty(DSPACE_PROPERTY_STATE_EXPANDED, providerNegotiation);
+            assertEquals(DSPACE_NAMESPACE + state.toString(), actual);
         });
         return this;
     }
@@ -212,5 +251,19 @@ public class NegotiationPipeline {
     public void execute() {
         stages.forEach(Runnable::run);
     }
+
+    private NegotiationPipeline addHandlerAction(String path, Consumer<Map<String, Object>> action) {
+        var latch = new CountDownLatch(1);
+        expectLatches.add(latch);
+        stages.add(() ->
+                endpoint.registerHandler(path, agreement -> {
+                    action.accept((MessageSerializer.processJsonLd(agreement, createDspContext())));
+                    endpoint.deregisterHandler(path);
+                    latch.countDown();
+                    return null;
+                }));
+        return this;
+    }
+
 
 }

@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspacetck.dsp.system.client;
 
+import org.eclipse.dataspacetck.core.spi.boot.Monitor;
 import org.eclipse.dataspacetck.dsp.system.api.client.NegotiationClient;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 
@@ -24,10 +25,14 @@ import static java.lang.String.format;
 import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.processJsonLd;
 import static org.eclipse.dataspacetck.dsp.system.api.http.HttpFunctions.getJson;
 import static org.eclipse.dataspacetck.dsp.system.api.http.HttpFunctions.postJson;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_STATE_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.compactStringProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createNegotiationResponse;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
 
 /**
  * Default implementation that supports dispatch to a local, in-memory test connector or a remote connector system via HTTP.
@@ -36,29 +41,35 @@ public class NegotiationClientImpl implements NegotiationClient {
     private static final String GET_PATH = "negotiations/%s";
     private static final String REQUEST_PATH = "negotiations/request";
     private static final String TERMINATE_PATH = "negotiations/%s/termination";
+    private static final String EVENT_PATH = "negotiations/%s/events";
+    private static final String VERIFICATION_PATH = "negotiations/%s/agreement/verification";
     private String connectorBaseUrl;
     private Connector systemConnector;
+    private Monitor monitor;
 
-    public NegotiationClientImpl(String connectorBaseUrl) {
+    public NegotiationClientImpl(String connectorBaseUrl, Monitor monitor) {
         this.connectorBaseUrl = connectorBaseUrl.endsWith("/") ? connectorBaseUrl : connectorBaseUrl + "/";
+        this.monitor = monitor;
     }
 
-    public NegotiationClientImpl(Connector systemConnector) {
+    public NegotiationClientImpl(Connector systemConnector, Monitor monitor) {
         this.systemConnector = systemConnector;
+        this.monitor = monitor;
     }
 
     @Override
     public Map<String, Object> contractRequest(Map<String, Object> contractRequest) {
         if (systemConnector != null) {
-            var compacted = processJsonLd(contractRequest);
+            var compacted = processJsonLd(contractRequest, createDspContext());
             var negotiation = systemConnector.getProviderNegotiationManager().handleContractRequest(compacted);
             return processJsonLd(createNegotiationResponse(negotiation.getId(),
                     negotiation.getCorrelationId(),
-                    negotiation.getState().toString().toLowerCase()));
+                    negotiation.getState().toString().toLowerCase()), createDspContext());
         } else {
             try (var response = postJson(connectorBaseUrl + REQUEST_PATH, contractRequest)) {
+                monitor.debug("Received contract request response");
                 //noinspection DataFlowIssue
-                return processJsonLd(response.body().byteStream());
+                return processJsonLd(response.body().byteStream(), createDspContext());
             }
         }
     }
@@ -66,14 +77,15 @@ public class NegotiationClientImpl implements NegotiationClient {
     @Override
     public void terminate(Map<String, Object> termination) {
         if (systemConnector != null) {
-            var compacted = processJsonLd(termination);
+            var compacted = processJsonLd(termination, createDspContext());
             systemConnector.getProviderNegotiationManager().terminate(compacted);
         } else {
-            var processId = stringProperty(DSPACE_PROPERTY_PROVIDER_PID, termination);
-            try (var response = postJson(connectorBaseUrl + format(TERMINATE_PATH, processId), termination)) {
+            var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, termination);
+            try (var response = postJson(connectorBaseUrl + format(TERMINATE_PATH, providerId), termination)) {
                 if (!response.isSuccessful()) {
-                    throw new AssertionError("Terminate request failed with code: " + response.code());
+                    throw new AssertionError(format("Terminate request failed with code %s: %s", response.code(), providerId));
                 }
+                monitor.debug("Received negotiation terminate response: " + providerId);
             }
         }
     }
@@ -82,35 +94,55 @@ public class NegotiationClientImpl implements NegotiationClient {
     public Map<String, Object> getNegotiation(String providerPid) {
         if (systemConnector != null) {
             var negotiation = systemConnector.getProviderNegotiationManager().findById(providerPid);
-            return processJsonLd(createNegotiationResponse(negotiation.getId(),
-                    negotiation.getCorrelationId(),
-                    negotiation.getState().toString()));
+            var consumerPid = negotiation.getCorrelationId();
+            var state = DSPACE_NAMESPACE + negotiation.getState().toString();
+            return processJsonLd(createNegotiationResponse(providerPid, consumerPid, state), createDspContext());
         } else {
             try (var response = getJson(connectorBaseUrl + format(GET_PATH, providerPid))) {
                 //noinspection DataFlowIssue
-                return processJsonLd(response.body().byteStream());
+                var jsonResponse = processJsonLd(response.body().byteStream(), createDspContext());
+                var providerId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, jsonResponse); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+                var state = stringIdProperty(DSPACE_PROPERTY_STATE_EXPANDED, jsonResponse); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+                monitor.debug(format("Received negotiation status response with state %s: %s", state, providerId));
+                return jsonResponse;
             }
         }
     }
 
     @Override
-    public void consumerAgree(Map<String, Object> event) {
+    public void consumerAccept(Map<String, Object> event) {
         if (systemConnector != null) {
-            var compacted = processJsonLd(event);
-            var processId = stringProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, compacted);
-            systemConnector.getProviderNegotiationManager().handleConsumerAgreed(processId);
+            var compacted = processJsonLd(event, createDspContext());
+            var providerId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, compacted); // // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+            systemConnector.getProviderNegotiationManager().handleConsumerAgreed(providerId);
+        } else {
+            var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, event);
+            try (var response = postJson(connectorBaseUrl + format(EVENT_PATH, providerId), event)) {
+                if (!response.isSuccessful()) {
+                    throw new AssertionError(format("Accept event failed with code %s: %s ", response.code(), providerId));
+                }
+                monitor.debug("Received accept response: " + providerId);
+            }
+
         }
-        // TODO implement HTTP invoke
     }
 
     @Override
     public void consumerVerify(Map<String, Object> verification) {
         if (systemConnector != null) {
-            var compacted = processJsonLd(verification);
-            var processId = stringProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, compacted);
-            systemConnector.getProviderNegotiationManager().handleConsumerVerified(processId, verification);
+            var compacted = processJsonLd(verification, createDspContext());
+            var providerId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, compacted); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+            systemConnector.getProviderNegotiationManager().handleConsumerVerified(providerId, verification);
+        } else {
+            var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, verification);
+            try (var response = postJson(connectorBaseUrl + format(VERIFICATION_PATH, providerId), verification)) {
+                if (!response.isSuccessful()) {
+                    throw new AssertionError("Verification event failed with code: " + response.code());
+                }
+                monitor.debug("Received verification response: " + providerId);
+            }
+
         }
-        // TODO implement HTTP invoke
     }
 
 

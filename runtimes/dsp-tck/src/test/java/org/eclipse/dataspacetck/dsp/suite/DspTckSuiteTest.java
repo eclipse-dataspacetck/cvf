@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspacetck.dsp.suite;
 
+import org.eclipse.dataspacetck.core.system.ConsoleMonitor;
 import org.eclipse.dataspacetck.runtime.TckRuntime;
 import org.junit.jupiter.api.Test;
 
@@ -24,9 +25,9 @@ class DspTckSuiteTest {
     @Test
     void verifyTestSuite() {
         var result = TckRuntime.Builder.newInstance()
-                .launcherClass("org.eclipse.dataspacetck.dsp.system.DspSystemLauncher")
                 .property("dataspacetck.dsp.local.connector", "true")
                 .addPackage("org.eclipse.dataspacetck.dsp.verification")
+                .monitor(new ConsoleMonitor(false, true))
                 .build().execute();
 
         assertThat(result.getTestsSucceededCount()).isNotZero();

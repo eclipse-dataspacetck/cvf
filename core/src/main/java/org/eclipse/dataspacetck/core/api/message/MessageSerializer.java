@@ -16,6 +16,7 @@
 package org.eclipse.dataspacetck.core.api.message;
 
 import com.apicatalog.jsonld.JsonLdError;
+import com.apicatalog.jsonld.JsonLdOptions;
 import com.apicatalog.jsonld.document.JsonDocument;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,29 +61,35 @@ public class MessageSerializer {
         }
     }
 
-    public static Map<String, Object> processJsonLd(InputStream stream) {
+    public static Map<String, Object> processJsonLd(InputStream stream, Map<String, Object> context) {
         try {
-            return processJsonLd(JsonDocument.of(MAPPER.readValue(stream, JsonObject.class)));
+            return processJsonLd(MAPPER.readValue(stream, JsonObject.class), context);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static Map<String, Object> processJsonLd(Map<String, Object> message) {
-        return processJsonLd(JsonDocument.of(MAPPER.convertValue(message, JsonObject.class)));
+    public static Map<String, Object> processJsonLd(Map<String, Object> message, Map<String, Object> context) {
+        return processJsonLd(MAPPER.convertValue(message, JsonObject.class), context);
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> processJsonLd(JsonDocument document) {
+    private static Map<String, Object> processJsonLd(JsonObject document, Map<String, Object> context) {
         try {
-            var jsonArray = expand(document).get();
+            var options = new JsonLdOptions();
+            options.setExpandContext(MAPPER.convertValue(context, JsonObject.class));
+            options.setCompactArrays(true);
+            var jsonArray = expand(JsonDocument.of(document)).options(options).get();
             if (jsonArray.isEmpty()) {
                 throw new AssertionError("Invalid Json document, expecting a non-empty array");
             }
             @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
             var expanded = jsonArray.get(0);
-            var compacted = compact(JsonDocument.of(MAPPER.convertValue(expanded, JsonObject.class)), EMPTY_CONTEXT).get();
-            return MAPPER.convertValue(compacted, Map.class);
+            return MAPPER.convertValue(expanded, Map.class);
+
+            //var compacted = compact(JsonDocument.of(MAPPER.convertValue(expanded, JsonObject.class)), EMPTY_CONTEXT).get();
+
+            //    return MAPPER.convertValue(compacted, Map.class);
         } catch (JsonLdError e) {
             throw new RuntimeException(e);
         }

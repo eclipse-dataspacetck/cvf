@@ -30,7 +30,7 @@ public interface NegotiationClient {
     /**
      * Accepts the most recent offer.
      */
-    void consumerAgree(Map<String, Object> offer);
+    void consumerAccept(Map<String, Object> offer);
 
     /**
      * Verifies the contract agreement with the provider.

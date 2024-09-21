@@ -18,6 +18,7 @@ package org.eclipse.dataspacetck.core.system;
 import org.eclipse.dataspacetck.core.api.system.CallbackEndpoint;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,9 +33,9 @@ import static java.util.regex.Pattern.compile;
 /**
  * Implements a callback endpoint.
  * <p>
- * Deserialized messages from incoming transports such as HTTP are dispatched to a registered handler through this endpoint by calling {@link #apply(String, Object)}.
+ * Deserialized messages from incoming transports such as HTTP are dispatched to a registered handler through this endpoint by calling {@link #apply(String, InputStream)}.
  */
-class DefaultCallbackEndpoint implements CallbackEndpoint, BiFunction<String, Object, Object>, ExtensionContext.Store.CloseableResource {
+public class DefaultCallbackEndpoint implements CallbackEndpoint, BiFunction<String, InputStream, String>, ExtensionContext.Store.CloseableResource {
 
     @FunctionalInterface
     public interface LifecycleListener {
@@ -43,7 +44,7 @@ class DefaultCallbackEndpoint implements CallbackEndpoint, BiFunction<String, Ob
 
     private String address;
     private List<LifecycleListener> listeners = new ArrayList<>();
-    private Map<String, Function<Object, Object>> handlers = new HashMap<>();
+    private Map<String, Function<InputStream, String>> handlers = new HashMap<>();
 
 
     @Override
@@ -56,13 +57,13 @@ class DefaultCallbackEndpoint implements CallbackEndpoint, BiFunction<String, Ob
     }
 
     @Override
-    public Object apply(String path, Object message) {
+    public String apply(String path, InputStream message) {
         //noinspection OptionalGetWithoutIsPresent
         return lookupHandler(path).get().apply(message);
     }
 
     @Override
-    public void registerHandler(String path, Function<Object, Object> handler) {
+    public void registerHandler(String path, Function<InputStream, String> handler) {
         if (!path.startsWith("/")) {
             path = "/" + path;
         }
@@ -112,7 +113,7 @@ class DefaultCallbackEndpoint implements CallbackEndpoint, BiFunction<String, Ob
     /**
      * Matches the path based on the regular expression.
      */
-    private Optional<Function<Object, Object>> lookupHandler(String expression) {
+    private Optional<Function<InputStream, String>> lookupHandler(String expression) {
         var pattern = compile(expression);
         return handlers.entrySet()
                 .stream()

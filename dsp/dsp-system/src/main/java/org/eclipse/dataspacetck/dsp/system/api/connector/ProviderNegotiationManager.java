@@ -30,7 +30,9 @@ import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPAC
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_OFFER_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.compactStringProperty;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.mapProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
 
 /**
@@ -45,10 +47,9 @@ public class ProviderNegotiationManager {
      * Called when a contract request is received.
      */
     public ContractNegotiation handleContractRequest(Map<String, Object> contractRequest) {
-        var processId = (String) contractRequest.get(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED);
-
-        if (processId != null) {
+        if (contractRequest.containsKey(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED)) {
             // the message is a counter-offer
+            var processId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, contractRequest);
             return handleCounterOffer(contractRequest, processId);
         } else {
             // the message is an initial request
@@ -68,7 +69,7 @@ public class ProviderNegotiationManager {
     }
 
     public void terminate(Map<String, Object> termination) {
-        var processId = requireNonNull(stringProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, termination));
+        var processId = requireNonNull(stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, termination));
         var negotiation = negotiations.get(processId);
         negotiation.transition(ContractNegotiation.State.TERMINATED, n -> listeners.forEach(l -> l.terminated(n)));
     }
@@ -83,7 +84,7 @@ public class ProviderNegotiationManager {
 
     @NotNull
     private ContractNegotiation handleInitialRequest(Map<String, Object> contractRequest) {
-        var consumerId = stringProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, contractRequest);
+        var consumerId = stringIdProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, contractRequest); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
         var previousNegotiation = findByCorrelationId(consumerId);
         if (previousNegotiation != null) {
             return previousNegotiation;
@@ -91,7 +92,7 @@ public class ProviderNegotiationManager {
 
         var offer = mapProperty(DSPACE_PROPERTY_OFFER_EXPANDED, contractRequest);
 
-        var offerId = stringProperty(ID, offer);
+        var offerId = compactStringProperty(ID, offer);
         var callbackAddress = stringProperty(DSPACE_PROPERTY_CALLBACK_ADDRESS_EXPANDED, contractRequest);
 
         var builder = ContractNegotiation.Builder.newInstance()

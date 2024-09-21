@@ -15,12 +15,15 @@
 
 package org.eclipse.dataspacetck.core.spi.system;
 
+import org.eclipse.dataspacetck.core.spi.boot.Monitor;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Integer.parseInt;
+import static java.lang.Long.parseLong;
 
 /**
  * Configuration used to start a {@link SystemLauncher}.
@@ -28,6 +31,11 @@ import static java.lang.Integer.parseInt;
 public abstract class AbstractConfiguration {
     protected Function<String, String> propertyDelegate = k -> null;
     protected Map<String, String> extensibleConfiguration = new HashMap<>();
+    protected Monitor monitor;
+
+    public Monitor getMonitor() {
+        return monitor;
+    }
 
     public String getPropertyAsString(String key, String defaultValue) {
         var value = getProperty(key);
@@ -37,6 +45,11 @@ public abstract class AbstractConfiguration {
     public int getPropertyAsInt(String key, int defaultValue) {
         var value = getProperty(key);
         return value != null ? parseInt(value) : defaultValue;
+    }
+
+    public long getPropertyAsLong(String key, long defaultValue) {
+        var value = getProperty(key);
+        return value != null ? parseLong(value) : defaultValue;
     }
 
     public boolean getPropertyAsBoolean(String key, boolean defaultValue) {
@@ -58,11 +71,16 @@ public abstract class AbstractConfiguration {
     public abstract static class Builder<B extends Builder<?>> {
 
         @SuppressWarnings("unchecked")
+        public B monitor(Monitor monitor) {
+            getConfiguration().monitor = monitor;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
         public B property(String key, String value) {
             getConfiguration().extensibleConfiguration.put(key, value);
             return (B) this;
         }
-
 
         @SuppressWarnings("unchecked")
         public B propertyDelegate(Function<String, String> delegate) {
