@@ -39,7 +39,7 @@ public class ProviderActions {
     private static final String NEGOTIATION_FINALIZE_TEMPLATE = "%s/negotiations/%s/events";
 
     public static void postOffer(ContractNegotiation negotiation) {
-        var contractOffer = createOffer(negotiation.getId(), negotiation.getCorrelationId(), randomUUID().toString());
+        var contractOffer = createOffer(negotiation.getId(), negotiation.getCorrelationId(), randomUUID().toString(), randomUUID().toString());
 
         negotiation.transition(OFFERED);
         try (var response = postJson(format(NEGOTIATION_OFFER_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), contractOffer)) {
@@ -68,6 +68,14 @@ public class ProviderActions {
         var termination = createTermination(negotiation.getId(), negotiation.getCorrelationId(), "1");
         try (var response = postJson(format(NEGOTIATION_TERMINATE_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), termination)) {
             checkResponse(response);
+        }
+    }
+
+    public static void pause() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

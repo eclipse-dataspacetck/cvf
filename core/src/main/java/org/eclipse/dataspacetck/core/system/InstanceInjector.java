@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspacetck.core.system.injection;
+package org.eclipse.dataspacetck.core.system;
 
 import org.eclipse.dataspacetck.core.api.system.ConfigParam;
 import org.eclipse.dataspacetck.core.api.system.Inject;
@@ -26,6 +26,7 @@ import java.lang.reflect.Field;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
+import static org.eclipse.dataspacetck.core.system.ConfigFunctions.propertyOrEnv;
 
 /**
  * Injects fields on an instance annotated with {@link Inject} in a type hierarchy.
@@ -71,7 +72,7 @@ public class InstanceInjector {
             return;
         }
         String key = getKey(field);
-        var value = System.getProperty(key);
+        var value = extensionContext.getConfigurationParameter(key).orElse(propertyOrEnv(key, null));
         if (value == null) {
             if (((ConfigParam) annotation.get()).required()) {
                 var className = field.getDeclaringClass().getName();
@@ -99,7 +100,7 @@ public class InstanceInjector {
                 .tags(tags)
                 .scopeId(id)
                 .annotations(annotations)
-                .propertyDelegate(k -> extensionContext.getConfigurationParameter(k).orElse(null))
+                .propertyDelegate(k -> extensionContext.getConfigurationParameter(k).orElse(propertyOrEnv(k, null)))
                 .build();
 
         try {

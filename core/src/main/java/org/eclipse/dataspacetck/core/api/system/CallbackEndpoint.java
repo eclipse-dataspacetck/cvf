@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspacetck.core.api.system;
 
+import java.io.InputStream;
 import java.util.function.Function;
 
 /**
@@ -29,7 +30,7 @@ public interface CallbackEndpoint {
     /**
      * Registers a response handler for the given callback path.
      */
-    void registerHandler(String path, Function<Object, Object> consumer);
+    void registerHandler(String path, Function<InputStream, String> consumer);
 
     /**
      * Deregisters a response handler.

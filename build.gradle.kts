@@ -39,7 +39,7 @@ allprojects {
 
     tasks.test {
         useJUnitPlatform()
-        systemProperty("cvf.launcher", "org.eclipse.dataspacetck.dsp.system.DspSystemLauncher")
+        systemProperty("dataspacetck.launcher", "org.eclipse.dataspacetck.dsp.system.DspSystemLauncher")
     }
 
     tasks.jar {

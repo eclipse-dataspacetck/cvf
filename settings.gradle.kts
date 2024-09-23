@@ -24,6 +24,7 @@
  */
 
 rootProject.name = "cvf"
+include("boot")
 include("core")
 include("dsp:dsp-contract-negotiation")
 include("dsp:dsp-system")

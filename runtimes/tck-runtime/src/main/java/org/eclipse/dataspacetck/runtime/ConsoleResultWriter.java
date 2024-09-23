@@ -14,42 +14,41 @@
 
 package org.eclipse.dataspacetck.runtime;
 
+import org.eclipse.dataspacetck.core.spi.boot.Monitor;
+import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
-import static java.lang.Boolean.parseBoolean;
+import static java.lang.String.format;
 
 /**
  * Outputs to the console.
  */
 public class ConsoleResultWriter {
-    private boolean ansi;
+    private Monitor monitor;
 
-    public ConsoleResultWriter() {
-        ansi = parseBoolean(System.getProperty("cvf.ansi", "true"));
+    public ConsoleResultWriter(Monitor monitor) {
+        this.monitor = monitor;
     }
 
     public void output(TestExecutionSummary result) {
-        System.out.println("\nSuccessful tests: " + result.getTestsSucceededCount());
-        System.out.println("Failed tests: " + result.getTestsFailedCount());
+        monitor.message("Passed tests: " + result.getTestsSucceededCount());
+        monitor.message("Failed tests: " + result.getTestsFailedCount());
         if (!result.getFailures().isEmpty()) {
-            System.out.printf("%n%sFailures:%n", ansiError());
-            result.getFailures().forEach(f -> System.out.println("   -" + f.getException().getMessage()));
-            System.out.println(ansiReset());
+            monitor.enableError().message("Failures:");
+            result.getFailures()
+                    .stream()
+                    .filter(f -> f.getTestIdentifier().getSource().isPresent() &&
+                            f.getTestIdentifier().getSource().get() instanceof MethodSource)
+                    .forEach(f -> {
+                        var method = (MethodSource) f.getTestIdentifier().getSource().get();
+                        monitor.message(format("\n   %c %s.%s\n", '■', method.getClassName(), method.getMethodName()));
+                        monitor.message("     [" + f.getTestIdentifier().getDisplayName() + "]");
+                        monitor.message("     " + f.getException().getMessage() + "\n");
+                    });
+            monitor.resetMode();
         } else {
-            System.out.printf("%sTest suite completed successfully%n", ansiSuccess());
-            System.out.println(ansiReset());
+            monitor.enableSuccess().message("🎉😃🚀All tests passed").resetMode();
         }
     }
 
-    private String ansiError() {
-        return ansi ? "\u001B[31m" : "";
-    }
-
-    private String ansiSuccess() {
-        return ansi ? "\u001B[32m" : "";
-    }
-
-    private String ansiReset() {
-        return ansi ? "\u001B[0m" : "";
-    }
 }

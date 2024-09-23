@@ -15,6 +15,8 @@
 
 package org.eclipse.dataspacetck.dsp.system.api.connector;
 
+import org.eclipse.dataspacetck.core.spi.boot.Monitor;
+
 /**
  * Implements a simple, in-memory connector that supports control-plane operations for testing.
  */
@@ -30,8 +32,8 @@ public class Connector {
         return consumerNegotiationManager;
     }
 
-    public Connector() {
-        consumerNegotiationManager = new ConsumerNegotiationManager();
+    public Connector(Monitor monitor) {
+        consumerNegotiationManager = new ConsumerNegotiationManager(monitor);
         providerNegotiationManager = new ProviderNegotiationManager();
     }
 }

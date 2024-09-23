@@ -15,19 +15,13 @@
 
 package org.eclipse.dataspacetck.core.system;
 
-import com.apicatalog.jsonld.JsonLd;
-import com.apicatalog.jsonld.JsonLdError;
-import com.apicatalog.jsonld.document.JsonDocument;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.eclipse.dataspacetck.core.api.message.MessageSerializer;
 import org.eclipse.dataspacetck.core.api.system.CallbackEndpoint;
-import org.eclipse.dataspacetck.core.api.system.SystemsConstants;
 import org.eclipse.dataspacetck.core.spi.system.ServiceConfiguration;
 import org.eclipse.dataspacetck.core.spi.system.SystemConfiguration;
 import org.eclipse.dataspacetck.core.spi.system.SystemLauncher;
-import org.eclipse.dataspacetck.core.system.injection.InstanceInjector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -41,21 +35,33 @@ import org.junit.platform.commons.JUnitException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import static java.lang.Boolean.parseBoolean;
+import static org.eclipse.dataspacetck.core.api.system.SystemsConstants.TCK_CALLBACK_ADDRESS;
+import static org.eclipse.dataspacetck.core.api.system.SystemsConstants.TCK_DEFAULT_CALLBACK_ADDRESS;
+import static org.eclipse.dataspacetck.core.api.system.SystemsConstants.TCK_LAUNCHER;
+import static org.eclipse.dataspacetck.core.system.ConfigFunctions.propertyOrEnv;
+import static org.eclipse.dataspacetck.core.system.ConsoleMonitor.ANSI_PROPERTY;
+import static org.eclipse.dataspacetck.core.system.ConsoleMonitor.DEBUG_PROPERTY;
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
 public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCallback, ParameterResolver, ExtensionContext.Store.CloseableResource {
-
 
     private static final ExtensionContext.Namespace CALLBACK_NAMESPACE = org.junit.jupiter.api.extension.ExtensionContext.Namespace.create(new Object());
 
     private static boolean started;
 
+    private String callbackHost;
+    private int callbackPort;
     private static SystemLauncher launcher;
     private static DispatchingHandler dispatchingHandler;
     private static HttpServer server;
+    private ExecutorService executorService;
 
     @Override
     public void beforeAll(ExtensionContext context) {
@@ -66,14 +72,24 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
         context.getRoot().getStore(GLOBAL).put(SystemBootstrapExtension.class.getName() + "-initialized", this);
 
         launcher = initializeLauncher(context);
+
+        var ansi = parseBoolean(context.getConfigurationParameter(ANSI_PROPERTY).orElse(propertyOrEnv(ANSI_PROPERTY, "true")));
+        var debug = parseBoolean(context.getConfigurationParameter(DEBUG_PROPERTY).orElse(propertyOrEnv(DEBUG_PROPERTY, "false")));
+        var callbackAddress = URI.create(context.getConfigurationParameter(TCK_CALLBACK_ADDRESS).orElse(propertyOrEnv(TCK_CALLBACK_ADDRESS, TCK_DEFAULT_CALLBACK_ADDRESS)));
+
+        this.callbackHost = callbackAddress.getHost();
+        this.callbackPort = callbackAddress.getPort();
+
         var configuration = SystemConfiguration.Builder.newInstance()
-                .propertyDelegate(k -> context.getConfigurationParameter(k).orElse(null))
+                .propertyDelegate(k -> context.getConfigurationParameter(k).orElse(propertyOrEnv(k, null)))
+                .monitor(new ConsoleMonitor(debug, ansi))
                 .build();
 
         launcher.start(configuration);
 
         dispatchingHandler = new DispatchingHandler();
-        server = initializeCallbackServer(dispatchingHandler);
+        executorService = Executors.newFixedThreadPool(1);
+        server = initializeCallbackServer(dispatchingHandler, executorService);
         server.start();
     }
 
@@ -90,6 +106,9 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
         }
         if (server != null) {
             server.stop(0);
+        }
+        if (executorService != null) {
+            executorService.shutdown();
         }
     }
 
@@ -112,7 +131,7 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
                 .tags(tags)
                 .scopeId(id)
                 .annotations(parameterContext.getParameter().getAnnotations())
-                .propertyDelegate(k -> context.getConfigurationParameter(k).orElse(null))
+                .propertyDelegate(k -> context.getConfigurationParameter(k).orElse(propertyOrEnv(k, null)))
                 .build();
         service = launcher.getService(type, configuration, (t, c) -> resolve(t, context));
         if (service != null) {
@@ -146,7 +165,8 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
 
     private CallbackEndpoint attachCallbackEndpoint(DispatchingHandler dispatchingHandler, ExtensionContext context) {
         var endpointBuilder = DefaultCallbackEndpoint.Builder.newInstance();
-        endpointBuilder.address(context.getConfigurationParameter(SystemsConstants.CVF_CALLBACK_ADDRESS).orElse("http://localhost:8083")); // xcv
+        endpointBuilder.address(context.getConfigurationParameter(TCK_CALLBACK_ADDRESS)
+                .orElse(propertyOrEnv(TCK_CALLBACK_ADDRESS, TCK_DEFAULT_CALLBACK_ADDRESS)));
         endpointBuilder.listener(dispatchingHandler::deregisterEndpoint);
 
         var endpoint = endpointBuilder.build();
@@ -155,23 +175,25 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
     }
 
     private SystemLauncher initializeLauncher(ExtensionContext context) {
-        var launcherClass = context.getConfigurationParameter(SystemsConstants.CVF_LAUNCHER);
+        var launcherClass = context.getConfigurationParameter(TCK_LAUNCHER).orElse(propertyOrEnv(TCK_LAUNCHER, null));
 
-        if (launcherClass.isEmpty()) {
+        if (launcherClass == null) {
             return new NoOpSystemLauncher();
         } else {
             try {
-                return (SystemLauncher) getClass().getClassLoader().loadClass(launcherClass.get()).getDeclaredConstructor().newInstance();
-            } catch (ClassNotFoundException | InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-                throw new RuntimeException("Unable to create Launcher class: " + launcherClass.get(), e);
+                return (SystemLauncher) getClass().getClassLoader().loadClass(launcherClass).getDeclaredConstructor().newInstance();
+            } catch (ClassNotFoundException | InvocationTargetException | InstantiationException |
+                     IllegalAccessException | NoSuchMethodException e) {
+                throw new RuntimeException("Unable to create Launcher class: " + launcherClass, e);
             }
         }
     }
 
-    private HttpServer initializeCallbackServer(HttpHandler rootHandler) {
+    private HttpServer initializeCallbackServer(HttpHandler rootHandler, ExecutorService executorService) {
         try {
-            server = HttpServer.create(new InetSocketAddress(8083), 0);        // XCV align with callback address
+            server = HttpServer.create(new InetSocketAddress(callbackHost, callbackPort), 0);
             server.createContext("/", rootHandler);
+            server.setExecutor(executorService);
             return server;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -194,21 +216,15 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
             var path = exchange.getRequestURI().getPath();
             for (var endpoint : endpoints) {
                 if (endpoint.handlesPath(path)) {
-                    try {
-                        var compacted = JsonLd.compact(JsonDocument.of(exchange.getRequestBody()), MessageSerializer.EMPTY_CONTEXT);
-                        var message = MessageSerializer.MAPPER.convertValue(compacted.get(), Object.class);
-                        var response = endpoint.apply(path, message);
-                        if (response == null) {
-                            exchange.sendResponseHeaders(200, 0);
-                        } else {
-                            var serialized = MessageSerializer.serialize(response).getBytes();
-                            exchange.sendResponseHeaders(200, serialized.length);
-                            var responseBody = exchange.getResponseBody();
-                            responseBody.write(serialized);
-                            responseBody.close();
-                        }
-                    } catch (JsonLdError e) {
-                        throw new RuntimeException(e);
+                    var response = endpoint.apply(path, exchange.getRequestBody());
+                    if (response == null) {
+                        exchange.sendResponseHeaders(200, 0);
+                    } else {
+                        var bytes = response.getBytes();
+                        exchange.sendResponseHeaders(200, bytes.length);
+                        var responseBody = exchange.getResponseBody();
+                        responseBody.write(bytes);
+                        responseBody.close();
                     }
                     return;
                 }

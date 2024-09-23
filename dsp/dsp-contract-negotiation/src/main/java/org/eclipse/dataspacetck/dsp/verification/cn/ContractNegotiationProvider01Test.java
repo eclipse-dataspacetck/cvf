@@ -15,17 +15,10 @@
 
 package org.eclipse.dataspacetck.dsp.verification.cn;
 
-import org.eclipse.dataspacetck.core.api.system.ConfigParam;
-import org.eclipse.dataspacetck.core.api.system.Inject;
 import org.eclipse.dataspacetck.core.api.system.MandatoryTest;
-import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
-import org.eclipse.dataspacetck.dsp.system.api.connector.Consumer;
-import org.eclipse.dataspacetck.dsp.system.api.mock.NegotiationProviderMock;
-import org.eclipse.dataspacetck.dsp.system.api.pipeline.NegotiationPipeline;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 
-import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.AGREED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.FINALIZED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.OFFERED;
@@ -33,33 +26,17 @@ import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegot
 
 @Tag("base-compliance")
 @DisplayName("CN_01: Contract request scenarios")
-public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVerificationTest {
-
-    @Inject
-    @Consumer
-    private Connector clientConnector;
-
-    @Inject
-    private NegotiationPipeline negotiationPipeline;
-
-    @Inject
-    protected NegotiationProviderMock negotiationMock;
-
-    @ConfigParam
-    protected String offerId = randomUUID().toString();
-
-    @ConfigParam
-    protected String datasetId = randomUUID().toString();
+public class ContractNegotiationProvider01Test extends AbstractContractNegotiationProviderTest {
 
     @MandatoryTest
-    @DisplayName("Verify contract request, offer received, consumer terminated")
+    @DisplayName("CN:01-01: Verify contract request, offer received, consumer terminated")
     public void cn_01_01() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
 
         negotiationPipeline
-                .expectOffer(offer -> clientConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
-                .sendRequest(datasetId, offerId, datasetId)
+                .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .sendRequest(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .sendTermination()
                 .thenVerifyProviderState(TERMINATED)
@@ -69,18 +46,18 @@ public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVe
     }
 
     @MandatoryTest
-    @DisplayName("Verify contract request, offer received, consumer counter-offer, provider terminated")
+    @DisplayName("CN:01-02: Verify contract request, offer received, consumer counter-offer, provider terminated")
     public void cn_01_02() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
         negotiationMock.recordContractRequestedAction(ProviderActions::terminate);
 
         negotiationPipeline
-                .expectOffer(offer -> clientConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
-                .sendRequest(datasetId, offerId, datasetId)
+                .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .sendRequest(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .expectTermination()
-                .sendCounterRequest()
+                .sendCounterRequest("CD123:ACN0102:456", "ACN0102")
                 .thenWaitForState(TERMINATED)
                 .execute();
 
@@ -88,7 +65,7 @@ public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVe
     }
 
     @MandatoryTest
-    @DisplayName("Verify contract request, offer received, consumer accepted, provider agreement, consumer verified, provider finalized")
+    @DisplayName("CN:01-03: Verify contract request, offer received, consumer accepted, provider agreement, consumer verified, provider finalized")
     public void cn_01_03() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
@@ -96,13 +73,13 @@ public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVe
         negotiationMock.recordConsumerVerifyAction(ProviderActions::postProviderFinalized);
 
         negotiationPipeline
-                .expectOffer(offer -> clientConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
-                .sendRequest(datasetId, offerId, datasetId)
+                .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .sendRequest(datasetId, offerId)
                 .thenWaitForState(OFFERED)
-                .expectAgreement(agreement -> clientConnector.getConsumerNegotiationManager().handleAgreement(agreement))
+                .expectAgreement(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
                 .acceptLastOffer()
                 .thenWaitForState(AGREED)
-                .expectFinalized(event -> clientConnector.getConsumerNegotiationManager().handleFinalized(event))
+                .expectFinalized(event -> consumerConnector.getConsumerNegotiationManager().handleFinalized(event))
                 .sendConsumerVerify()
                 .thenWaitForState(FINALIZED)
                 .execute();
@@ -111,17 +88,17 @@ public class DspContractNegotiationMandatory01Test extends AbstractNegotiationVe
     }
 
     @MandatoryTest
-    @DisplayName("Verify contract request, provider agreement, consumer verified, provider finalized")
+    @DisplayName("CN:01-04: Verify contract request, provider agreement, consumer verified, provider finalized")
     public void cn_01_04() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postProviderAgreed);
         negotiationMock.recordConsumerVerifyAction(ProviderActions::postProviderFinalized);
 
         negotiationPipeline
-                .expectAgreement(agreement -> clientConnector.getConsumerNegotiationManager().handleAgreement(agreement))
-                .sendRequest(datasetId, offerId, datasetId)
+                .expectAgreement(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
+                .sendRequest(datasetId, offerId)
                 .thenWaitForState(AGREED)
-                .expectFinalized(event -> clientConnector.getConsumerNegotiationManager().handleFinalized(event))
+                .expectFinalized(event -> consumerConnector.getConsumerNegotiationManager().handleFinalized(event))
                 .sendConsumerVerify()
                 .thenWaitForState(FINALIZED)
                 .execute();

@@ -26,6 +26,8 @@ public interface DspConstants {
 
     String ID = "@id";
 
+    String VALUE = "@value";
+
     String TYPE = "@type";
 
     String DSPACE_NAMESPACE_KEY = "dspace";

@@ -16,6 +16,7 @@
 package org.eclipse.dataspacetck.dsp.system;
 
 import org.eclipse.dataspacetck.core.api.system.CallbackEndpoint;
+import org.eclipse.dataspacetck.core.spi.boot.Monitor;
 import org.eclipse.dataspacetck.core.spi.system.ServiceConfiguration;
 import org.eclipse.dataspacetck.core.spi.system.ServiceResolver;
 import org.eclipse.dataspacetck.core.spi.system.SystemConfiguration;
@@ -35,19 +36,24 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static org.eclipse.dataspacetck.core.api.system.SystemsConstants.TCK_PREFIX;
 
 /**
- * Instantiates and bootstraps an DSP test fixture.
+ * Instantiates and bootstraps a DSP test fixture.
  */
 @SuppressWarnings("unused")
 public class DspSystemLauncher implements SystemLauncher {
-    private static final String LOCAL_CONNECTOR_CONFIG = "dataspacetck.dsp.local.connector";
-    private static final String CONNECTOR_BASE_URL_CONFIG = "dataspacetck.dsp.connector.http.url";
-    private static final String THREAD_POOL_CONFIG = "dataspacetck.dsp.thread.pool";
+    private static final String LOCAL_CONNECTOR_CONFIG = TCK_PREFIX + ".dsp.local.connector";
+    private static final String CONNECTOR_BASE_URL_CONFIG = TCK_PREFIX + ".dsp.connector.http.url";
+    private static final String THREAD_POOL_CONFIG = TCK_PREFIX + ".dsp.thread.pool";
+    private static final String DEFAULT_WAIT_CONFIG = TCK_PREFIX + ".dsp.default.wait";
+    private static final int DEFAULT_WAIT_SECONDS = 15;
 
+    private Monitor monitor;
     private ExecutorService executor;
     private String baseConnectorUrl;
     private boolean useLocalConnector;
+    private long waitTime = DEFAULT_WAIT_SECONDS;
 
     private Map<String, Connector> clientConnectors = new ConcurrentHashMap<>();
     private Map<String, Connector> providerConnectors = new ConcurrentHashMap<>();
@@ -57,6 +63,8 @@ public class DspSystemLauncher implements SystemLauncher {
 
     @Override
     public void start(SystemConfiguration configuration) {
+        this.monitor = configuration.getMonitor();
+        waitTime = configuration.getPropertyAsLong(DEFAULT_WAIT_CONFIG, DEFAULT_WAIT_SECONDS);
         executor = newFixedThreadPool(configuration.getPropertyAsInt(THREAD_POOL_CONFIG, 10));
         useLocalConnector = configuration.getPropertyAsBoolean(LOCAL_CONNECTOR_CONFIG, false);
         if (!useLocalConnector) {
@@ -94,14 +102,15 @@ public class DspSystemLauncher implements SystemLauncher {
         var scopeId = configuration.getScopeId();
         var negotiationClient = createNegotiationClient(scopeId);
         var callbackEndpoint = (CallbackEndpoint) resolver.resolve(CallbackEndpoint.class, configuration);
-        var consumerConnector = clientConnectors.computeIfAbsent(scopeId, k -> new Connector());
-        return type.cast(NegotiationPipeline.negotiationPipeline(negotiationClient, callbackEndpoint, consumerConnector));
+        var consumerConnector = clientConnectors.computeIfAbsent(scopeId, k -> new Connector(monitor));
+        var pipeline = new NegotiationPipeline(negotiationClient, callbackEndpoint, consumerConnector, monitor, waitTime);
+        return type.cast(pipeline);
     }
 
     private <T> T createNegotiationMock(Class<T> type, String scopeId) {
         return type.cast(negotiationMocks.computeIfAbsent(scopeId, k -> {
             if (useLocalConnector) {
-                var connector = providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector());
+                var connector = providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector(monitor));
                 return new NegotiationProviderMockImpl(connector.getProviderNegotiationManager(), executor);
             } else {
                 return new NoOpNegotiationProviderMock();
@@ -112,17 +121,17 @@ public class DspSystemLauncher implements SystemLauncher {
     private <T> T createConnector(Class<T> type, ServiceConfiguration configuration) {
         var scopeId = configuration.getScopeId();
         if (configuration.getAnnotations().stream().anyMatch(a -> a.annotationType().equals(Consumer.class))) {
-            return type.cast(clientConnectors.computeIfAbsent(scopeId, k -> new Connector()));
+            return type.cast(clientConnectors.computeIfAbsent(scopeId, k -> new Connector(monitor)));
         }
-        return type.cast(providerConnectors.computeIfAbsent(scopeId, k -> new Connector()));
+        return type.cast(providerConnectors.computeIfAbsent(scopeId, k -> new Connector(monitor)));
     }
 
     private NegotiationClient createNegotiationClient(String scopeId) {
         return negotiationClients.computeIfAbsent(scopeId, k -> {
             if (useLocalConnector) {
-                return new NegotiationClientImpl(providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector()));
+                return new NegotiationClientImpl(providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector(monitor)), monitor);
             }
-            return new NegotiationClientImpl(baseConnectorUrl);
+            return new NegotiationClientImpl(baseConnectorUrl, monitor);
         });
     }
 
