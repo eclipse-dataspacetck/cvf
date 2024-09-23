@@ -71,6 +71,14 @@ public class ProviderActions {
         }
     }
 
+    public static void pause() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static void checkResponse(Response response) {
         if (!response.isSuccessful()) {
             throw new AssertionError("Unexpected response code: " + response.code());

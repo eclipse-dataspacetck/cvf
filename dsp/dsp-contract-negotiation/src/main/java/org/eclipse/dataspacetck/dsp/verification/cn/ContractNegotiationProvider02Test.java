@@ -21,6 +21,9 @@ import org.junit.jupiter.api.Tag;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.AGREED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.OFFERED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.TERMINATED;
+import static org.eclipse.dataspacetck.dsp.verification.cn.ProviderActions.pause;
+import static org.eclipse.dataspacetck.dsp.verification.cn.ProviderActions.postOffer;
+import static org.eclipse.dataspacetck.dsp.verification.cn.ProviderActions.terminate;
 
 @Tag("base-compliance")
 @DisplayName("CN_02: Provider test scenarios")
@@ -44,8 +47,6 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @MandatoryTest
     @DisplayName("CN:02-02: Verify contract request, consumer terminated")
     public void cn_02_02() {
-
-        negotiationMock.recordContractRequestedAction(ProviderActions::terminate);
 
         negotiationPipeline
                 .sendRequest(datasetId, offerId)
@@ -94,7 +95,11 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @DisplayName("CN:02-05: Verify contract request, offer received, provider terminated")
     public void cn_02_05() {
 
-        negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
+        negotiationMock.recordContractRequestedAction(negotiation -> {
+            postOffer(negotiation);
+            pause();
+            terminate(negotiation);
+        });
 
         negotiationPipeline
                 .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
@@ -112,6 +117,7 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     public void cn_02_06() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
+        negotiationMock.recordConsumerAgreedAction(ProviderActions::terminate);
 
         negotiationPipeline
                 .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
@@ -129,7 +135,8 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @DisplayName("CN:02-07: Verify contract request, provider agreement, consumer verified, provider terminated")
     public void cn_02_07() {
 
-        negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
+        negotiationMock.recordContractRequestedAction(ProviderActions::postProviderAgreed);
+        negotiationMock.recordConsumerVerifyAction(ProviderActions::terminate);
 
         negotiationPipeline
                 .expectAgreement(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
