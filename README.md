@@ -1,4 +1,4 @@
-# Compliance Verfication Framework
+# Compliance Verification Framework
        
 To build:
 
