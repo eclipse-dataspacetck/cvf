@@ -133,6 +133,7 @@ public class NegotiationPipeline {
 
     public NegotiationPipeline sendTermination() {
         stages.add(() -> {
+            pause();
             var providerId = negotiation.getCorrelationId();
             var consumerId = negotiation.getId();
             var termination = createTermination(providerId, consumerId, "1");
@@ -241,6 +242,7 @@ public class NegotiationPipeline {
 
     public NegotiationPipeline thenVerifyProviderState(ContractNegotiation.State state) {
         stages.add(() -> {
+            pause();
             var providerNegotiation = negotiationClient.getNegotiation(negotiation.getCorrelationId());
             var actual = stringIdProperty(DSPACE_PROPERTY_STATE_EXPANDED, providerNegotiation);
             assertEquals(DSPACE_NAMESPACE + state.toString(), actual);
@@ -265,5 +267,12 @@ public class NegotiationPipeline {
         return this;
     }
 
+    private void pause() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }

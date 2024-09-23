@@ -25,7 +25,7 @@ import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegot
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 
 @Tag("base-compliance")
-@DisplayName("CN_01: Provider test scenarios")
+@DisplayName("CN_01: Contract request scenarios")
 public class ContractNegotiationProvider01Test extends AbstractContractNegotiationProviderTest {
 
     @MandatoryTest
