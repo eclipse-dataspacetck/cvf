@@ -90,7 +90,6 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
         negotiationMock.verify();
     }
 
-
     @MandatoryTest
     @DisplayName("CN:02-05: Verify contract request, offer received, provider terminated")
     public void cn_02_05() {
@@ -106,7 +105,42 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
                 .execute();
 
         negotiationMock.verify();
+    }
 
+    @MandatoryTest
+    @DisplayName("CN:02-06: Verify contract request, offer received, consumer accepted, provider terminated")
+    public void cn_02_06() {
+
+        negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
+
+        negotiationPipeline
+                .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .sendRequest(datasetId, offerId)
+                .thenWaitForState(OFFERED)
+                .acceptLastOffer()
+                .expectTermination()
+                .thenWaitForState(TERMINATED)
+                .execute();
+
+        negotiationMock.verify();
+    }
+
+    @MandatoryTest
+    @DisplayName("CN:02-07: Verify contract request, provider agreement, consumer verified, provider terminated")
+    public void cn_02_07() {
+
+        negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
+
+        negotiationPipeline
+                .expectAgreement(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
+                .sendRequest(datasetId, offerId)
+                .thenWaitForState(AGREED)
+                .expectTermination()
+                .sendConsumerVerify()
+                .thenWaitForState(TERMINATED)
+                .execute();
+
+        negotiationMock.verify();
     }
 
 

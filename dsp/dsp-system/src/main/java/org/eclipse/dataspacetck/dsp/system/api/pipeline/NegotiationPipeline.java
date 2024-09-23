@@ -158,6 +158,7 @@ public class NegotiationPipeline {
 
     public NegotiationPipeline sendConsumerVerify() {
         stages.add(() -> {
+            pause();
             var providerId = negotiation.getCorrelationId();
             var consumerId = negotiation.getId();
             monitor.debug("Sending verification: " + providerId);
