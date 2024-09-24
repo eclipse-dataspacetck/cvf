@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspacetck.dsp.system.client;
 
+import okhttp3.Response;
 import org.eclipse.dataspacetck.core.spi.boot.Monitor;
 import org.eclipse.dataspacetck.dsp.system.api.client.NegotiationClient;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
@@ -58,15 +59,26 @@ public class NegotiationClientImpl implements NegotiationClient {
     }
 
     @Override
-    public Map<String, Object> contractRequest(Map<String, Object> contractRequest) {
+    public Map<String, Object> contractRequest(Map<String, Object> contractRequest, boolean expectError) {
         if (systemConnector != null) {
-            var compacted = processJsonLd(contractRequest, createDspContext());
-            var negotiation = systemConnector.getProviderNegotiationManager().handleContractRequest(compacted);
-            return processJsonLd(createNegotiationResponse(negotiation.getId(),
-                    negotiation.getCorrelationId(),
-                    negotiation.getState().toString().toLowerCase()), createDspContext());
+            try {
+                var compacted = processJsonLd(contractRequest, createDspContext());
+                var negotiation = systemConnector.getProviderNegotiationManager().handleContractRequest(compacted);
+                if (expectError) {
+                    throw new AssertionError("Expected to throw an error on termination");
+                }
+                return processJsonLd(createNegotiationResponse(negotiation.getId(),
+                        negotiation.getCorrelationId(),
+                        negotiation.getState().toString().toLowerCase()), createDspContext());
+            } catch (IllegalStateException e) {
+                // if the error is expected, swallow exception
+                if (!expectError) {
+                    throw e;
+                }
+                return Map.of();
+            }
         } else {
-            try (var response = postJson(connectorBaseUrl + REQUEST_PATH, contractRequest)) {
+            try (var response = postJson(connectorBaseUrl + REQUEST_PATH, contractRequest, expectError)) {
                 monitor.debug("Received contract request response");
                 //noinspection DataFlowIssue
                 return processJsonLd(response.body().byteStream(), createDspContext());
@@ -75,16 +87,24 @@ public class NegotiationClientImpl implements NegotiationClient {
     }
 
     @Override
-    public void terminate(Map<String, Object> termination) {
+    public void terminate(Map<String, Object> termination, boolean expectError) {
         if (systemConnector != null) {
             var compacted = processJsonLd(termination, createDspContext());
-            systemConnector.getProviderNegotiationManager().terminate(compacted);
+            try {
+                systemConnector.getProviderNegotiationManager().terminate(compacted);
+                if (expectError) {
+                    throw new AssertionError("Expected to throw an error on termination");
+                }
+            } catch (IllegalStateException e) {
+                // if the error is expected, swallow exception
+                if (!expectError) {
+                    throw e;
+                }
+            }
         } else {
             var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, termination);
-            try (var response = postJson(connectorBaseUrl + format(TERMINATE_PATH, providerId), termination)) {
-                if (!response.isSuccessful()) {
-                    throw new AssertionError(format("Terminate request failed with code %s: %s", response.code(), providerId));
-                }
+            try (var response = postJson(connectorBaseUrl + format(TERMINATE_PATH, providerId), termination, expectError)) {
+                validateResponse(response, providerId, expectError, "terminate");
                 monitor.debug("Received negotiation terminate response: " + providerId);
             }
         }
@@ -128,22 +148,39 @@ public class NegotiationClientImpl implements NegotiationClient {
     }
 
     @Override
-    public void consumerVerify(Map<String, Object> verification) {
+    public void consumerVerify(Map<String, Object> verification, boolean expectError) {
         if (systemConnector != null) {
             var compacted = processJsonLd(verification, createDspContext());
             var providerId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, compacted); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
-            systemConnector.getProviderNegotiationManager().handleConsumerVerified(providerId, verification);
+            try {
+                systemConnector.getProviderNegotiationManager().handleConsumerVerified(providerId, verification);
+                if (expectError) {
+                    throw new AssertionError("Expected to throw an error on termination");
+                }
+            } catch (IllegalStateException e) {
+                // if the error is expected, swallow exception
+                if (!expectError) {
+                    throw e;
+                }
+            }
         } else {
             var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, verification);
-            try (var response = postJson(connectorBaseUrl + format(VERIFICATION_PATH, providerId), verification)) {
-                if (!response.isSuccessful()) {
-                    throw new AssertionError("Verification event failed with code: " + response.code());
-                }
+            try (var response = postJson(connectorBaseUrl + format(VERIFICATION_PATH, providerId), verification, expectError)) {
+                validateResponse(response, providerId, expectError, "verify");
                 monitor.debug("Received verification response: " + providerId);
             }
-
         }
     }
 
-
+    private void validateResponse(Response response, String providerId, boolean expectError, String type) {
+        if (expectError) {
+            if (response.isSuccessful()) {
+                throw new AssertionError(format("Invalid %s did not fail: %s", type, providerId));
+            }
+        } else {
+            if (!response.isSuccessful()) {
+                throw new AssertionError(format("Request %s failed with code %s: %s", type, response.code(), providerId));
+            }
+        }
+    }
 }

@@ -111,7 +111,7 @@ public class NegotiationPipeline {
             var contractRequest = createContractRequest(negotiation.getId(), offerId, datasetId, endpoint.getAddress());
 
             monitor.debug("Sending contract request");
-            var response = negotiationClient.contractRequest(contractRequest);
+            var response = negotiationClient.contractRequest(contractRequest, false);
             var correlationId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, response); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
             connector.getConsumerNegotiationManager().contractRequested(negotiation.getId(), correlationId);
         });
@@ -119,19 +119,29 @@ public class NegotiationPipeline {
     }
 
     public NegotiationPipeline sendCounterRequest(String offerId, String targetId) {
+        return sendCounterRequest(offerId, targetId, false);
+    }
+
+    public NegotiationPipeline sendCounterRequest(String offerId, String targetId, boolean expectError) {
         stages.add(() -> {
             var providerId = negotiation.getCorrelationId();
             var consumerId = negotiation.getId();
             var contractRequest = createCounterOffer(providerId, consumerId, offerId, targetId, endpoint.getAddress());
 
             monitor.debug("Sending counter offer: " + providerId);
-            connector.getConsumerNegotiationManager().counterOffer(consumerId);
-            negotiationClient.contractRequest(contractRequest);
+            if (!expectError) {
+                connector.getConsumerNegotiationManager().counterOffer(consumerId);
+            }
+            negotiationClient.contractRequest(contractRequest, expectError);
         });
         return this;
     }
 
     public NegotiationPipeline sendTermination() {
+        return sendTermination(false);
+    }
+
+    public NegotiationPipeline sendTermination(boolean expectError) {
         stages.add(() -> {
             pause();
             var providerId = negotiation.getCorrelationId();
@@ -139,8 +149,10 @@ public class NegotiationPipeline {
             var termination = createTermination(providerId, consumerId, "1");
 
             monitor.debug("Sending termination: " + providerId);
-            negotiationClient.terminate(termination);
-            connector.getConsumerNegotiationManager().terminate(consumerId);
+            negotiationClient.terminate(termination, expectError);
+            if (!expectError) {
+                connector.getConsumerNegotiationManager().terminate(consumerId);
+            }
         });
         return this;
     }
@@ -157,13 +169,19 @@ public class NegotiationPipeline {
     }
 
     public NegotiationPipeline sendConsumerVerify() {
+        return sendConsumerVerify(false);
+    }
+
+    public NegotiationPipeline sendConsumerVerify(boolean expectError) {
         stages.add(() -> {
             pause();
             var providerId = negotiation.getCorrelationId();
             var consumerId = negotiation.getId();
             monitor.debug("Sending verification: " + providerId);
-            connector.getConsumerNegotiationManager().verify(consumerId);
-            negotiationClient.consumerVerify(createVerification(providerId, consumerId));
+            if (!expectError) {
+                connector.getConsumerNegotiationManager().verify(consumerId);
+            }
+            negotiationClient.consumerVerify(createVerification(providerId, consumerId), expectError);
         });
         return this;
     }

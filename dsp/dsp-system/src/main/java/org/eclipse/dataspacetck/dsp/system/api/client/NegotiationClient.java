@@ -25,7 +25,7 @@ public interface NegotiationClient {
     /**
      * Creates a contract request. Used for initial requests and client counter-offers.
      */
-    Map<String, Object> contractRequest(Map<String, Object> message);
+    Map<String, Object> contractRequest(Map<String, Object> message, boolean expectError);
 
     /**
      * Accepts the most recent offer.
@@ -35,12 +35,12 @@ public interface NegotiationClient {
     /**
      * Verifies the contract agreement with the provider.
      */
-    void consumerVerify(Map<String, Object> verification);
+    void consumerVerify(Map<String, Object> verification, boolean expectError);
 
     /**
      * Terminates a negotiation.
      */
-    void terminate(Map<String, Object> termination);
+    void terminate(Map<String, Object> termination, boolean expectError);
 
     /**
      * Returns a negotiation.

@@ -31,6 +31,10 @@ import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.serial
 public class HttpFunctions {
 
     public static Response postJson(String url, Object message) {
+        return postJson(url, message, false);
+    }
+
+    public static Response postJson(String url, Object message, boolean expectError) {
         var requestBody = RequestBody.create(serialize(message), MediaType.get("application/json"));
         var httpRequest = new Request.Builder()
                 .url(url)
@@ -44,7 +48,9 @@ public class HttpFunctions {
             if (404 == response.code()) {
                 throw new AssertionError("Unexpected 404 received for request: " + url);
             } else if (!response.isSuccessful()) {
-                throw new AssertionError("Unexpected response code: " + response.code());
+                if (response.code() < 400 || response.code() >= 500 || !expectError) {
+                    throw new AssertionError("Unexpected response code: " + response.code());
+                }
             }
             return response;
         } catch (IOException e) {

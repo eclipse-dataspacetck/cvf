@@ -176,7 +176,7 @@ public class ContractNegotiation {
                     listeners.forEach(l -> l.accept(oldState, this));
                 }
                 case REQUESTED -> {
-                    assertStates(newState, REQUESTED, OFFERED, AGREED, TERMINATED);
+                    assertStates(newState, OFFERED, AGREED, TERMINATED);
                     state = newState;
                     listeners.forEach(l -> l.accept(oldState, this));
                 }
