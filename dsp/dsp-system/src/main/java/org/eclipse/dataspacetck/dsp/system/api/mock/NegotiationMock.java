@@ -13,18 +13,36 @@
  *
  */
 
-package org.eclipse.dataspacetck.dsp.system.api.connector;
+package org.eclipse.dataspacetck.dsp.system.api.mock;
 
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 
+import java.util.function.Consumer;
+
 /**
- * Implementations can be registered to receive contract negotiation events for a consumer.
+ * Mock service for recording connector actions.
  */
-public interface ConsumerNegotiationListener extends NegotiationListener {
+public interface NegotiationMock {
 
     /**
-     * Invoked when a contract negotiation is created.
+     * An action to be executed by the mock.
      */
-    void negotiationCreated(ContractNegotiation negotiation);
+    interface Action extends Consumer<ContractNegotiation> {
+    }
+
+    /**
+     * Verifies all actions have been executed.
+     */
+    void verify();
+
+    /**
+     * Returns true if all actions have been executed.
+     */
+    boolean completed();
+
+    /**
+     * Resets the mock and all recorded actions.
+     */
+    void reset();
 
 }

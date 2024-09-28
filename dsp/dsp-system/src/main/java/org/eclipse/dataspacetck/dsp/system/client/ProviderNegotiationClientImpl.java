@@ -17,7 +17,7 @@ package org.eclipse.dataspacetck.dsp.system.client;
 
 import okhttp3.Response;
 import org.eclipse.dataspacetck.core.spi.boot.Monitor;
-import org.eclipse.dataspacetck.dsp.system.api.client.NegotiationClient;
+import org.eclipse.dataspacetck.dsp.system.api.client.ProviderNegotiationClient;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 
 import java.util.Map;
@@ -38,22 +38,23 @@ import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.s
 /**
  * Default implementation that supports dispatch to a local, in-memory test connector or a remote connector system via HTTP.
  */
-public class NegotiationClientImpl implements NegotiationClient {
+public class ProviderNegotiationClientImpl implements ProviderNegotiationClient {
     private static final String GET_PATH = "negotiations/%s";
     private static final String REQUEST_PATH = "negotiations/request";
     private static final String TERMINATE_PATH = "negotiations/%s/termination";
     private static final String EVENT_PATH = "negotiations/%s/events";
     private static final String VERIFICATION_PATH = "negotiations/%s/agreement/verification";
+
     private String connectorBaseUrl;
     private Connector systemConnector;
     private Monitor monitor;
 
-    public NegotiationClientImpl(String connectorBaseUrl, Monitor monitor) {
+    public ProviderNegotiationClientImpl(String connectorBaseUrl, Monitor monitor) {
         this.connectorBaseUrl = connectorBaseUrl.endsWith("/") ? connectorBaseUrl : connectorBaseUrl + "/";
         this.monitor = monitor;
     }
 
-    public NegotiationClientImpl(Connector systemConnector, Monitor monitor) {
+    public ProviderNegotiationClientImpl(Connector systemConnector, Monitor monitor) {
         this.systemConnector = systemConnector;
         this.monitor = monitor;
     }
@@ -130,11 +131,10 @@ public class NegotiationClientImpl implements NegotiationClient {
     }
 
     @Override
-    public void consumerAccept(Map<String, Object> event) {
+    public void accept(Map<String, Object> event) {
         if (systemConnector != null) {
             var compacted = processJsonLd(event, createDspContext());
-            var providerId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, compacted); // // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
-            systemConnector.getProviderNegotiationManager().handleConsumerAgreed(providerId);
+            systemConnector.getProviderNegotiationManager().handleConsumerAgreed(compacted);
         } else {
             var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, event);
             try (var response = postJson(connectorBaseUrl + format(EVENT_PATH, providerId), event)) {
@@ -148,12 +148,11 @@ public class NegotiationClientImpl implements NegotiationClient {
     }
 
     @Override
-    public void consumerVerify(Map<String, Object> verification, boolean expectError) {
+    public void verify(Map<String, Object> verification, boolean expectError) {
         if (systemConnector != null) {
             var compacted = processJsonLd(verification, createDspContext());
-            var providerId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, compacted); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
             try {
-                systemConnector.getProviderNegotiationManager().handleConsumerVerified(providerId, verification);
+                systemConnector.getProviderNegotiationManager().handleConsumerVerified(compacted);
                 if (expectError) {
                     throw new AssertionError("Expected to throw an error on termination");
                 }

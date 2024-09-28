@@ -18,10 +18,39 @@ package org.eclipse.dataspacetck.dsp.system.api.connector;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 
 /**
- * Defines base listener events for contract negotiations.
+ * Defines listener events for contract negotiations.
  */
-@SuppressWarnings("unused")
 public interface NegotiationListener {
+
+    /**
+     * Invoked when a contract request has been received.
+     */
+    default void contractRequested(ContractNegotiation negotiation) {
+    }
+
+    /**
+     * Invoked when an offer has been received.
+     */
+    default void offered(ContractNegotiation negotiation) {
+    }
+
+    /**
+     * Invoked after an agreement has been received.
+     */
+    default void agreed(ContractNegotiation negotiation) {
+    }
+
+    /**
+     * Invoked after verified event has been received.
+     */
+    default void verified(ContractNegotiation negotiation) {
+    }
+
+    /**
+     * Invoked when an agreement has been finalized.
+     */
+    default void finalized(ContractNegotiation negotiation) {
+    }
 
     /**
      * Invoked when a termination has been received.

@@ -30,7 +30,7 @@ import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegot
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.OFFERED;
 
 /**
- * Actions taken by a provider that execute after receiving a message from the client.
+ * Actions taken by a provider that execute after receiving a message from the consumer.
  */
 public class ProviderActions {
     private static final String NEGOTIATION_OFFER_TEMPLATE = "%s/negotiations/%s/offer/";
@@ -47,7 +47,7 @@ public class ProviderActions {
         }
     }
 
-    public static void postProviderAgreed(ContractNegotiation negotiation) {
+    public static void postAgreed(ContractNegotiation negotiation) {
         var agreement = createAgreement(negotiation.getId(), negotiation.getCorrelationId(), randomUUID().toString(), negotiation.getDatasetId());
 
         negotiation.transition(AGREED);
@@ -56,7 +56,7 @@ public class ProviderActions {
         }
     }
 
-    public static void postProviderFinalized(ContractNegotiation negotiation) {
+    public static void postFinalized(ContractNegotiation negotiation) {
         negotiation.transition(FINALIZED);
         var event = createFinalizedEvent(negotiation.getId(), negotiation.getCorrelationId());
         try (var response = postJson(format(NEGOTIATION_FINALIZE_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), event)) {
@@ -64,7 +64,7 @@ public class ProviderActions {
         }
     }
 
-    public static void terminate(ContractNegotiation negotiation) {
+    public static void postTerminate(ContractNegotiation negotiation) {
         var termination = createTermination(negotiation.getId(), negotiation.getCorrelationId(), "1");
         try (var response = postJson(format(NEGOTIATION_TERMINATE_TEMPLATE, negotiation.getCallbackAddress(), negotiation.getCorrelationId()), termination)) {
             checkResponse(response);

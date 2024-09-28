@@ -14,31 +14,27 @@
 
 package org.eclipse.dataspacetck.dsp.system.mock;
 
-import org.eclipse.dataspacetck.dsp.system.api.mock.NegotiationProviderMock;
+import org.eclipse.dataspacetck.dsp.system.api.mock.ProviderNegotiationMock;
 
 /**
  * A no-op mock used when the local connector is disabled.
  */
-public class NoOpNegotiationProviderMock implements NegotiationProviderMock {
+public class NoOpProviderNegotiationMock implements ProviderNegotiationMock {
 
     @Override
     public void recordContractRequestedAction(Action action) {
-
     }
 
     @Override
-    public void recordConsumerAgreedAction(Action action) {
-
+    public void recordAgreedAction(Action action) {
     }
 
     @Override
-    public void recordConsumerVerifyAction(Action action) {
-
+    public void recordVerifiedAction(Action action) {
     }
 
     @Override
     public void verify() {
-
     }
 
     @Override

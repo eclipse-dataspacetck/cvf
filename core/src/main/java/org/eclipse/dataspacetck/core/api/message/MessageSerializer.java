@@ -86,10 +86,6 @@ public class MessageSerializer {
             @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
             var expanded = jsonArray.get(0);
             return MAPPER.convertValue(expanded, Map.class);
-
-            //var compacted = compact(JsonDocument.of(MAPPER.convertValue(expanded, JsonObject.class)), EMPTY_CONTEXT).get();
-
-            //    return MAPPER.convertValue(compacted, Map.class);
         } catch (JsonLdError e) {
             throw new RuntimeException(e);
         }

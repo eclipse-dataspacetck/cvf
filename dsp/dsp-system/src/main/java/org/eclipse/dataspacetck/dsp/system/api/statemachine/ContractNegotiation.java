@@ -95,7 +95,7 @@ public class ContractNegotiation {
     }
 
     public Map<String, Object> getLastOffer() {
-        return lockManager.readLock(() -> offers.isEmpty() ? null : offers.get(offers.size() - 1));
+        return lockManager.readLock(() -> offers.isEmpty() ? null : offers.getLast());
     }
 
     public List<Map<String, Object>> getOffers() {
@@ -118,13 +118,6 @@ public class ContractNegotiation {
     }
 
     /**
-     * Stores the offer.
-     */
-    public void storeOffer(Map<String, Object> offer, State state) {
-        storeOffer(offer, state, NULL_WORK);
-    }
-
-    /**
      * Stores the offer and executes the work while holding a write lock.
      */
     public void storeOffer(Map<String, Object> offer, State state, Consumer<ContractNegotiation> work) {
@@ -134,13 +127,6 @@ public class ContractNegotiation {
             return null;
         });
         work.accept(this);
-    }
-
-    /**
-     * Stores the agreement.
-     */
-    public void storeAgreement(Map<String, Object> agreement) {
-        storeAgreement(agreement, NULL_WORK);
     }
 
     /**

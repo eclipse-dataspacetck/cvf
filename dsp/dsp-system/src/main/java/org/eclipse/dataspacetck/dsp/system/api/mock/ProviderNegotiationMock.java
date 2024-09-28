@@ -15,20 +15,10 @@
 
 package org.eclipse.dataspacetck.dsp.system.api.mock;
 
-import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
-
-import java.util.function.Consumer;
-
 /**
  * Mock service for recording provider connector actions.
  */
-public interface NegotiationProviderMock {
-
-    /**
-     * An action to be executed by the mock.
-     */
-    interface Action extends Consumer<ContractNegotiation> {
-    }
+public interface ProviderNegotiationMock extends NegotiationMock {
 
     /**
      * Records an action to execute when a contract request is processed on the provider.
@@ -38,26 +28,12 @@ public interface NegotiationProviderMock {
     /**
      * Records an action to execute when a consumer agrees to an offer.
      */
-    void recordConsumerAgreedAction(Action action);
+    void recordAgreedAction(Action action);
 
     /**
      * Records an action to execute when a consumer verifies an offer.
      */
-    void recordConsumerVerifyAction(Action action);
+    void recordVerifiedAction(Action action);
 
-    /**
-     * Verifies all actions have been executed.
-     */
-    void verify();
-
-    /**
-     * Returns true if all actions have been executed.
-     */
-    boolean completed();
-
-    /**
-     * Resets the mock and all recorded actions.
-     */
-    void reset();
 
 }

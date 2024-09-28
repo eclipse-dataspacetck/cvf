@@ -35,8 +35,8 @@ public class ContractNegotiationProvider01Test extends AbstractContractNegotiati
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
 
         negotiationPipeline
-                .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
-                .sendRequest(datasetId, offerId)
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .sendTermination()
                 .thenVerifyProviderState(TERMINATED)
@@ -50,14 +50,14 @@ public class ContractNegotiationProvider01Test extends AbstractContractNegotiati
     public void cn_01_02() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
-        negotiationMock.recordContractRequestedAction(ProviderActions::terminate);
+        negotiationMock.recordContractRequestedAction(ProviderActions::postTerminate);
 
         negotiationPipeline
-                .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
-                .sendRequest(datasetId, offerId)
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .expectTermination()
-                .sendCounterRequest("CD123:ACN0102:456", "ACN0102")
+                .sendCounterOfferMessage("CD123:ACN0102:456", "ACN0102")
                 .thenWaitForState(TERMINATED)
                 .execute();
 
@@ -69,18 +69,18 @@ public class ContractNegotiationProvider01Test extends AbstractContractNegotiati
     public void cn_01_03() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
-        negotiationMock.recordConsumerAgreedAction(ProviderActions::postProviderAgreed);
-        negotiationMock.recordConsumerVerifyAction(ProviderActions::postProviderFinalized);
+        negotiationMock.recordAgreedAction(ProviderActions::postAgreed);
+        negotiationMock.recordVerifiedAction(ProviderActions::postFinalized);
 
         negotiationPipeline
-                .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
-                .sendRequest(datasetId, offerId)
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
-                .expectAgreement(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
+                .expectAgreementMessage(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
                 .acceptLastOffer()
                 .thenWaitForState(AGREED)
-                .expectFinalized(event -> consumerConnector.getConsumerNegotiationManager().handleFinalized(event))
-                .sendConsumerVerify()
+                .expectFinalizedEvent(event -> consumerConnector.getConsumerNegotiationManager().handleFinalized(event))
+                .sendVerifiedEvent()
                 .thenWaitForState(FINALIZED)
                 .execute();
 
@@ -91,15 +91,15 @@ public class ContractNegotiationProvider01Test extends AbstractContractNegotiati
     @DisplayName("CN:01-04: Verify contract request, provider agreement, consumer verified, provider finalized")
     public void cn_01_04() {
 
-        negotiationMock.recordContractRequestedAction(ProviderActions::postProviderAgreed);
-        negotiationMock.recordConsumerVerifyAction(ProviderActions::postProviderFinalized);
+        negotiationMock.recordContractRequestedAction(ProviderActions::postAgreed);
+        negotiationMock.recordVerifiedAction(ProviderActions::postFinalized);
 
         negotiationPipeline
-                .expectAgreement(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
-                .sendRequest(datasetId, offerId)
+                .expectAgreementMessage(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
+                .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(AGREED)
-                .expectFinalized(event -> consumerConnector.getConsumerNegotiationManager().handleFinalized(event))
-                .sendConsumerVerify()
+                .expectFinalizedEvent(event -> consumerConnector.getConsumerNegotiationManager().handleFinalized(event))
+                .sendVerifiedEvent()
                 .thenWaitForState(FINALIZED)
                 .execute();
 

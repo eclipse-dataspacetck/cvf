@@ -18,9 +18,9 @@ package org.eclipse.dataspacetck.dsp.system.api.client;
 import java.util.Map;
 
 /**
- * Proxy to the connector being verified for contract negotiation.
+ * Proxy to the provider connector being verified for contract negotiation.
  */
-public interface NegotiationClient {
+public interface ProviderNegotiationClient {
 
     /**
      * Creates a contract request. Used for initial requests and client counter-offers.
@@ -30,12 +30,12 @@ public interface NegotiationClient {
     /**
      * Accepts the most recent offer.
      */
-    void consumerAccept(Map<String, Object> offer);
+    void accept(Map<String, Object> offer);
 
     /**
      * Verifies the contract agreement with the provider.
      */
-    void consumerVerify(Map<String, Object> verification, boolean expectError);
+    void verify(Map<String, Object> verification, boolean expectError);
 
     /**
      * Terminates a negotiation.
