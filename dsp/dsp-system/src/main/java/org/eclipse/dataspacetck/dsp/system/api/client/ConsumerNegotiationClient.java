@@ -21,11 +21,23 @@ import java.util.Map;
  */
 public interface ConsumerNegotiationClient {
 
+    /**
+     * Signals to the consumer connector to initiate a contract request.
+     */
     void initiateRequest(String datasetId, String offerId);
 
+    /**
+     * Sends an offer to the consumer connector.
+     */
     void contractOffer(Map<String, Object> offer, boolean expectError);
 
+    /**
+     * Sends an agreement to the consumer connector.
+     */
     void contractAgreement(Map<String, Object> agreement);
 
+    /**
+     * Sends the finalized event to the consumer connector.
+     */
     void finalize(Map<String, Object> event, boolean b);
 }

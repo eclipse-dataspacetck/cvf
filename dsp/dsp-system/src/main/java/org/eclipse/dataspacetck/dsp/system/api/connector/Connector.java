@@ -1,39 +1,32 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
- * https://www.apache.org/licenses/LICENSE-2.0
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *
+ *       Metaform Systems, Inc. - initial API and implementation
  *
  */
 
 package org.eclipse.dataspacetck.dsp.system.api.connector;
 
-import org.eclipse.dataspacetck.core.spi.boot.Monitor;
-
 /**
- * Implements a simple, in-memory connector that supports control-plane operations for testing.
+ * The TCK Connector implementation.
  */
-public class Connector {
-    private ProviderNegotiationManager providerNegotiationManager;
-    private ConsumerNegotiationManager consumerNegotiationManager;
+public interface Connector {
 
-    public ProviderNegotiationManager getProviderNegotiationManager() {
-        return providerNegotiationManager;
-    }
+    /**
+     * Returns the manager for provider-side negotiations.
+     */
+    ProviderNegotiationManager getProviderNegotiationManager();
 
-    public ConsumerNegotiationManager getConsumerNegotiationManager() {
-        return consumerNegotiationManager;
-    }
+    /**
+     * Returns the manager for provider-side negotiations.
+     */
+    ConsumerNegotiationManager getConsumerNegotiationManager();
 
-    public Connector(Monitor monitor) {
-        consumerNegotiationManager = new ConsumerNegotiationManager(monitor);
-        providerNegotiationManager = new ProviderNegotiationManager();
-    }
 }

@@ -28,9 +28,12 @@ import org.eclipse.dataspacetck.dsp.system.api.connector.Consumer;
 import org.eclipse.dataspacetck.dsp.system.api.mock.ConsumerNegotiationMock;
 import org.eclipse.dataspacetck.dsp.system.api.mock.ProviderNegotiationMock;
 import org.eclipse.dataspacetck.dsp.system.api.pipeline.ConsumerNegotiationPipeline;
+import org.eclipse.dataspacetck.dsp.system.pipeline.ConsumerNegotiationPipelineImpl;
 import org.eclipse.dataspacetck.dsp.system.api.pipeline.ProviderNegotiationPipeline;
+import org.eclipse.dataspacetck.dsp.system.pipeline.ProviderNegotiationPipelineImpl;
 import org.eclipse.dataspacetck.dsp.system.client.ConsumerNegotiationClientImpl;
 import org.eclipse.dataspacetck.dsp.system.client.ProviderNegotiationClientImpl;
+import org.eclipse.dataspacetck.dsp.system.connector.TckConnector;
 import org.eclipse.dataspacetck.dsp.system.mock.ConsumerNegotiationMockImpl;
 import org.eclipse.dataspacetck.dsp.system.mock.NoOpConsumerNegotiationMock;
 import org.eclipse.dataspacetck.dsp.system.mock.NoOpProviderNegotiationMock;
@@ -89,6 +92,8 @@ public class DspSystemLauncher implements SystemLauncher {
         return type.equals(ProviderNegotiationClient.class) ||
                 type.equals(Connector.class) ||
                 type.equals(ProviderNegotiationMock.class) ||
+                type.equals(ConsumerNegotiationMock.class) ||
+                type.equals(ConsumerNegotiationPipeline.class) ||
                 type.equals(ProviderNegotiationPipeline.class);
     }
 
@@ -117,8 +122,8 @@ public class DspSystemLauncher implements SystemLauncher {
         var scopeId = configuration.getScopeId();
         var negotiationClient = createNegotiationClient(scopeId);
         var callbackEndpoint = (CallbackEndpoint) resolver.resolve(CallbackEndpoint.class, configuration);
-        var consumerConnector = consumerConnectors.computeIfAbsent(scopeId, k -> new Connector(monitor));
-        var pipeline = new ProviderNegotiationPipeline(negotiationClient, callbackEndpoint, consumerConnector, monitor, waitTime);
+        var consumerConnector = consumerConnectors.computeIfAbsent(scopeId, k -> new TckConnector(monitor));
+        var pipeline = new ProviderNegotiationPipelineImpl(negotiationClient, callbackEndpoint, consumerConnector, monitor, waitTime);
         return type.cast(pipeline);
     }
 
@@ -126,15 +131,15 @@ public class DspSystemLauncher implements SystemLauncher {
         var scopeId = configuration.getScopeId();
         var negotiationClient = createConsumerNegotiationClient(scopeId, configuration, resolver);
         var callbackEndpoint = (CallbackEndpoint) resolver.resolve(CallbackEndpoint.class, configuration);
-        var providerConnector = providerConnectors.computeIfAbsent(scopeId, k -> new Connector(monitor));
-        var pipeline = new ConsumerNegotiationPipeline(negotiationClient, callbackEndpoint, providerConnector, monitor, waitTime);
+        var providerConnector = providerConnectors.computeIfAbsent(scopeId, k -> new TckConnector(monitor));
+        var pipeline = new ConsumerNegotiationPipelineImpl(negotiationClient, callbackEndpoint, providerConnector, monitor, waitTime);
         return type.cast(pipeline);
     }
 
     private <T> T createProviderNegotiationMock(Class<T> type, String scopeId) {
         return type.cast(negotiationMocks.computeIfAbsent(scopeId, k -> {
             if (useLocalConnector) {
-                var connector = providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector(monitor));
+                var connector = providerConnectors.computeIfAbsent(scopeId, k2 -> new TckConnector(monitor));
                 return new ProviderNegotiationMockImpl(connector.getProviderNegotiationManager(), executor);
             } else {
                 return new NoOpProviderNegotiationMock();
@@ -145,7 +150,7 @@ public class DspSystemLauncher implements SystemLauncher {
     private <T> T createConsumerNegotiationMock(Class<T> type, String scopeId, ServiceConfiguration configuration, ServiceResolver resolver) {
         return type.cast(consumerNegotiationMocks.computeIfAbsent(scopeId, k -> {
             if (useLocalConnector) {
-                var connector = consumerConnectors.computeIfAbsent(scopeId, k2 -> new Connector(monitor));
+                var connector = consumerConnectors.computeIfAbsent(scopeId, k2 -> new TckConnector(monitor));
                 var negotiationManager = connector.getConsumerNegotiationManager();
                 var callbackEndpoint = (CallbackEndpoint) resolver.resolve(CallbackEndpoint.class, configuration);
                 @SuppressWarnings("DataFlowIssue") var address = callbackEndpoint.getAddress();
@@ -159,15 +164,15 @@ public class DspSystemLauncher implements SystemLauncher {
     private <T> T createConnector(Class<T> type, ServiceConfiguration configuration) {
         var scopeId = configuration.getScopeId();
         if (configuration.getAnnotations().stream().anyMatch(a -> a.annotationType().equals(Consumer.class))) {
-            return type.cast(consumerConnectors.computeIfAbsent(scopeId, k -> new Connector(monitor)));
+            return type.cast(consumerConnectors.computeIfAbsent(scopeId, k -> new TckConnector(monitor)));
         }
-        return type.cast(providerConnectors.computeIfAbsent(scopeId, k -> new Connector(monitor)));
+        return type.cast(providerConnectors.computeIfAbsent(scopeId, k -> new TckConnector(monitor)));
     }
 
     private ProviderNegotiationClient createNegotiationClient(String scopeId) {
         return negotiationClients.computeIfAbsent(scopeId, k -> {
             if (useLocalConnector) {
-                return new ProviderNegotiationClientImpl(providerConnectors.computeIfAbsent(scopeId, k2 -> new Connector(monitor)), monitor);
+                return new ProviderNegotiationClientImpl(providerConnectors.computeIfAbsent(scopeId, k2 -> new TckConnector(monitor)), monitor);
             }
             return new ProviderNegotiationClientImpl(baseConnectorUrl, monitor);
         });
@@ -176,11 +181,12 @@ public class DspSystemLauncher implements SystemLauncher {
     private ConsumerNegotiationClient createConsumerNegotiationClient(String scopeId,
                                                                       ServiceConfiguration configuration,
                                                                       ServiceResolver resolver) {
-        var providerConnector = providerConnectors.computeIfAbsent(scopeId, k -> new Connector(monitor));
+        var providerConnector = providerConnectors.computeIfAbsent(scopeId, k -> new TckConnector(monitor));
         return consumerNegotiationClients.computeIfAbsent(scopeId, k -> {
             if (useLocalConnector) {
-                var consumerConnector = consumerConnectors.computeIfAbsent(scopeId, k2 -> new Connector(monitor));
+                var consumerConnector = consumerConnectors.computeIfAbsent(scopeId, k2 -> new TckConnector(monitor));
                 var callbackEndpoint = (CallbackEndpoint) resolver.resolve(CallbackEndpoint.class, configuration);
+                //noinspection DataFlowIssue
                 return new ConsumerNegotiationClientImpl(consumerConnector, callbackEndpoint.getAddress(), providerConnector, monitor);
             }
             return new ConsumerNegotiationClientImpl(baseConnectorUrl, providerConnector, monitor);

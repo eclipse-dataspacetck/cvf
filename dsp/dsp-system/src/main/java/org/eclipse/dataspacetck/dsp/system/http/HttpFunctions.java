@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspacetck.dsp.system.api.http;
+package org.eclipse.dataspacetck.dsp.system.http;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;

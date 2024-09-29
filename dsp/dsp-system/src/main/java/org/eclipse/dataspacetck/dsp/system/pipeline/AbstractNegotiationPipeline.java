@@ -12,12 +12,13 @@
  *
  */
 
-package org.eclipse.dataspacetck.dsp.system.api.pipeline;
+package org.eclipse.dataspacetck.dsp.system.pipeline;
 
 import org.awaitility.core.ConditionTimeoutException;
 import org.eclipse.dataspacetck.core.api.message.MessageSerializer;
 import org.eclipse.dataspacetck.core.api.system.CallbackEndpoint;
 import org.eclipse.dataspacetck.core.spi.boot.Monitor;
+import org.eclipse.dataspacetck.dsp.system.api.pipeline.NegotiationPipeline;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 
 import java.util.ArrayDeque;
@@ -31,12 +32,12 @@ import java.util.function.Consumer;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
+import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createDspContext;
 
 /**
  * Base pipeline functionality common to the consumer and provider pipelines.
  */
-public abstract class AbstractNegotiationPipeline<P extends AbstractNegotiationPipeline<P>> {
+public abstract class AbstractNegotiationPipeline<P extends NegotiationPipeline<P>> implements NegotiationPipeline<P> {
     protected static final CountDownLatch NO_WAIT_LATCH = new CountDownLatch(0);
 
     protected CallbackEndpoint endpoint;

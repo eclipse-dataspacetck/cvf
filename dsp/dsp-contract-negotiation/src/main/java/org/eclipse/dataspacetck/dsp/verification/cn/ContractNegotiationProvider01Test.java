@@ -35,7 +35,7 @@ public class ContractNegotiationProvider01Test extends AbstractContractNegotiati
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
 
         negotiationPipeline
-                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleOffer(offer))
                 .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .sendTermination()
@@ -53,7 +53,7 @@ public class ContractNegotiationProvider01Test extends AbstractContractNegotiati
         negotiationMock.recordContractRequestedAction(ProviderActions::postTerminate);
 
         negotiationPipeline
-                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleOffer(offer))
                 .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .expectTermination()
@@ -73,7 +73,7 @@ public class ContractNegotiationProvider01Test extends AbstractContractNegotiati
         negotiationMock.recordVerifiedAction(ProviderActions::postFinalized);
 
         negotiationPipeline
-                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleOffer(offer))
                 .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .expectAgreementMessage(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))

@@ -24,16 +24,16 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.processJsonLd;
-import static org.eclipse.dataspacetck.dsp.system.api.http.HttpFunctions.getJson;
-import static org.eclipse.dataspacetck.dsp.system.api.http.HttpFunctions.postJson;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_STATE_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.compactStringProperty;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createNegotiationResponse;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
+import static org.eclipse.dataspacetck.dsp.system.http.HttpFunctions.getJson;
+import static org.eclipse.dataspacetck.dsp.system.http.HttpFunctions.postJson;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_STATE_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.compactStringProperty;
+import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createDspContext;
+import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createNegotiationResponse;
+import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.stringIdProperty;
 
 /**
  * Default implementation that supports dispatch to a local, in-memory test connector or a remote connector system via HTTP.
@@ -88,11 +88,52 @@ public class ProviderNegotiationClientImpl implements ProviderNegotiationClient 
     }
 
     @Override
+    public void accept(Map<String, Object> event) {
+        if (systemConnector != null) {
+            var compacted = processJsonLd(event, createDspContext());
+            systemConnector.getProviderNegotiationManager().handleAgreed(compacted);
+        } else {
+            var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, event);
+            try (var response = postJson(connectorBaseUrl + format(EVENT_PATH, providerId), event)) {
+                if (!response.isSuccessful()) {
+                    throw new AssertionError(format("Accept event failed with code %s: %s ", response.code(), providerId));
+                }
+                monitor.debug("Received accept response: " + providerId);
+            }
+
+        }
+    }
+
+    @Override
+    public void verify(Map<String, Object> event, boolean expectError) {
+        if (systemConnector != null) {
+            var compacted = processJsonLd(event, createDspContext());
+            try {
+                systemConnector.getProviderNegotiationManager().handleVerified(compacted);
+                if (expectError) {
+                    throw new AssertionError("Expected to throw an error on termination");
+                }
+            } catch (IllegalStateException e) {
+                // if the error is expected, swallow exception
+                if (!expectError) {
+                    throw e;
+                }
+            }
+        } else {
+            var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, event);
+            try (var response = postJson(connectorBaseUrl + format(VERIFICATION_PATH, providerId), event, expectError)) {
+                validateResponse(response, providerId, expectError, "verify");
+                monitor.debug("Received verification response: " + providerId);
+            }
+        }
+    }
+
+    @Override
     public void terminate(Map<String, Object> termination, boolean expectError) {
         if (systemConnector != null) {
             var compacted = processJsonLd(termination, createDspContext());
             try {
-                systemConnector.getProviderNegotiationManager().terminate(compacted);
+                systemConnector.getProviderNegotiationManager().terminated(compacted);
                 if (expectError) {
                     throw new AssertionError("Expected to throw an error on termination");
                 }
@@ -126,47 +167,6 @@ public class ProviderNegotiationClientImpl implements ProviderNegotiationClient 
                 var state = stringIdProperty(DSPACE_PROPERTY_STATE_EXPANDED, jsonResponse); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
                 monitor.debug(format("Received negotiation status response with state %s: %s", state, providerId));
                 return jsonResponse;
-            }
-        }
-    }
-
-    @Override
-    public void accept(Map<String, Object> event) {
-        if (systemConnector != null) {
-            var compacted = processJsonLd(event, createDspContext());
-            systemConnector.getProviderNegotiationManager().handleConsumerAgreed(compacted);
-        } else {
-            var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, event);
-            try (var response = postJson(connectorBaseUrl + format(EVENT_PATH, providerId), event)) {
-                if (!response.isSuccessful()) {
-                    throw new AssertionError(format("Accept event failed with code %s: %s ", response.code(), providerId));
-                }
-                monitor.debug("Received accept response: " + providerId);
-            }
-
-        }
-    }
-
-    @Override
-    public void verify(Map<String, Object> verification, boolean expectError) {
-        if (systemConnector != null) {
-            var compacted = processJsonLd(verification, createDspContext());
-            try {
-                systemConnector.getProviderNegotiationManager().handleConsumerVerified(compacted);
-                if (expectError) {
-                    throw new AssertionError("Expected to throw an error on termination");
-                }
-            } catch (IllegalStateException e) {
-                // if the error is expected, swallow exception
-                if (!expectError) {
-                    throw e;
-                }
-            }
-        } else {
-            var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, verification);
-            try (var response = postJson(connectorBaseUrl + format(VERIFICATION_PATH, providerId), verification, expectError)) {
-                validateResponse(response, providerId, expectError, "verify");
-                monitor.debug("Received verification response: " + providerId);
             }
         }
     }

@@ -57,7 +57,7 @@ public class ContractNegotiationProvider03Test extends AbstractContractNegotiati
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
 
         negotiationPipeline
-                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleOffer(offer))
                 .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .sendVerifiedEvent(true)
@@ -73,7 +73,7 @@ public class ContractNegotiationProvider03Test extends AbstractContractNegotiati
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
 
         negotiationPipeline
-                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleOffer(offer))
                 .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .acceptLastOffer()
@@ -92,7 +92,7 @@ public class ContractNegotiationProvider03Test extends AbstractContractNegotiati
         });
 
         negotiationPipeline
-                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleOffer(offer))
                 .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .sendCounterOfferMessage("CD123:ACN0304:456", "ACN0304")

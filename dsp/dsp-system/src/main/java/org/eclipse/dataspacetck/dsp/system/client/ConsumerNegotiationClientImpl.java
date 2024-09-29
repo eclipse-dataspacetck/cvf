@@ -21,8 +21,8 @@ import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 import java.util.Map;
 
 import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.processJsonLd;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createContractRequest;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
+import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createContractRequest;
+import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createDspContext;
 
 /**
  * Default implementation that supports dispatch to a local, in-memory test connector or a remote connector system via HTTP.
@@ -74,7 +74,7 @@ public class ConsumerNegotiationClientImpl implements ConsumerNegotiationClient 
     public void contractOffer(Map<String, Object> offer, boolean expectError) {
         var compacted = processJsonLd(offer, createDspContext());
         if (systemConsumerConnector != null) {
-            systemConsumerConnector.getConsumerNegotiationManager().handleProviderOffer(compacted);
+            systemConsumerConnector.getConsumerNegotiationManager().handleOffer(compacted);
         }
     }
 

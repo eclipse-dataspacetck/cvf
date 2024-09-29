@@ -20,11 +20,11 @@ import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
-import static org.eclipse.dataspacetck.dsp.system.api.http.HttpFunctions.postJson;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAgreement;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createFinalizedEvent;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createOffer;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createTermination;
+import static org.eclipse.dataspacetck.dsp.system.http.HttpFunctions.postJson;
+import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createAgreement;
+import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createFinalizedEvent;
+import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createOffer;
+import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createTermination;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.AGREED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.FINALIZED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.OFFERED;

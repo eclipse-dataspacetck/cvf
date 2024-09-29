@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspacetck.dsp.system.api.message;
+package org.eclipse.dataspacetck.dsp.system.message;
 
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State;
 import org.jetbrains.annotations.NotNull;
@@ -28,30 +28,30 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.CONTEXT;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE_KEY;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE_PREFIX;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CALLBACK_ADDRESS;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CODE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_EVENT_TYPE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_REASON;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_STATE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.TYPE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.VALUE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_AGREEMENT_TYPE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_NAMESPACE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_NAMESPACE_KEY;
-import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_OFFER_TYPE;
-import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_ACTION;
-import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_CONSTRAINTS;
-import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_PERMISSION;
-import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_TARGET;
-import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_USE;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.CONTEXT;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_NAMESPACE_KEY;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_NAMESPACE_PREFIX;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_CODE;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_EVENT_TYPE;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_OFFER;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_REASON;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_STATE;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.ID;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.TYPE;
+import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.VALUE;
+import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_AGREEMENT_TYPE;
+import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_NAMESPACE_KEY;
+import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_OFFER_TYPE;
+import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_PROPERTY_ACTION;
+import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_PROPERTY_CONSTRAINTS;
+import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_PROPERTY_PERMISSION;
+import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_PROPERTY_TARGET;
+import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_USE;
 
 /**
  * Utility methods for creating DSP messages.

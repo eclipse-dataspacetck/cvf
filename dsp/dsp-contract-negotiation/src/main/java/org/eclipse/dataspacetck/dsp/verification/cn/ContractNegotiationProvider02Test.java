@@ -81,7 +81,7 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
 
         negotiationPipeline
-                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleOffer(offer))
                 .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .sendTermination()
@@ -102,7 +102,7 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
         });
 
         negotiationPipeline
-                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleOffer(offer))
                 .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .expectTermination()
@@ -120,7 +120,7 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
         negotiationMock.recordAgreedAction(ProviderActions::postTerminate);
 
         negotiationPipeline
-                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleOffer(offer))
                 .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .acceptLastOffer()

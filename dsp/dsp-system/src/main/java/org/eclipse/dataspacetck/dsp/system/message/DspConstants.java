@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspacetck.dsp.system.api.message;
+package org.eclipse.dataspacetck.dsp.system.message;
 
 /**
  * DSP Message constants.

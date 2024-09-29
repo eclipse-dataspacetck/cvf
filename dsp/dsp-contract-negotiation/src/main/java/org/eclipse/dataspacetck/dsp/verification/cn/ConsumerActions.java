@@ -18,8 +18,8 @@ import okhttp3.Response;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspacetck.dsp.system.api.http.HttpFunctions.postJson;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAcceptedEvent;
+import static org.eclipse.dataspacetck.dsp.system.http.HttpFunctions.postJson;
+import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createAcceptedEvent;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.ACCEPTED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.VERIFIED;
 

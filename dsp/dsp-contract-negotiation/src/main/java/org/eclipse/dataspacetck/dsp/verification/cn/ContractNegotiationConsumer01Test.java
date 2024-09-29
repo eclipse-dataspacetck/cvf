@@ -35,10 +35,10 @@ public class ContractNegotiationConsumer01Test extends AbstractContractNegotiati
         negotiationPipeline
                 .initiateRequest("datasetC0101", "offerC0101")
                 .thenWaitForState(REQUESTED)
-                .expectAcceptedEvent(event -> providerConnector.getProviderNegotiationManager().handleConsumerAgreed(event))
+                .expectAcceptedEvent(event -> providerConnector.getProviderNegotiationManager().handleAgreed(event))
                 .sendOfferMessage()
                 .thenWaitForState(ACCEPTED)
-                .expectVerifiedMessage(verified -> providerConnector.getProviderNegotiationManager().handleConsumerVerified(verified))
+                .expectVerifiedMessage(verified -> providerConnector.getProviderNegotiationManager().handleVerified(verified))
                 .sendAgreementMessage()
                 .thenWaitForState(VERIFIED)
                 .sendFinalizedEvent()

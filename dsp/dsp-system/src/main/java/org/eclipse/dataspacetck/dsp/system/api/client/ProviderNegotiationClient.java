@@ -23,27 +23,27 @@ import java.util.Map;
 public interface ProviderNegotiationClient {
 
     /**
-     * Creates a contract request. Used for initial requests and client counter-offers.
+     * Sends the contract request to the provider. Used for initial requests and client counter-offers.
      */
     Map<String, Object> contractRequest(Map<String, Object> message, boolean expectError);
 
     /**
-     * Accepts the most recent offer.
+     * Sends the accepted event to the provider connector.
      */
-    void accept(Map<String, Object> offer);
+    void accept(Map<String, Object> event);
 
     /**
-     * Verifies the contract agreement with the provider.
+     * Sends the verified event to the provider connector.
      */
-    void verify(Map<String, Object> verification, boolean expectError);
+    void verify(Map<String, Object> event, boolean expectError);
 
     /**
-     * Terminates a negotiation.
+     * Terminates the negotiation with the provider.
      */
     void terminate(Map<String, Object> termination, boolean expectError);
 
     /**
-     * Returns a negotiation.
+     * Retrieves the negotiation from the provider.
      */
     Map<String, Object> getNegotiation(String processId);
 

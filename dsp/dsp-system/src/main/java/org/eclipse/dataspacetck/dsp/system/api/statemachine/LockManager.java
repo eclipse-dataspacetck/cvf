@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 /**
  * Manages read and write operations, allowing for re-entrant lock acquisition.
  */
-public class LockManager {
+class LockManager {
     private static final int TIMEOUT = 5000;
 
     private final ReadWriteLock lock;
