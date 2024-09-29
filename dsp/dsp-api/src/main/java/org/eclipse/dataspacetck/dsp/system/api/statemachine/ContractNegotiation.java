@@ -95,7 +95,7 @@ public class ContractNegotiation {
     }
 
     public Map<String, Object> getLastOffer() {
-        return lockManager.readLock(() -> offers.isEmpty() ? null : offers.getLast());
+        return lockManager.readLock(() -> offers.isEmpty() ? null : offers.get(offers.size() - 1));
     }
 
     public List<Map<String, Object>> getOffers() {
