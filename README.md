@@ -24,8 +24,8 @@
   ],
   "run": {
     "commandline": "java -jar dsp/dsp-tck/build/libs/dsp-tck-runtime.jar -config config/tck/sample.tck.properties",
-    "junit": "See DspTckSuiteTest in the dsp-tck module",
-    "docker": "Coming soon"
+    "docker": "Coming soon",
+    "junit": "See DspTckSuiteTest in the dsp-tck module"
   }
 }
 ```
