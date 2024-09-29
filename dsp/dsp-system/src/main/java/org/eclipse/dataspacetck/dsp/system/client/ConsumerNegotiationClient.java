@@ -40,4 +40,9 @@ public interface ConsumerNegotiationClient {
      * Sends the finalized event to the consumer connector.
      */
     void finalize(Map<String, Object> event, boolean b);
+
+    /**
+     * Retrieves the negotiation from the provider.
+     */
+    Map<String, Object> getNegotiation(String processId);
 }

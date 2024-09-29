@@ -17,14 +17,9 @@ package org.eclipse.dataspacetck.dsp.system.connector;
 
 import org.eclipse.dataspacetck.core.spi.boot.Monitor;
 import org.eclipse.dataspacetck.dsp.system.api.connector.ConsumerNegotiationManager;
-import org.eclipse.dataspacetck.dsp.system.api.connector.NegotiationListener;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
@@ -39,12 +34,8 @@ import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegot
 /**
  * Manages contract negotiations on a consumer.
  */
-public class ConsumerNegotiationManagerImpl implements ConsumerNegotiationManager {
+public class ConsumerNegotiationManagerImpl extends AbstractNegotiationManager implements ConsumerNegotiationManager {
     private Monitor monitor;
-
-    private Map<String, ContractNegotiation> negotiations = new ConcurrentHashMap<>();
-
-    private Queue<NegotiationListener> listeners = new ConcurrentLinkedQueue<>();
 
     public ConsumerNegotiationManagerImpl(Monitor monitor) {
         this.monitor = monitor;
@@ -119,27 +110,4 @@ public class ConsumerNegotiationManagerImpl implements ConsumerNegotiationManage
         negotiation.transition(ContractNegotiation.State.FINALIZED, n -> listeners.forEach(l -> l.finalized(negotiation)));
     }
 
-    @Override
-    public Map<String, ContractNegotiation> getNegotiations() {
-        return negotiations;
-    }
-
-    @Override
-    public void registerListener(NegotiationListener listener) {
-        listeners.add(listener);
-    }
-
-    @Override
-    public void deregisterListener(NegotiationListener listener) {
-        listeners.remove(listener);
-    }
-
-    @NotNull
-    private ContractNegotiation findById(String id) {
-        var negotiation = negotiations.get(id);
-        if (negotiation == null) {
-            throw new IllegalArgumentException("Contract negotiation not found for id: " + id);
-        }
-        return negotiation;
-    }
 }

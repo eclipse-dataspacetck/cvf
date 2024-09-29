@@ -19,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.ACCEPTED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.FINALIZED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.REQUESTED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.VERIFIED;
 
@@ -42,6 +43,7 @@ public class ContractNegotiationConsumer01Test extends AbstractContractNegotiati
                 .sendAgreementMessage()
                 .thenWaitForState(VERIFIED)
                 .sendFinalizedEvent()
+                .thenVerifyConsumerState(FINALIZED)
                 .execute();
 
         negotiationMock.verify();

@@ -16,15 +16,13 @@
 package org.eclipse.dataspacetck.dsp.system.api.connector;
 
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
 /**
  * Manages contract negotiations on a provider.
  */
-public interface ProviderNegotiationManager {
+public interface ProviderNegotiationManager extends NegotiationManager {
 
     /**
      * Transitions the negotiation to {@link ContractNegotiation.State#OFFERED} state.
@@ -61,31 +59,5 @@ public interface ProviderNegotiationManager {
      */
     void handleVerified(Map<String, Object> verification);
 
-    /**
-     * Returns a negotiation by id or throws an {@code IllegalArgumentException} if not found.
-     */
-    @NotNull
-    ContractNegotiation findById(String id);
-
-    /**
-     * Returns a negotiation by correlation id or null if not found.
-     */
-    @Nullable
-    ContractNegotiation findByCorrelationId(String id);
-
-    /**
-     * Returns all negotiations.
-     */
-    Map<String, ContractNegotiation> getNegotiations();
-
-    /**
-     * Registers a listener.
-     */
-    void registerListener(NegotiationListener listener);
-
-    /**
-     * Removes a listener.
-     */
-    void deregisterListener(NegotiationListener listener);
 
 }

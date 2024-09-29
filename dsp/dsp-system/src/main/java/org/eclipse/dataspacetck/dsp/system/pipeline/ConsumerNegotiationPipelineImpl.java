@@ -20,6 +20,7 @@ import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 import org.eclipse.dataspacetck.dsp.system.api.connector.NegotiationListener;
 import org.eclipse.dataspacetck.dsp.system.api.pipeline.ConsumerNegotiationPipeline;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
+import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State;
 import org.eclipse.dataspacetck.dsp.system.client.ConsumerNegotiationClient;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,10 +30,14 @@ import java.util.function.Consumer;
 
 import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.processJsonLd;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_STATE_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAgreement;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createFinalizedEvent;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createOffer;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Default Implementation.
@@ -118,6 +123,16 @@ public class ConsumerNegotiationPipelineImpl extends AbstractNegotiationPipeline
 
     public ConsumerNegotiationPipeline expectVerifiedMessage(Consumer<Map<String, Object>> action) {
         return expectResponse(VERIFICATION_PATH, action);
+    }
+
+    public ConsumerNegotiationPipeline thenVerifyConsumerState(State state) {
+        stages.add(() -> {
+            pause();
+            var negotiation = negotiationClient.getNegotiation(this.negotiation.getCorrelationId());
+            var actual = stringIdProperty(DSPACE_PROPERTY_STATE_EXPANDED, negotiation);
+            assertEquals(DSPACE_NAMESPACE + state.toString(), actual);
+        });
+        return this;
     }
 
     @NotNull

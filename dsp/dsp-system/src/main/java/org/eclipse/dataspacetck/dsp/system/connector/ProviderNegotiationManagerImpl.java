@@ -22,9 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static java.util.Objects.requireNonNull;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CALLBACK_ADDRESS_EXPANDED;
@@ -48,10 +45,7 @@ import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegot
 /**
  * Manages contract negotiations on a provider.
  */
-public class ProviderNegotiationManagerImpl implements ProviderNegotiationManager {
-    private Map<String, ContractNegotiation> negotiations = new ConcurrentHashMap<>();
-
-    private Queue<NegotiationListener> listeners = new ConcurrentLinkedQueue<>();
+public class ProviderNegotiationManagerImpl extends AbstractNegotiationManager implements ProviderNegotiationManager {
 
     @Override
     public void offered(String providerId) {
@@ -104,39 +98,6 @@ public class ProviderNegotiationManagerImpl implements ProviderNegotiationManage
         var processId = requireNonNull(stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, termination));
         var negotiation = negotiations.get(processId);
         negotiation.transition(TERMINATED, n -> listeners.forEach(l -> l.terminated(n)));
-    }
-
-    @NotNull
-    @Override
-    public ContractNegotiation findById(String id) {
-        var negotiation = negotiations.get(id);
-        if (negotiation == null) {
-            throw new IllegalArgumentException("Contract negotiation not found for id: " + id);
-        }
-        return negotiation;
-    }
-
-    @Nullable
-    @Override
-    public ContractNegotiation findByCorrelationId(String id) {
-        return negotiations.values().stream()
-                .filter(n -> id.equals(n.getCorrelationId()))
-                .findAny().orElse(null);
-    }
-
-    @Override
-    public Map<String, ContractNegotiation> getNegotiations() {
-        return negotiations;
-    }
-
-    @Override
-    public void registerListener(NegotiationListener listener) {
-        listeners.add(listener);
-    }
-
-    @Override
-    public void deregisterListener(NegotiationListener listener) {
-        listeners.remove(listener);
     }
 
     @NotNull

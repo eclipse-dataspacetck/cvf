@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * Manages contract negotiations on a consumer.
  */
-public interface ConsumerNegotiationManager {
+public interface ConsumerNegotiationManager extends NegotiationManager {
 
     /**
      * Creates a contract negotiation for the given dataset.
@@ -70,18 +70,4 @@ public interface ConsumerNegotiationManager {
      */
     void handleFinalized(Map<String, Object> event);
 
-    /**
-     * Returns all negotiations.
-     */
-    Map<String, ContractNegotiation> getNegotiations();
-
-    /**
-     * Registers a listener.
-     */
-    void registerListener(NegotiationListener listener);
-
-    /**
-     * Removes a listener.
-     */
-    void deregisterListener(NegotiationListener listener);
 }

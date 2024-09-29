@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspacetck.dsp.system.api.pipeline;
 
+import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State;
+
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -54,4 +56,5 @@ public interface ConsumerNegotiationPipeline extends NegotiationPipeline<Consume
      */
     ConsumerNegotiationPipeline expectVerifiedMessage(Consumer<Map<String, Object>> action);
 
+    ConsumerNegotiationPipeline thenVerifyConsumerState(State state);
 }
