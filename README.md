@@ -6,8 +6,8 @@ To build:
 ./gradlew clean build
 ```
 
-To execute:
+To execute the DSP tests:
 
 ```bash
-java -jar runtimes/dsp-tck/build/libs/dsp-tck-runtime.jar -config config/tck/sample.tck.properties
+java -jar dsp/dsp-tck/build/libs/dsp-tck-runtime.jar -config config/tck/sample.tck.properties
 ```

@@ -17,10 +17,10 @@ package org.eclipse.dataspacetck.dsp.system.pipeline;
 
 import org.eclipse.dataspacetck.core.api.system.CallbackEndpoint;
 import org.eclipse.dataspacetck.core.spi.boot.Monitor;
-import org.eclipse.dataspacetck.dsp.system.client.ProviderNegotiationClient;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 import org.eclipse.dataspacetck.dsp.system.api.pipeline.ProviderNegotiationPipeline;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
+import org.eclipse.dataspacetck.dsp.system.client.ProviderNegotiationClient;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;

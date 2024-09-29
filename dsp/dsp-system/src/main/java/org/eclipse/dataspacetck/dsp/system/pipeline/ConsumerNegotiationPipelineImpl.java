@@ -16,11 +16,11 @@ package org.eclipse.dataspacetck.dsp.system.pipeline;
 
 import org.eclipse.dataspacetck.core.api.system.CallbackEndpoint;
 import org.eclipse.dataspacetck.core.spi.boot.Monitor;
-import org.eclipse.dataspacetck.dsp.system.client.ConsumerNegotiationClient;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 import org.eclipse.dataspacetck.dsp.system.api.connector.NegotiationListener;
 import org.eclipse.dataspacetck.dsp.system.api.pipeline.ConsumerNegotiationPipeline;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
+import org.eclipse.dataspacetck.dsp.system.client.ConsumerNegotiationClient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;

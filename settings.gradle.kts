@@ -26,8 +26,8 @@
 rootProject.name = "cvf"
 include("boot")
 include("core")
+include("runtimes:tck-runtime")
 include("dsp:dsp-contract-negotiation")
 include("dsp:dsp-api")
 include("dsp:dsp-system")
-include("runtimes:tck-runtime")
-include("runtimes:dsp-tck")
+include("dsp:dsp-tck")

@@ -22,7 +22,7 @@ USER "$APP_USER"
 
 WORKDIR /tck
 
-COPY ../ ./
+COPY .. ./
 
 EXPOSE 8080
 
