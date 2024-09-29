@@ -13,11 +13,11 @@
  *
  */
 
-rootProject.name = "cvf"
+rootProject.name = "dataspace-tck"
 include("boot")
 include("core")
 include("runtimes:tck-runtime")
-include("dsp:dsp-contract-negotiation")
 include("dsp:dsp-api")
 include("dsp:dsp-system")
+include("dsp:dsp-contract-negotiation")
 include("dsp:dsp-tck")
