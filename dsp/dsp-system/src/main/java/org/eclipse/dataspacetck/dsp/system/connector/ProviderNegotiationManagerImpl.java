@@ -15,11 +15,9 @@
 
 package org.eclipse.dataspacetck.dsp.system.connector;
 
-import org.eclipse.dataspacetck.dsp.system.api.connector.NegotiationListener;
 import org.eclipse.dataspacetck.dsp.system.api.connector.ProviderNegotiationManager;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
