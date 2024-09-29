@@ -9,7 +9,7 @@
     "LANGUAGE_INDEPENDENT",
     "RUN_ANYWHERE"
   ],
-  "runOptions": [
+  "options": [
     "Command Line",
     "Docker",
     "JUnit"
