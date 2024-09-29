@@ -14,24 +14,18 @@
     "Docker",
     "JUnit"
   ],
-  "modules": [
-    {
-      "boot": "The bootstrap module used for interfacing between the TCK system and its host environment."
-    },
-    {
-      "core": "The core TCK framework and extensibility system."
-    },
-    {
-      "dsp": "Runtime and verification tests for the Dataspace Protocol Specification. Temporarily hosted here."
-    }
-  ],
+  "modules": {
+    "boot": "The bootstrap module used for interfacing between the TCK system and its host environment.",
+    "core": "The core TCK framework and extensibility system.",
+    "dsp": "Runtime and verification tests for the Dataspace Protocol Specification. Temporarily hosted here."
+  },
   "build": [
     "./gradlew clean build"
   ],
   "run": {
     "commandline": "java -jar dsp/dsp-tck/build/libs/dsp-tck-runtime.jar -config config/tck/sample.tck.properties",
     "junit": "See DspTckSuiteTest in the dsp-tck module",
-    "docker" : "Coming soon"
+    "docker": "Coming soon"
   }
 }
 ```
