@@ -20,6 +20,7 @@ import org.eclipse.dataspacetck.core.spi.boot.Monitor;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 import org.eclipse.dataspacetck.dsp.system.api.pipeline.ProviderNegotiationPipeline;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
+import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State;
 import org.eclipse.dataspacetck.dsp.system.client.ProviderNegotiationClient;
 
 import java.util.Map;
@@ -43,8 +44,7 @@ import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegot
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * A pipeline that drives message interactions with a provider connector under test. Uses a TCK consumer connector to interact with
- * the provider connector being verified.
+ * Defaul implementation.
  */
 public class ProviderNegotiationPipelineImpl extends AbstractNegotiationPipeline<ProviderNegotiationPipeline> implements ProviderNegotiationPipeline {
     private static final String NEGOTIATIONS_OFFER_PATH = "/negotiations/[^/]+/offer/";
@@ -149,11 +149,6 @@ public class ProviderNegotiationPipelineImpl extends AbstractNegotiationPipeline
         return this;
     }
 
-    public ProviderNegotiationPipeline then(Runnable runnable) {
-        stages.add(runnable);
-        return this;
-    }
-
     public ProviderNegotiationPipeline expectOfferMessage(Function<Map<String, Object>, Map<String, Object>> action) {
         var latch = new CountDownLatch(1);
         expectLatches.add(latch);
@@ -180,22 +175,17 @@ public class ProviderNegotiationPipelineImpl extends AbstractNegotiationPipeline
     }
 
     @SuppressWarnings("unused")
-    public ProviderNegotiationPipeline thenVerify(Runnable runnable) {
-        return then(runnable);
-    }
-
-    @SuppressWarnings("unused")
     public ProviderNegotiationPipeline thenVerifyNegotiation(Consumer<ContractNegotiation> consumer) {
         return then(() -> consumer.accept(negotiation));
     }
 
     @SuppressWarnings("unused")
-    public ProviderNegotiationPipeline thenVerifyState(ContractNegotiation.State state) {
+    public ProviderNegotiationPipeline thenVerifyState(State state) {
         stages.add(() -> assertEquals(state, negotiation.getState()));
         return this;
     }
 
-    public ProviderNegotiationPipeline thenVerifyProviderState(ContractNegotiation.State state) {
+    public ProviderNegotiationPipeline thenVerifyProviderState(State state) {
         stages.add(() -> {
             pause();
             var providerNegotiation = negotiationClient.getNegotiation(negotiation.getCorrelationId());

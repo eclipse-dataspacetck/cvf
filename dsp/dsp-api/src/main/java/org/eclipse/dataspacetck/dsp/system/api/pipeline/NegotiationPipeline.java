@@ -14,28 +14,17 @@
 
 package org.eclipse.dataspacetck.dsp.system.api.pipeline;
 
+import org.eclipse.dataspacetck.core.api.pipeline.AsyncPipeline;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State;
 
-import java.util.concurrent.Callable;
-
 /**
- * Drives message interactions with a connector under test. Uses a TCK connector to interact with the connector being verified.
+ * Constructs a contract negotiation with a connector under test.
  */
-public interface NegotiationPipeline<P extends NegotiationPipeline<P>> {
+public interface NegotiationPipeline<P extends NegotiationPipeline<P>> extends AsyncPipeline<P> {
 
     /**
      * Waits for the transition to the given state.
      */
     P thenWaitForState(State state);
-
-    /**
-     * Waits for the condition.
-     */
-    P thenWait(String description, Callable<Boolean> condition);
-
-    /**
-     * Executes the pipeline actions.
-     */
-    void execute();
 
 }

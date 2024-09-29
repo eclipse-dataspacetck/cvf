@@ -20,8 +20,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * A pipeline that drives message interactions with a consumer connector under test. Uses a TCK provider connector to interact with
- * the consumer connector being verified.
+ * Constructs a contract negotiation with a consumer connector under test. Uses a TCK provider connector to interact
+ * with the consumer connector being verified.
  */
 public interface ConsumerNegotiationPipeline extends NegotiationPipeline<ConsumerNegotiationPipeline> {
 
@@ -56,5 +56,8 @@ public interface ConsumerNegotiationPipeline extends NegotiationPipeline<Consume
      */
     ConsumerNegotiationPipeline expectVerifiedMessage(Consumer<Map<String, Object>> action);
 
+    /**
+     * Verifies the active consumer contract negotiation is in the given state.
+     */
     ConsumerNegotiationPipeline thenVerifyConsumerState(State state);
 }
