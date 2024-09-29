@@ -15,14 +15,13 @@
 package org.eclipse.dataspacetck.dsp.system.client;
 
 import org.eclipse.dataspacetck.core.spi.boot.Monitor;
-import org.eclipse.dataspacetck.dsp.system.api.client.ConsumerNegotiationClient;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 
 import java.util.Map;
 
 import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.processJsonLd;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createContractRequest;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createDspContext;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createContractRequest;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
 
 /**
  * Default implementation that supports dispatch to a local, in-memory test connector or a remote connector system via HTTP.

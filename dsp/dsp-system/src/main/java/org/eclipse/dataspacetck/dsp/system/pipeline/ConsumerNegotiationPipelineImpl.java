@@ -16,7 +16,7 @@ package org.eclipse.dataspacetck.dsp.system.pipeline;
 
 import org.eclipse.dataspacetck.core.api.system.CallbackEndpoint;
 import org.eclipse.dataspacetck.core.spi.boot.Monitor;
-import org.eclipse.dataspacetck.dsp.system.api.client.ConsumerNegotiationClient;
+import org.eclipse.dataspacetck.dsp.system.client.ConsumerNegotiationClient;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 import org.eclipse.dataspacetck.dsp.system.api.connector.NegotiationListener;
 import org.eclipse.dataspacetck.dsp.system.api.pipeline.ConsumerNegotiationPipeline;
@@ -29,10 +29,10 @@ import java.util.function.Consumer;
 
 import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.processJsonLd;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createAgreement;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createDspContext;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createFinalizedEvent;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createOffer;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAgreement;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createFinalizedEvent;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createOffer;
 
 /**
  * Default Implementation.

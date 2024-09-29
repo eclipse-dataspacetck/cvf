@@ -17,7 +17,7 @@ package org.eclipse.dataspacetck.dsp.system.pipeline;
 
 import org.eclipse.dataspacetck.core.api.system.CallbackEndpoint;
 import org.eclipse.dataspacetck.core.spi.boot.Monitor;
-import org.eclipse.dataspacetck.dsp.system.api.client.ProviderNegotiationClient;
+import org.eclipse.dataspacetck.dsp.system.client.ProviderNegotiationClient;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 import org.eclipse.dataspacetck.dsp.system.api.pipeline.ProviderNegotiationPipeline;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
@@ -29,16 +29,16 @@ import java.util.function.Function;
 
 import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.processJsonLd;
 import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.serialize;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_NAMESPACE;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_STATE_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createAcceptedEvent;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createContractRequest;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createCounterOffer;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createDspContext;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createTermination;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createVerification;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.stringIdProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_STATE_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAcceptedEvent;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createContractRequest;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createCounterOffer;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createTermination;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createVerification;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

@@ -32,7 +32,7 @@ import java.util.function.Consumer;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createDspContext;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
 
 /**
  * Base pipeline functionality common to the consumer and provider pipelines.

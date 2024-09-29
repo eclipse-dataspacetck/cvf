@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspacetck.dsp.system.api.client;
+package org.eclipse.dataspacetck.dsp.system.client;
 
 import java.util.Map;
 

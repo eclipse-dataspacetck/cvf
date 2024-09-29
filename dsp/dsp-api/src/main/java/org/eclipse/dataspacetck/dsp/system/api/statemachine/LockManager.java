@@ -28,7 +28,7 @@ class LockManager {
 
     private final ReadWriteLock lock;
 
-    public LockManager() {
+    LockManager() {
         this.lock = new ReentrantReadWriteLock();
     }
 

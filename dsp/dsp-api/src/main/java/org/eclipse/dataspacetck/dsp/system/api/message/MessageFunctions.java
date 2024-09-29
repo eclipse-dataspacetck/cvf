@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspacetck.dsp.system.message;
+package org.eclipse.dataspacetck.dsp.system.api.message;
 
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State;
 import org.jetbrains.annotations.NotNull;
@@ -28,36 +28,68 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.CONTEXT;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_NAMESPACE;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_NAMESPACE_KEY;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_NAMESPACE_PREFIX;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_CALLBACK_ADDRESS;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_CODE;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_EVENT_TYPE;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_OFFER;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_REASON;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_STATE;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.ID;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.TYPE;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.VALUE;
-import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_AGREEMENT_TYPE;
-import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_NAMESPACE;
-import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_NAMESPACE_KEY;
-import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_OFFER_TYPE;
-import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_PROPERTY_ACTION;
-import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_PROPERTY_CONSTRAINTS;
-import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_PROPERTY_PERMISSION;
-import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_PROPERTY_TARGET;
-import static org.eclipse.dataspacetck.dsp.system.message.OdrlConstants.ODRL_USE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.CONTEXT;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE_KEY;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE_PREFIX;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CALLBACK_ADDRESS;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CODE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_EVENT_TYPE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_OFFER;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_REASON;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_STATE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.TYPE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.VALUE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_AGREEMENT_TYPE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_NAMESPACE_KEY;
+import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_OFFER_TYPE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_ACTION;
+import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_CONSTRAINTS;
+import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_PERMISSION;
+import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_TARGET;
+import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_USE;
 
 /**
  * Utility methods for creating DSP messages.
  */
 public class MessageFunctions {
     private static final Map<String, String> IDENTITY_TYPE = Map.of("@type", "@id");
+
+    public static Map<String, Object> createTermination(String providerId, String consumerId, String code, String... reasons) {
+        var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractNegotiationTerminationMessage");
+        message.put(CONTEXT, createDspContext());
+
+        message.put(DSPACE_PROPERTY_PROVIDER_PID, providerId);
+        message.put(DSPACE_PROPERTY_CONSUMER_PID, consumerId);
+        message.put(DSPACE_PROPERTY_CODE, code);
+
+        if (reasons != null && reasons.length > 0) {
+            message.put(DSPACE_PROPERTY_REASON, Arrays.stream(reasons).map(reason -> Map.of("message", reason)).collect(toList()));
+        }
+        return message;
+    }
+
+    public static Map<String, Object> createAcceptedEvent(String processId, String consumerId) {
+        return createEvent(processId, consumerId, "ACCEPTED");
+    }
+
+    public static Map<String, Object> createFinalizedEvent(String processId, String consumerId) {
+        return createEvent(processId, consumerId, "FINALIZED");
+    }
+
+    public static Map<String, Object> createEvent(String providerId, String consumerId, String eventType) {
+        var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractNegotiationEventMessage");
+        message.put(CONTEXT, createDspContext());
+        message.put(DSPACE_PROPERTY_PROVIDER_PID, providerId);
+        message.put(DSPACE_PROPERTY_CONSUMER_PID, consumerId);
+
+        message.put(DSPACE_PROPERTY_EVENT_TYPE, DSPACE_NAMESPACE + eventType);
+        return message;
+    }
 
     public static Map<String, Object> createContractRequest(String consumerPid, String offerId, String targetId, String callbackAddress) {
         var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractRequestMessage");
@@ -89,38 +121,6 @@ public class MessageFunctions {
         message.put(DSPACE_PROPERTY_OFFER, createOfferPolicy(offerId, targetId));
         message.put(DSPACE_PROPERTY_CALLBACK_ADDRESS, callbackAddress);
 
-        return message;
-    }
-
-    public static Map<String, Object> createTermination(String providerId, String consumerId, String code, String... reasons) {
-        var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractNegotiationTerminationMessage");
-        message.put(CONTEXT, createDspContext());
-
-        message.put(DSPACE_PROPERTY_PROVIDER_PID, providerId);
-        message.put(DSPACE_PROPERTY_CONSUMER_PID, consumerId);
-        message.put(DSPACE_PROPERTY_CODE, code);
-
-        if (reasons != null && reasons.length > 0) {
-            message.put(DSPACE_PROPERTY_REASON, Arrays.stream(reasons).map(reason -> Map.of("message", reason)).collect(toList()));
-        }
-        return message;
-    }
-
-    public static Map<String, Object> createAcceptedEvent(String processId, String consumerId) {
-        return createEvent(processId, consumerId, "ACCEPTED");
-    }
-
-    public static Map<String, Object> createFinalizedEvent(String processId, String consumerId) {
-        return createEvent(processId, consumerId, "FINALIZED");
-    }
-
-    public static Map<String, Object> createEvent(String providerId, String consumerId, String eventType) {
-        var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractNegotiationEventMessage");
-        message.put(CONTEXT, createDspContext());
-        message.put(DSPACE_PROPERTY_PROVIDER_PID, providerId);
-        message.put(DSPACE_PROPERTY_CONSUMER_PID, consumerId);
-
-        message.put(DSPACE_PROPERTY_EVENT_TYPE, DSPACE_NAMESPACE + eventType);
         return message;
     }
 

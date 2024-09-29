@@ -17,23 +17,22 @@ package org.eclipse.dataspacetck.dsp.system.client;
 
 import okhttp3.Response;
 import org.eclipse.dataspacetck.core.spi.boot.Monitor;
-import org.eclipse.dataspacetck.dsp.system.api.client.ProviderNegotiationClient;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 
 import java.util.Map;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.processJsonLd;
-import static org.eclipse.dataspacetck.dsp.system.http.HttpFunctions.getJson;
-import static org.eclipse.dataspacetck.dsp.system.http.HttpFunctions.postJson;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_NAMESPACE;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_STATE_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.compactStringProperty;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createDspContext;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createNegotiationResponse;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.stringIdProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.http.HttpFunctions.getJson;
+import static org.eclipse.dataspacetck.dsp.system.api.http.HttpFunctions.postJson;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_STATE_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.compactStringProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createNegotiationResponse;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
 
 /**
  * Default implementation that supports dispatch to a local, in-memory test connector or a remote connector system via HTTP.

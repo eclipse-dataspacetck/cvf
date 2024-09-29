@@ -26,10 +26,10 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.createOfferAck;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.stringIdProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createOfferAck;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.ACCEPTED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.OFFERED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.REQUESTED;

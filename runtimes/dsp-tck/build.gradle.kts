@@ -29,6 +29,7 @@ plugins {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":dsp:dsp-api"))
     implementation(project(":dsp:dsp-system"))
     implementation(project(":dsp:dsp-contract-negotiation"))
     implementation(project(":runtimes:tck-runtime"))

@@ -27,16 +27,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static java.util.Objects.requireNonNull;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_CALLBACK_ADDRESS_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_EVENT_TYPE_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_OFFER_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.message.DspConstants.ID;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.compactStringProperty;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.mapProperty;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.stringIdProperty;
-import static org.eclipse.dataspacetck.dsp.system.message.MessageFunctions.stringProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CALLBACK_ADDRESS_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_EVENT_TYPE_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_OFFER_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.compactStringProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.mapProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.ACCEPTED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.AGREED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.FINALIZED;
@@ -71,7 +71,7 @@ public class ProviderNegotiationManagerImpl implements ProviderNegotiationManage
         negotiation.transition(FINALIZED, n -> listeners.forEach(l -> l.finalized(n)));
     }
 
-   @Override
+    @Override
     public ContractNegotiation handleContractRequest(Map<String, Object> contractRequest) {
         if (contractRequest.containsKey(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED)) {
             // the message is a counter-offer
