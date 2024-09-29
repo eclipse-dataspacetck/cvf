@@ -10,7 +10,7 @@
     "RUN_ANYWHERE"
   ],
   "options": [
-    "Command Line",
+    "Command line",
     "Docker",
     "JUnit"
   ],
