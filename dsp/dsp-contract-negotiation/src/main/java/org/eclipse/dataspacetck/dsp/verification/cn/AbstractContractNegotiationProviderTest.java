@@ -25,6 +25,7 @@ import org.eclipse.dataspacetck.dsp.system.api.pipeline.ProviderNegotiationPipel
 import org.junit.jupiter.api.Tag;
 
 import static java.util.UUID.randomUUID;
+import static org.eclipse.dataspacetck.dsp.system.api.connector.IdGenerator.OFFER;
 
 /**
  * Base class for verifying a connector in the provider role.
@@ -43,7 +44,7 @@ public abstract class AbstractContractNegotiationProviderTest extends AbstractVe
     protected ProviderNegotiationMock negotiationMock;
 
     @ConfigParam
-    protected String offerId = randomUUID().toString();
+    protected String offerId = OFFER + randomUUID();
 
     @ConfigParam
     protected String datasetId = randomUUID().toString();

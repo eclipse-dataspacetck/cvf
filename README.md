@@ -2,7 +2,7 @@
 
 ```json
 {
-  "description": "A composable test compliance kit (TCK) for dataspace specifications built on the JUnit Platform.",
+  "description": "A composable technology compatibility kit (TCK) for dataspace specifications built on the JUnit Platform.",
   "features": [
     "AUTOMATED",
     "EXTENSIBLE",

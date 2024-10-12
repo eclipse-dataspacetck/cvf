@@ -44,12 +44,12 @@ public class ProviderNegotiationClientImpl implements ProviderNegotiationClient 
     private static final String EVENT_PATH = "negotiations/%s/events";
     private static final String VERIFICATION_PATH = "negotiations/%s/agreement/verification";
 
-    private String connectorBaseUrl;
+    private String providerConnectorBaseUrl;
     private Connector systemConnector;
     private Monitor monitor;
 
     public ProviderNegotiationClientImpl(String connectorBaseUrl, Monitor monitor) {
-        this.connectorBaseUrl = connectorBaseUrl.endsWith("/") ? connectorBaseUrl : connectorBaseUrl + "/";
+        this.providerConnectorBaseUrl = connectorBaseUrl.endsWith("/") ? connectorBaseUrl : connectorBaseUrl + "/";
         this.monitor = monitor;
     }
 
@@ -59,17 +59,15 @@ public class ProviderNegotiationClientImpl implements ProviderNegotiationClient 
     }
 
     @Override
-    public Map<String, Object> contractRequest(Map<String, Object> contractRequest, boolean expectError) {
+    public Map<String, Object> contractRequest(Map<String, Object> contractRequest, String counterPartyId, boolean expectError) {
         if (systemConnector != null) {
             try {
                 var compacted = processJsonLd(contractRequest, createDspContext());
-                var negotiation = systemConnector.getProviderNegotiationManager().handleContractRequest(compacted);
+                var negotiation = systemConnector.getProviderNegotiationManager().handleContractRequest(compacted, counterPartyId);
                 if (expectError) {
                     throw new AssertionError("Expected to throw an error on termination");
                 }
-                return processJsonLd(createNegotiationResponse(negotiation.getId(),
-                        negotiation.getCorrelationId(),
-                        negotiation.getState().toString().toLowerCase()), createDspContext());
+                return processJsonLd(negotiation, createDspContext());
             } catch (IllegalStateException e) {
                 // if the error is expected, swallow exception
                 if (!expectError) {
@@ -78,7 +76,7 @@ public class ProviderNegotiationClientImpl implements ProviderNegotiationClient 
                 return Map.of();
             }
         } else {
-            try (var response = postJson(connectorBaseUrl + REQUEST_PATH, contractRequest, expectError)) {
+            try (var response = postJson(providerConnectorBaseUrl + REQUEST_PATH, contractRequest, expectError)) {
                 monitor.debug("Received contract request response");
                 //noinspection DataFlowIssue
                 return processJsonLd(response.body().byteStream(), createDspContext());
@@ -90,16 +88,15 @@ public class ProviderNegotiationClientImpl implements ProviderNegotiationClient 
     public void accept(Map<String, Object> event) {
         if (systemConnector != null) {
             var compacted = processJsonLd(event, createDspContext());
-            systemConnector.getProviderNegotiationManager().handleAgreed(compacted);
+            systemConnector.getProviderNegotiationManager().handleAccepted(compacted);
         } else {
             var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, event);
-            try (var response = postJson(connectorBaseUrl + format(EVENT_PATH, providerId), event)) {
+            try (var response = postJson(providerConnectorBaseUrl + format(EVENT_PATH, providerId), event)) {
                 if (!response.isSuccessful()) {
                     throw new AssertionError(format("Accept event failed with code %s: %s ", response.code(), providerId));
                 }
                 monitor.debug("Received accept response: " + providerId);
             }
-
         }
     }
 
@@ -120,7 +117,7 @@ public class ProviderNegotiationClientImpl implements ProviderNegotiationClient 
             }
         } else {
             var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, event);
-            try (var response = postJson(connectorBaseUrl + format(VERIFICATION_PATH, providerId), event, expectError)) {
+            try (var response = postJson(providerConnectorBaseUrl + format(VERIFICATION_PATH, providerId), event, expectError)) {
                 validateResponse(response, providerId, expectError, "verify");
                 monitor.debug("Received verification response: " + providerId);
             }
@@ -144,7 +141,7 @@ public class ProviderNegotiationClientImpl implements ProviderNegotiationClient 
             }
         } else {
             var providerId = compactStringProperty(DSPACE_PROPERTY_PROVIDER_PID, termination);
-            try (var response = postJson(connectorBaseUrl + format(TERMINATE_PATH, providerId), termination, expectError)) {
+            try (var response = postJson(providerConnectorBaseUrl + format(TERMINATE_PATH, providerId), termination, expectError)) {
                 validateResponse(response, providerId, expectError, "terminate");
                 monitor.debug("Received negotiation terminate response: " + providerId);
             }
@@ -159,7 +156,7 @@ public class ProviderNegotiationClientImpl implements ProviderNegotiationClient 
             var state = DSPACE_NAMESPACE + negotiation.getState().toString();
             return processJsonLd(createNegotiationResponse(providerPid, consumerPid, state), createDspContext());
         } else {
-            try (var response = getJson(connectorBaseUrl + format(GET_PATH, providerPid))) {
+            try (var response = getJson(providerConnectorBaseUrl + format(GET_PATH, providerPid))) {
                 //noinspection DataFlowIssue
                 var jsonResponse = processJsonLd(response.body().byteStream(), createDspContext());
                 var providerId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, jsonResponse); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92

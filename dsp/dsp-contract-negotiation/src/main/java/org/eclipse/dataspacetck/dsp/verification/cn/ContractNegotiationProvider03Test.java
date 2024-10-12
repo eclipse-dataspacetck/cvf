@@ -15,7 +15,6 @@
 package org.eclipse.dataspacetck.dsp.verification.cn;
 
 import org.eclipse.dataspacetck.core.api.system.MandatoryTest;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 
@@ -48,7 +47,6 @@ public class ContractNegotiationProvider03Test extends AbstractContractNegotiati
         negotiationMock.verify();
     }
 
-    @Disabled
     @MandatoryTest
     @DisplayName("CN:03-02: Verify contract request, offer received, invalid consumer verified")
     public void cn_03_02() {

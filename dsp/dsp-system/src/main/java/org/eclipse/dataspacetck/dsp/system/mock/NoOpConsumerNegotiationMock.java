@@ -25,6 +25,15 @@ import java.util.function.BiConsumer;
 public class NoOpConsumerNegotiationMock implements ConsumerNegotiationMock {
 
     @Override
+    public void recordInitializedAction(BiConsumer<String, ContractNegotiation> action) {
+    }
+
+    @Override
+    public void recordRequestAction(BiConsumer<String, ContractNegotiation> action) {
+
+    }
+
+    @Override
     public void recordOfferedAction(BiConsumer<String, ContractNegotiation> action) {
     }
 

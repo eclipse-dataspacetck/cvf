@@ -25,7 +25,7 @@ public interface ProviderNegotiationClient {
     /**
      * Sends the contract request to the provider. Used for initial requests and client counter-offers.
      */
-    Map<String, Object> contractRequest(Map<String, Object> message, boolean expectError);
+    Map<String, Object> contractRequest(Map<String, Object> message, String counterPartyId, boolean expectError);
 
     /**
      * Sends the accepted event to the provider connector.

@@ -18,6 +18,7 @@ import org.eclipse.dataspacetck.core.api.system.MandatoryTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 
+import static org.eclipse.dataspacetck.dsp.system.api.connector.IdGenerator.offerIdFromDatasetId;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.ACCEPTED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.FINALIZED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.REQUESTED;
@@ -30,13 +31,15 @@ public class ContractNegotiationConsumer01Test extends AbstractContractNegotiati
     @MandatoryTest
     @DisplayName("CN_C:01-01: Verify contract request, offer received, consumer accepted, provider agreed, consumer verified, provider finalized")
     public void cn_c_01_01() {
+        negotiationMock.recordInitializedAction(ConsumerActions::postRequest);
         negotiationMock.recordOfferedAction(ConsumerActions::postAccepted);
         negotiationMock.recordAgreedAction(ConsumerActions::postVerification);
 
         negotiationPipeline
-                .initiateRequest("datasetC0101", "offerC0101")
+                .expectRequest((request, counterpartyId) -> providerConnector.getProviderNegotiationManager().handleContractRequest(request, counterpartyId))
+                .initiateRequest("C0101", offerIdFromDatasetId("C0101"))
                 .thenWaitForState(REQUESTED)
-                .expectAcceptedEvent(event -> providerConnector.getProviderNegotiationManager().handleAgreed(event))
+                .expectAcceptedEvent(event -> providerConnector.getProviderNegotiationManager().handleAccepted(event))
                 .sendOfferMessage()
                 .thenWaitForState(ACCEPTED)
                 .expectVerifiedMessage(verified -> providerConnector.getProviderNegotiationManager().handleVerified(verified))

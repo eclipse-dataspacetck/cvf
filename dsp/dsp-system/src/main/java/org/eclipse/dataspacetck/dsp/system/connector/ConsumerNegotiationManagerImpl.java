@@ -23,7 +23,7 @@ import java.util.Map;
 
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
-import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createOfferAck;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createNegotiationResponse;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.ACCEPTED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.OFFERED;
@@ -48,6 +48,7 @@ public class ConsumerNegotiationManagerImpl extends AbstractNegotiationManager i
                 .offerId(offerId)
                 .build();
         negotiations.put(negotiation.getId(), negotiation);
+        listeners.forEach(l -> l.contractInitialized(negotiation));
         return negotiation;
     }
 
@@ -89,7 +90,7 @@ public class ConsumerNegotiationManagerImpl extends AbstractNegotiationManager i
         var consumerId = stringIdProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, offer); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
         var negotiation = findById(consumerId);
         negotiation.storeOffer(offer, OFFERED, n -> listeners.forEach(l -> l.offered(negotiation)));
-        return createOfferAck(negotiation.getCorrelationId(), negotiation.getId(), OFFERED);
+        return createNegotiationResponse(negotiation.getCorrelationId(), negotiation.getId(), OFFERED.toString().toLowerCase());
     }
 
     @Override

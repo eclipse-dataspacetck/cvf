@@ -23,6 +23,10 @@ import java.util.function.BiConsumer;
  */
 public interface ConsumerNegotiationMock extends NegotiationMock {
 
+    void recordInitializedAction(BiConsumer<String, ContractNegotiation> action);
+
+    void recordRequestAction(BiConsumer<String, ContractNegotiation> action);
+
     void recordOfferedAction(BiConsumer<String, ContractNegotiation> action);
 
     void recordAgreedAction(BiConsumer<String, ContractNegotiation> action);

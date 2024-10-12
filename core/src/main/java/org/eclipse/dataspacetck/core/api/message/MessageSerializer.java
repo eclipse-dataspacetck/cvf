@@ -61,6 +61,14 @@ public class MessageSerializer {
         }
     }
 
+    public static String serializePlainJson(Object object) {
+        try {
+            return MAPPER.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static Map<String, Object> processJsonLd(InputStream stream, Map<String, Object> context) {
         try {
             return processJsonLd(MAPPER.readValue(stream, JsonObject.class), context);

@@ -17,6 +17,7 @@ package org.eclipse.dataspacetck.dsp.system.api.pipeline;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State;
 
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
@@ -47,12 +48,17 @@ public interface ConsumerNegotiationPipeline extends NegotiationPipeline<Consume
     ConsumerNegotiationPipeline sendFinalizedEvent();
 
     /**
-     * Expect an accepted event to be received and execute the given action..
+     * Expect a request and execute the given action.
+     */
+    ConsumerNegotiationPipeline expectRequest(BiFunction<Map<String, Object>, String, Map<String, Object>> action);
+
+    /**
+     * Expect an accepted event to be received and execute the given action.
      */
     ConsumerNegotiationPipeline expectAcceptedEvent(Consumer<Map<String, Object>> action);
 
     /**
-     * Expect a verification message to be received and execute the given action..
+     * Expect a verification message to be received and execute the given action.
      */
     ConsumerNegotiationPipeline expectVerifiedMessage(Consumer<Map<String, Object>> action);
 

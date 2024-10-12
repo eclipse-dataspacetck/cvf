@@ -15,9 +15,10 @@
 
 package org.eclipse.dataspacetck.dsp.system.api.message;
 
-import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State;
+import org.eclipse.dataspacetck.dsp.system.api.metadata.DspTestingWorkaround;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
@@ -40,6 +42,7 @@ import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPAC
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_REASON;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_STATE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_TIMESTAMP;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.TYPE;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.VALUE;
@@ -48,6 +51,8 @@ import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL
 import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_NAMESPACE_KEY;
 import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_OFFER_TYPE;
 import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_ACTION;
+import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_ASSIGNEE;
+import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_ASSIGNER;
 import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_CONSTRAINTS;
 import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_PERMISSION;
 import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL_PROPERTY_TARGET;
@@ -58,6 +63,7 @@ import static org.eclipse.dataspacetck.dsp.system.api.message.OdrlConstants.ODRL
  */
 public class MessageFunctions {
     private static final Map<String, String> IDENTITY_TYPE = Map.of("@type", "@id");
+
 
     public static Map<String, Object> createTermination(String providerId, String consumerId, String code, String... reasons) {
         var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractNegotiationTerminationMessage");
@@ -96,6 +102,7 @@ public class MessageFunctions {
         message.put(CONTEXT, createDspContext());
         message.put(DSPACE_PROPERTY_CONSUMER_PID, consumerPid);
 
+        @DspTestingWorkaround("Remove @type")
         var offer = new LinkedHashMap<String, Object>();
         offer.put(ID, offerId);
         offer.put(ODRL_PROPERTY_TARGET, targetId);
@@ -111,6 +118,8 @@ public class MessageFunctions {
     public static Map<String, Object> createCounterOffer(String providerId,
                                                          String consumerId,
                                                          String offerId,
+                                                         String assigner,
+                                                         String assignee,
                                                          String targetId,
                                                          String callbackAddress) {
         var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractRequestMessage"); // do NOT override id
@@ -118,7 +127,7 @@ public class MessageFunctions {
         message.put(DSPACE_PROPERTY_PROVIDER_PID, providerId);
         message.put(DSPACE_PROPERTY_CONSUMER_PID, consumerId);
 
-        message.put(DSPACE_PROPERTY_OFFER, createOfferPolicy(offerId, targetId));
+        message.put(DSPACE_PROPERTY_OFFER, createOfferPolicy(offerId, assigner, assignee, targetId));
         message.put(DSPACE_PROPERTY_CALLBACK_ADDRESS, callbackAddress);
 
         return message;
@@ -133,14 +142,21 @@ public class MessageFunctions {
         return message;
     }
 
-    public static Map<String, Object> createOffer(String providerId, String consumerId, String offerId, String targetId) {
+    public static Map<String, Object> createOffer(String providerId,
+                                                  String consumerId,
+                                                  String offerId,
+                                                  String assigner,
+                                                  String assignee,
+                                                  String targetId,
+                                                  String callbackAddress) {
         var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractOfferMessage");
         var context = createDspContext();
         message.put(CONTEXT, context);
         message.put(DSPACE_PROPERTY_PROVIDER_PID, providerId);
         message.put(DSPACE_PROPERTY_CONSUMER_PID, consumerId);
+        message.put(DSPACE_PROPERTY_CALLBACK_ADDRESS, callbackAddress);
 
-        var offer = createOfferPolicy(offerId, targetId);
+        var offer = createOfferPolicy(offerId, assigner, assignee, targetId);
 
         message.put(DSPACE_PROPERTY_OFFER, offer);
 
@@ -148,17 +164,29 @@ public class MessageFunctions {
     }
 
     @NotNull
-    private static LinkedHashMap<String, Object> createOfferPolicy(String offerId, String targetId) {
+    private static LinkedHashMap<String, Object> createOfferPolicy(String offerId,
+                                                                   String assigner,
+                                                                   String assignee,
+                                                                   String targetId) {
+        @DspTestingWorkaround("Remove @type")
         var offer = new LinkedHashMap<String, Object>();
-        offer.put(TYPE, ODRL_OFFER_TYPE); // WORKAROUND: REMOVE @type
+        offer.put(TYPE, ODRL_OFFER_TYPE);
         offer.put(ID, offerId);
         var permissions = Map.of(ODRL_PROPERTY_ACTION, ODRL_USE, ODRL_PROPERTY_CONSTRAINTS, emptyList());
         offer.put(ODRL_PROPERTY_PERMISSION, List.of(permissions));
         offer.put(ODRL_PROPERTY_TARGET, targetId);
+        offer.put(ODRL_PROPERTY_ASSIGNEE, assignee);
+        offer.put(ODRL_PROPERTY_ASSIGNER, assigner);
+
         return offer;
     }
 
-    public static Map<String, Object> createAgreement(String providerId, String consumerId, String agreementId, String target) {
+    public static Map<String, Object> createAgreement(String providerId,
+                                                      String consumerId,
+                                                      String agreementId,
+                                                      String assigner,
+                                                      String assignee,
+                                                      String targetId) {
         var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractAgreementMessage");
         var context = createDspContext();
         message.put(CONTEXT, context);
@@ -169,8 +197,11 @@ public class MessageFunctions {
         var offer = new LinkedHashMap<String, Object>();
         offer.put(TYPE, ODRL_AGREEMENT_TYPE);
         offer.put(ID, agreementId);
-        offer.put(ODRL_PROPERTY_TARGET, target);
+        offer.put(ODRL_PROPERTY_TARGET, targetId);
         offer.put(ODRL_PROPERTY_PERMISSION, List.of(permissions));
+        offer.put(DSPACE_PROPERTY_TIMESTAMP, ZonedDateTime.now().format(ISO_INSTANT));
+        offer.put(ODRL_PROPERTY_ASSIGNEE, assignee);
+        offer.put(ODRL_PROPERTY_ASSIGNER, assigner);
 
         message.put(DSPACE_NAMESPACE_PREFIX + "agreement", offer);
 
@@ -187,16 +218,6 @@ public class MessageFunctions {
         return message;
     }
 
-    public static Map<String, Object> createOfferAck(String providerId, String consumerId, State state) {
-        var message = createBaseMessage(DSPACE_NAMESPACE_PREFIX + "ContractNegotiation");
-        var context = createDspContext();
-        message.put(CONTEXT, context);
-        message.put(DSPACE_PROPERTY_PROVIDER_PID, providerId);
-        message.put(DSPACE_PROPERTY_CONSUMER_PID, consumerId);
-        message.put(DSPACE_PROPERTY_STATE, state.toString());
-        return message;
-    }
-
     public static Map<String, Object> mapProperty(String key, Map<String, Object> map) {
         var untypedValue = requireNonNull(map.get(key), "No value for: " + key);
         //noinspection rawtypes
@@ -206,8 +227,10 @@ public class MessageFunctions {
             }
             @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
             var valueContainer = valueList.get(0);
-            if (valueContainer instanceof Map) {
-                return map;
+            //noinspection rawtypes
+            if (valueContainer instanceof Map propertyMap) {
+                //noinspection unchecked
+                return propertyMap;
             }
         }
         throw new AssertionError(format("Property '%s' is not a Map", key));

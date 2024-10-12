@@ -18,9 +18,16 @@ import okhttp3.Response;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.processJsonLd;
 import static org.eclipse.dataspacetck.dsp.system.api.http.HttpFunctions.postJson;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAcceptedEvent;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createContractRequest;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createVerification;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.ACCEPTED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.REQUESTED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.VERIFIED;
 
 /**
@@ -28,6 +35,21 @@ import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegot
  */
 public class ConsumerActions {
     private static final String EVENT_PATH = "%s/negotiations/%s/events";
+    private static final String REQUEST_PATH = "%s/negotiations/request";
+    private static final String VERIFICATION_PATH = "%s/negotiations/%s/agreement/verification";
+
+    public static void postRequest(String baseUrl, ContractNegotiation negotiation) {
+        var url = format(REQUEST_PATH, baseUrl);
+        var contractRequest = createContractRequest(negotiation.getId(), negotiation.getOfferId(), negotiation.getDatasetId(), baseUrl);
+        try (var response = postJson(url, contractRequest)) {
+            // get the response and update the negotiation with the provider process id
+            checkResponse(response);
+            assert response.body() != null;
+            var jsonResponse = processJsonLd(response.body().byteStream(), createDspContext());
+            var providerId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, jsonResponse); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+            negotiation.setCorrelationId(providerId, REQUESTED);
+        }
+    }
 
     public static void postAccepted(String baseUrl, ContractNegotiation negotiation) {
         negotiation.transition(ACCEPTED);
@@ -40,9 +62,9 @@ public class ConsumerActions {
 
     public static void postVerification(String baseUrl, ContractNegotiation negotiation) {
         negotiation.transition(VERIFIED);
-        var url = format(EVENT_PATH, baseUrl, negotiation.getCorrelationId());
-        var agreement = createAcceptedEvent(negotiation.getCorrelationId(), negotiation.getId());
-        try (var response = postJson(url, agreement)) {
+        var url = format(VERIFICATION_PATH, baseUrl, negotiation.getCorrelationId());
+        var verification = createVerification(negotiation.getCorrelationId(), negotiation.getId());
+        try (var response = postJson(url, verification)) {
             checkResponse(response);
         }
     }

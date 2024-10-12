@@ -47,12 +47,12 @@ public interface ProviderNegotiationManager extends NegotiationManager {
     /**
      * Called when a contract request is received.
      */
-    ContractNegotiation handleContractRequest(Map<String, Object> contractRequest);
+    Map<String, Object> handleContractRequest(Map<String, Object> contractRequest, String counterPartyId);
 
     /**
-     * Processes an agreed event received from the consumer.
+     * Processes an accepted event received from the consumer.
      */
-    void handleAgreed(Map<String, Object> event);
+    void handleAccepted(Map<String, Object> event);
 
     /**
      * Processes a verification received from the consumer.

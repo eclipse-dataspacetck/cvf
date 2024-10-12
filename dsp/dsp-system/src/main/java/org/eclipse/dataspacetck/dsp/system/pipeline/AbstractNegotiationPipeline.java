@@ -24,14 +24,14 @@ import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
  * Base negotiation pipeline functionality.
  */
 public abstract class AbstractNegotiationPipeline<P extends NegotiationPipeline<P>> extends AbstractAsyncPipeline<P> {
-    protected ContractNegotiation negotiation;
+    protected ContractNegotiation providerNegotiation;
 
     public AbstractNegotiationPipeline(CallbackEndpoint endpoint, Monitor monitor, long waitTime) {
         super(endpoint, monitor, waitTime, MessageFunctions::createDspContext);
     }
 
     public P thenWaitForState(ContractNegotiation.State state) {
-        return thenWait("state to transition to " + state, () -> state == negotiation.getState());
+        return thenWait("state to transition to " + state, () -> providerNegotiation != null && state == providerNegotiation.getState());
     }
 
 

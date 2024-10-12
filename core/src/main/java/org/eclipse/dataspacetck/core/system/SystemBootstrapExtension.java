@@ -156,7 +156,8 @@ public class SystemBootstrapExtension implements BeforeAllCallback, BeforeEachCa
     @Nullable
     private Object resolve(Class<?> type, ExtensionContext context) {
         if (type.equals(CallbackEndpoint.class)) {
-            var endpoint = attachCallbackEndpoint(dispatchingHandler, context);
+            var endpoint = context.getStore(CALLBACK_NAMESPACE).getOrComputeIfAbsent("callback", k -> attachCallbackEndpoint(dispatchingHandler, context));
+            // var endpoint = attachCallbackEndpoint(dispatchingHandler, context);
             context.getStore(CALLBACK_NAMESPACE).put("callback", endpoint);
             return type.cast(endpoint);
         }

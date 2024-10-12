@@ -23,6 +23,12 @@ import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 public interface NegotiationListener {
 
     /**
+     * Invoked when a contract request has been initialized.
+     */
+    default void contractInitialized(ContractNegotiation negotiation) {
+    }
+
+    /**
      * Invoked when a contract request has been received.
      */
     default void contractRequested(ContractNegotiation negotiation) {

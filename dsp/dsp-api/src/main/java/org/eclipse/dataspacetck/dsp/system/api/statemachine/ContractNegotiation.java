@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.ACCEPTED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.AGREED;
@@ -58,6 +59,7 @@ public class ContractNegotiation {
     private String correlationId;
     private String offerId;
     private String datasetId;
+    private String counterPartyId;
     private String callbackAddress;
 
     private State state = State.INITIALIZED;
@@ -80,6 +82,10 @@ public class ContractNegotiation {
 
     public String getDatasetId() {
         return datasetId;
+    }
+
+    public String getCounterPartyId() {
+        return counterPartyId;
     }
 
     public String getCallbackAddress() {
@@ -248,8 +254,14 @@ public class ContractNegotiation {
             return this;
         }
 
+        public Builder counterPartyId(String counterPartyId) {
+            this.negotiation.counterPartyId = counterPartyId;
+            return this;
+        }
+
         public Builder callbackAddress(String callbackAddress) {
-            this.negotiation.callbackAddress = callbackAddress;
+            requireNonNull(callbackAddress, "callbackAddress must not be null");
+            this.negotiation.callbackAddress = callbackAddress.endsWith("/") ? callbackAddress.substring(0, callbackAddress.length() - 1) : callbackAddress;
             return this;
         }
 

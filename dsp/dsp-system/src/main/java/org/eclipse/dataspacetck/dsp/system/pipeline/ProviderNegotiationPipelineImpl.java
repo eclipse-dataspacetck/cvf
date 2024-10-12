@@ -33,6 +33,7 @@ import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.serial
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_STATE_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.TCK_PARTICIPANT_ID;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAcceptedEvent;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createContractRequest;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createCounterOffer;
@@ -44,39 +45,42 @@ import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegot
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Defaul implementation.
+ * Default implementation.
  */
 public class ProviderNegotiationPipelineImpl extends AbstractNegotiationPipeline<ProviderNegotiationPipeline> implements ProviderNegotiationPipeline {
-    private static final String NEGOTIATIONS_OFFER_PATH = "/negotiations/[^/]+/offer/";
+    private static final String NEGOTIATIONS_OFFER_PATH = "/negotiations/[^/]+/offers/";
     private static final String NEGOTIATIONS_AGREEMENT_PATH = "/negotiations/[^/]+/agreement";
-    private static final String NEGOTIATIONS_TERMINATION_PATH = "/negotiations/[^/]+/termination";
+    private static final String NEGOTIATIONS_TERMINATION_PATH = "/negotiations/[^/]+/termination/";
     private static final String NEGOTIATION_EVENT_PATH = "/negotiations/[^/]+/events";
 
     private Connector consumerConnector;
+    private String providerConnectorId;
     private ProviderNegotiationClient negotiationClient;
 
     public ProviderNegotiationPipelineImpl(ProviderNegotiationClient negotiationClient,
                                            CallbackEndpoint endpoint,
                                            Connector connector,
+                                           String providerConnectorId,
                                            Monitor monitor,
                                            long waitTime) {
         super(endpoint, monitor, waitTime);
         this.negotiationClient = negotiationClient;
         this.consumerConnector = connector;
+        this.providerConnectorId = providerConnectorId;
         this.monitor = monitor;
     }
 
     @SuppressWarnings("unused")
     public ProviderNegotiationPipeline sendRequestMessage(String datasetId, String offerId) {
         stages.add(() -> {
-            negotiation = consumerConnector.getConsumerNegotiationManager().createNegotiation(datasetId, offerId);
+            providerNegotiation = consumerConnector.getConsumerNegotiationManager().createNegotiation(datasetId, offerId);
 
-            var contractRequest = createContractRequest(negotiation.getId(), offerId, datasetId, endpoint.getAddress());
+            var contractRequest = createContractRequest(providerNegotiation.getId(), offerId, datasetId, endpoint.getAddress());
 
             monitor.debug("Sending contract request");
-            var response = negotiationClient.contractRequest(contractRequest, false);
+            var response = negotiationClient.contractRequest(contractRequest, providerConnectorId, false);
             var correlationId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, response); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
-            consumerConnector.getConsumerNegotiationManager().contractRequested(negotiation.getId(), correlationId);
+            consumerConnector.getConsumerNegotiationManager().contractRequested(providerNegotiation.getId(), correlationId);
         });
         return this;
     }
@@ -87,15 +91,22 @@ public class ProviderNegotiationPipelineImpl extends AbstractNegotiationPipeline
 
     public ProviderNegotiationPipeline sendCounterOfferMessage(String offerId, String targetId, boolean expectError) {
         stages.add(() -> {
-            var providerId = negotiation.getCorrelationId();
-            var consumerId = negotiation.getId();
-            var contractRequest = createCounterOffer(providerId, consumerId, offerId, targetId, endpoint.getAddress());
+            var providerId = providerNegotiation.getCorrelationId();
+            var consumerId = providerNegotiation.getId();
+            var assigner = providerNegotiation.getCounterPartyId();
+            var contractRequest = createCounterOffer(providerId,
+                    consumerId,
+                    offerId,
+                    assigner,
+                    TCK_PARTICIPANT_ID,
+                    targetId,
+                    endpoint.getAddress());
 
             monitor.debug("Sending counter offer: " + providerId);
             if (!expectError) {
                 consumerConnector.getConsumerNegotiationManager().counterOffered(consumerId);
             }
-            negotiationClient.contractRequest(contractRequest, expectError);
+            negotiationClient.contractRequest(contractRequest, providerConnectorId, expectError);
         });
         return this;
     }
@@ -107,8 +118,8 @@ public class ProviderNegotiationPipelineImpl extends AbstractNegotiationPipeline
     public ProviderNegotiationPipeline sendTermination(boolean expectError) {
         stages.add(() -> {
             pause();
-            var providerId = negotiation.getCorrelationId();
-            var consumerId = negotiation.getId();
+            var providerId = providerNegotiation.getCorrelationId();
+            var consumerId = providerNegotiation.getId();
             var termination = createTermination(providerId, consumerId, "1");
 
             monitor.debug("Sending termination: " + providerId);
@@ -122,8 +133,8 @@ public class ProviderNegotiationPipelineImpl extends AbstractNegotiationPipeline
 
     public ProviderNegotiationPipeline acceptLastOffer() {
         stages.add(() -> {
-            var providerId = negotiation.getCorrelationId();
-            var consumerId = negotiation.getId();
+            var providerId = providerNegotiation.getCorrelationId();
+            var consumerId = providerNegotiation.getId();
             monitor.debug("Accepting offer: " + providerId);
             consumerConnector.getConsumerNegotiationManager().accepted(consumerId);
             negotiationClient.accept(createAcceptedEvent(providerId, consumerId));
@@ -138,8 +149,8 @@ public class ProviderNegotiationPipelineImpl extends AbstractNegotiationPipeline
     public ProviderNegotiationPipeline sendVerifiedEvent(boolean expectError) {
         stages.add(() -> {
             pause();
-            var providerId = negotiation.getCorrelationId();
-            var consumerId = negotiation.getId();
+            var providerId = providerNegotiation.getCorrelationId();
+            var consumerId = providerNegotiation.getId();
             monitor.debug("Sending verification: " + providerId);
             if (!expectError) {
                 consumerConnector.getConsumerNegotiationManager().verified(consumerId);
@@ -171,24 +182,24 @@ public class ProviderNegotiationPipelineImpl extends AbstractNegotiationPipeline
     }
 
     public ProviderNegotiationPipeline expectTermination() {
-        return addHandlerAction(NEGOTIATIONS_TERMINATION_PATH, d -> negotiation.transition(TERMINATED));
+        return addHandlerAction(NEGOTIATIONS_TERMINATION_PATH, d -> providerNegotiation.transition(TERMINATED));
     }
 
     @SuppressWarnings("unused")
     public ProviderNegotiationPipeline thenVerifyNegotiation(Consumer<ContractNegotiation> consumer) {
-        return then(() -> consumer.accept(negotiation));
+        return then(() -> consumer.accept(providerNegotiation));
     }
 
     @SuppressWarnings("unused")
     public ProviderNegotiationPipeline thenVerifyState(State state) {
-        stages.add(() -> assertEquals(state, negotiation.getState()));
+        stages.add(() -> assertEquals(state, providerNegotiation.getState()));
         return this;
     }
 
     public ProviderNegotiationPipeline thenVerifyProviderState(State state) {
         stages.add(() -> {
             pause();
-            var providerNegotiation = negotiationClient.getNegotiation(negotiation.getCorrelationId());
+            var providerNegotiation = negotiationClient.getNegotiation(this.providerNegotiation.getCorrelationId());
             var actual = stringIdProperty(DSPACE_PROPERTY_STATE_EXPANDED, providerNegotiation);
             assertEquals(DSPACE_NAMESPACE + state.toString(), actual);
         });

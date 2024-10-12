@@ -29,20 +29,20 @@ public interface ConsumerNegotiationClient {
     /**
      * Sends an offer to the consumer connector.
      */
-    void contractOffer(Map<String, Object> offer, boolean expectError);
+    void contractOffer(String consumerId, Map<String, Object> offer, String callbackAddress, boolean expectError);
 
     /**
      * Sends an agreement to the consumer connector.
      */
-    void contractAgreement(Map<String, Object> agreement);
+    void contractAgreement(String consumerId, Map<String, Object> agreement, String callbackAddress);
 
     /**
      * Sends the finalized event to the consumer connector.
      */
-    void finalize(Map<String, Object> event, boolean b);
+    void finalize(String consumerId, Map<String, Object> event, String callbackAddress, boolean expectError);
 
     /**
      * Retrieves the negotiation from the provider.
      */
-    Map<String, Object> getNegotiation(String processId);
+    Map<String, Object> getNegotiation(String consumerId, String callbackAddress);
 }

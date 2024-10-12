@@ -53,14 +53,18 @@ import static org.eclipse.dataspacetck.core.api.system.SystemsConstants.TCK_PREF
 @SuppressWarnings("unused")
 public class DspSystemLauncher implements SystemLauncher {
     private static final String LOCAL_CONNECTOR_CONFIG = TCK_PREFIX + ".dsp.local.connector";
+    private static final String CONNECTOR_AGENT_ID_CONFIG = TCK_PREFIX + ".dsp.connector.agent.id";
     private static final String CONNECTOR_BASE_URL_CONFIG = TCK_PREFIX + ".dsp.connector.http.url";
+    private static final String CONNECTOR_INITIATE_URL_CONFIG = TCK_PREFIX + ".dsp.connector.negotiation.initiate.url";
     private static final String THREAD_POOL_CONFIG = TCK_PREFIX + ".dsp.thread.pool";
     private static final String DEFAULT_WAIT_CONFIG = TCK_PREFIX + ".dsp.default.wait";
     private static final int DEFAULT_WAIT_SECONDS = 15;
 
     private Monitor monitor;
     private ExecutorService executor;
+    private String connectorUnderTestId = "ANONYMOUS";
     private String baseConnectorUrl;
+    private String connectorInitiateUrl;
     private boolean useLocalConnector;
     private long waitTime = DEFAULT_WAIT_SECONDS;
 
@@ -83,6 +87,14 @@ public class DspSystemLauncher implements SystemLauncher {
             baseConnectorUrl = configuration.getPropertyAsString(CONNECTOR_BASE_URL_CONFIG, null);
             if (baseConnectorUrl == null) {
                 throw new RuntimeException("Required configuration not set: " + CONNECTOR_BASE_URL_CONFIG);
+            }
+            connectorInitiateUrl = configuration.getPropertyAsString(CONNECTOR_INITIATE_URL_CONFIG, null);
+            if (connectorInitiateUrl == null) {
+                throw new RuntimeException("Required configuration not set: " + CONNECTOR_INITIATE_URL_CONFIG);
+            }
+            connectorUnderTestId = configuration.getPropertyAsString(CONNECTOR_AGENT_ID_CONFIG, null);
+            if (connectorUnderTestId == null) {
+                throw new RuntimeException("Required configuration not set: " + CONNECTOR_AGENT_ID_CONFIG);
             }
         }
     }
@@ -123,7 +135,12 @@ public class DspSystemLauncher implements SystemLauncher {
         var negotiationClient = createNegotiationClient(scopeId);
         var callbackEndpoint = (CallbackEndpoint) resolver.resolve(CallbackEndpoint.class, configuration);
         var consumerConnector = consumerConnectors.computeIfAbsent(scopeId, k -> new TckConnector(monitor));
-        var pipeline = new ProviderNegotiationPipelineImpl(negotiationClient, callbackEndpoint, consumerConnector, monitor, waitTime);
+        var pipeline = new ProviderNegotiationPipelineImpl(negotiationClient,
+                callbackEndpoint,
+                consumerConnector,
+                connectorUnderTestId,
+                monitor,
+                waitTime);
         return type.cast(pipeline);
     }
 
@@ -132,7 +149,12 @@ public class DspSystemLauncher implements SystemLauncher {
         var negotiationClient = createConsumerNegotiationClient(scopeId, configuration, resolver);
         var callbackEndpoint = (CallbackEndpoint) resolver.resolve(CallbackEndpoint.class, configuration);
         var providerConnector = providerConnectors.computeIfAbsent(scopeId, k -> new TckConnector(monitor));
-        var pipeline = new ConsumerNegotiationPipelineImpl(negotiationClient, callbackEndpoint, providerConnector, monitor, waitTime);
+        var pipeline = new ConsumerNegotiationPipelineImpl(negotiationClient,
+                callbackEndpoint,
+                providerConnector,
+                connectorUnderTestId,
+                monitor,
+                waitTime);
         return type.cast(pipeline);
     }
 
@@ -186,10 +208,15 @@ public class DspSystemLauncher implements SystemLauncher {
             if (useLocalConnector) {
                 var consumerConnector = consumerConnectors.computeIfAbsent(scopeId, k2 -> new TckConnector(monitor));
                 var callbackEndpoint = (CallbackEndpoint) resolver.resolve(CallbackEndpoint.class, configuration);
-                //noinspection DataFlowIssue
-                return new ConsumerNegotiationClientImpl(consumerConnector, callbackEndpoint.getAddress(), providerConnector, monitor);
+                return new ConsumerNegotiationClientImpl(consumerConnector, providerConnector, monitor);
             }
-            return new ConsumerNegotiationClientImpl(baseConnectorUrl, providerConnector, monitor);
+            var callbackEndpoint = (CallbackEndpoint) resolver.resolve(CallbackEndpoint.class, configuration);
+            assert callbackEndpoint != null;
+            return new ConsumerNegotiationClientImpl(
+                    connectorInitiateUrl,
+                    providerConnector,
+                    callbackEndpoint.getAddress(),
+                    monitor);
         });
     }
 

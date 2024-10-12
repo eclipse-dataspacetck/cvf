@@ -20,6 +20,8 @@ package org.eclipse.dataspacetck.dsp.system.api.message;
  */
 public interface DspConstants {
 
+    String TCK_PARTICIPANT_ID = "TCK_PARTICIPANT";
+
     String DSPACE_NAMESPACE = "https://w3id.org/dspace/v0.8/";
 
     String CONTEXT = "@context";
@@ -33,6 +35,8 @@ public interface DspConstants {
     String DSPACE_NAMESPACE_KEY = "dspace";
 
     String DSPACE_NAMESPACE_PREFIX = DSPACE_NAMESPACE_KEY + ":";
+
+    String DSPACE_PROPERTY_TIMESTAMP = DSPACE_NAMESPACE_PREFIX + "timestamp";
 
     String DSPACE_PROPERTY_CONSUMER_PID = DSPACE_NAMESPACE_PREFIX + "consumerPid";
 

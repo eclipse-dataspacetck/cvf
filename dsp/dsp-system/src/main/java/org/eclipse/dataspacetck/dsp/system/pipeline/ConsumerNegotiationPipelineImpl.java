@@ -26,12 +26,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.processJsonLd;
+import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.serialize;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_NAMESPACE;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_STATE_EXPANDED;
+import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.TCK_PARTICIPANT_ID;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createAgreement;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createDspContext;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createFinalizedEvent;
@@ -43,22 +46,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Default Implementation.
  */
 public class ConsumerNegotiationPipelineImpl extends AbstractNegotiationPipeline<ConsumerNegotiationPipeline> implements ConsumerNegotiationPipeline {
-    private static final String NEGOTIATION_EVENT_PATH = "/callback/negotiations/[^/]+/events";
-    private static final String VERIFICATION_PATH = "/callback/negotiations/callback/%s/agreement/verification";
+    private static final String REQUEST_PATH = "/negotiations/request";
+    private static final String NEGOTIATION_EVENT_PATH = "/negotiations/[^/]+/events";
+    private static final String VERIFICATION_PATH = "/negotiations/[^/]+/agreement/verification";
 
     private ConsumerNegotiationClient negotiationClient;
     private Connector providerConnector;
     private CallbackEndpoint endpoint;
+    private String consumerConnectorId;
 
     public ConsumerNegotiationPipelineImpl(ConsumerNegotiationClient negotiationClient,
                                            CallbackEndpoint endpoint,
                                            Connector providerConnector,
+                                           String consumerConnectorId,
                                            Monitor monitor,
                                            long waitTime) {
         super(endpoint, monitor, waitTime);
         this.negotiationClient = negotiationClient;
         this.providerConnector = providerConnector;
         this.endpoint = endpoint;
+        this.consumerConnectorId = consumerConnectorId;
     }
 
     public ConsumerNegotiationPipeline initiateRequest(String datasetId, String offerId) {
@@ -68,7 +75,7 @@ public class ConsumerNegotiationPipelineImpl extends AbstractNegotiationPipeline
             providerConnector.getProviderNegotiationManager().registerListener(new NegotiationListener() {
                 @Override
                 public void contractRequested(ContractNegotiation negotiation) {
-                    ConsumerNegotiationPipelineImpl.this.negotiation = negotiation;
+                    ConsumerNegotiationPipelineImpl.this.providerNegotiation = negotiation;
                     // Remove the listener
                     providerConnector.getProviderNegotiationManager().deregisterListener(this);
                 }
@@ -81,13 +88,15 @@ public class ConsumerNegotiationPipelineImpl extends AbstractNegotiationPipeline
 
     public ConsumerNegotiationPipeline sendOfferMessage() {
         stages.add(() -> {
-            var providerId = negotiation.getId();
-            var consumerId = negotiation.getCorrelationId();
-            var offerId = negotiation.getOfferId();
-            var datasetId = negotiation.getDatasetId();
-            var offer = createOffer(providerId, consumerId, offerId, datasetId);
+            var providerId = providerNegotiation.getId();
+            var consumerId = providerNegotiation.getCorrelationId();
+            var offerId = providerNegotiation.getOfferId();
+            var datasetId = providerNegotiation.getDatasetId();
+            var assignee = providerNegotiation.getCounterPartyId();
+            var offerMessage = createOffer(providerId, consumerId, offerId, TCK_PARTICIPANT_ID, assignee, datasetId, endpoint.getAddress());
             monitor.debug("Sending offer");
-            negotiationClient.contractOffer(offer, false);
+            var consumerAddress = providerNegotiation.getCallbackAddress();
+            negotiationClient.contractOffer(consumerId, offerMessage, consumerAddress, false);
             providerConnector.getProviderNegotiationManager().offered(providerId);
         });
         return this;
@@ -95,11 +104,20 @@ public class ConsumerNegotiationPipelineImpl extends AbstractNegotiationPipeline
 
     public ConsumerNegotiationPipeline sendAgreementMessage() {
         stages.add(() -> {
-            var providerId = negotiation.getId();
-            var consumerId = negotiation.getCorrelationId();
-            var agreement = createAgreement(providerId, consumerId, randomUUID().toString(), negotiation.getDatasetId());
+            var providerId = providerNegotiation.getId();
+            var consumerId = providerNegotiation.getCorrelationId();
+
+            var agreementId = randomUUID().toString();
+            var datasetId = providerNegotiation.getDatasetId();
+            var agreement = createAgreement(providerId,
+                    consumerId,
+                    agreementId,
+                    TCK_PARTICIPANT_ID,
+                    consumerConnectorId,
+                    datasetId);
+            var callbackAddress = providerNegotiation.getCallbackAddress();
             monitor.debug("Sending agreement");
-            negotiationClient.contractAgreement(agreement);
+            negotiationClient.contractAgreement(consumerId, agreement, callbackAddress);
             providerConnector.getProviderNegotiationManager().agreed(providerId);
         });
         return this;
@@ -107,13 +125,29 @@ public class ConsumerNegotiationPipelineImpl extends AbstractNegotiationPipeline
 
     public ConsumerNegotiationPipeline sendFinalizedEvent() {
         stages.add(() -> {
-            var providerId = negotiation.getId();
-            var consumerId = negotiation.getCorrelationId();
+            var providerId = providerNegotiation.getId();
+            var consumerId = providerNegotiation.getCorrelationId();
             var event = createFinalizedEvent(providerId, consumerId);
+            var callbackAddress = providerNegotiation.getCallbackAddress();
             monitor.debug("Sending finalized event");
-            negotiationClient.finalize(event, false);
+            negotiationClient.finalize(consumerId, event, callbackAddress, false);
             providerConnector.getProviderNegotiationManager().finalized(providerId);
         });
+        return this;
+    }
+
+    @Override
+    public ConsumerNegotiationPipeline expectRequest(BiFunction<Map<String, Object>, String, Map<String, Object>> action) {
+        var latch = new CountDownLatch(1);
+        expectLatches.add(latch);
+        stages.add(() ->
+                endpoint.registerHandler(REQUEST_PATH, event -> {
+                    var expanded = processJsonLd(event, createDspContext());
+                    var negotiation = action.apply(expanded, consumerConnectorId);
+                    endpoint.deregisterHandler(REQUEST_PATH);
+                    latch.countDown();
+                    return serialize(processJsonLd(negotiation, createDspContext()));
+                }));
         return this;
     }
 
@@ -128,7 +162,9 @@ public class ConsumerNegotiationPipelineImpl extends AbstractNegotiationPipeline
     public ConsumerNegotiationPipeline thenVerifyConsumerState(State state) {
         stages.add(() -> {
             pause();
-            var negotiation = negotiationClient.getNegotiation(this.negotiation.getCorrelationId());
+            var callbackAddress = providerNegotiation.getCallbackAddress();
+            var processId = this.providerNegotiation.getCorrelationId();
+            var negotiation = negotiationClient.getNegotiation(processId, callbackAddress);
             var actual = stringIdProperty(DSPACE_PROPERTY_STATE_EXPANDED, negotiation);
             assertEquals(DSPACE_NAMESPACE + state.toString(), actual);
         });

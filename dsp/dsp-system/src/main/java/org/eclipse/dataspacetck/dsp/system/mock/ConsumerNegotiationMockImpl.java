@@ -24,7 +24,9 @@ import java.util.function.BiConsumer;
 
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.AGREED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.FINALIZED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.INITIALIZED;
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.OFFERED;
+import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.REQUESTED;
 
 /**
  * Default mock consumer implementation.
@@ -41,6 +43,20 @@ public class ConsumerNegotiationMockImpl extends AbstractNegotiationMock impleme
     }
 
     @Override
+    public void recordInitializedAction(BiConsumer<String, ContractNegotiation> action) {
+        recordAction(INITIALIZED, cn -> {
+            action.accept(baseAddress, cn);
+        });
+    }
+
+    @Override
+    public void recordRequestAction(BiConsumer<String, ContractNegotiation> action) {
+        recordAction(REQUESTED, cn -> {
+            action.accept(baseAddress, cn);
+        });
+    }
+
+    @Override
     public void recordOfferedAction(BiConsumer<String, ContractNegotiation> action) {
         recordAction(OFFERED, cn -> {
             cn.transition(OFFERED);
@@ -51,6 +67,16 @@ public class ConsumerNegotiationMockImpl extends AbstractNegotiationMock impleme
     @Override
     public void recordAgreedAction(BiConsumer<String, ContractNegotiation> action) {
         recordAction(AGREED, cn -> action.accept(baseAddress, cn));
+    }
+
+    @Override
+    public void contractInitialized(ContractNegotiation negotiation) {
+        received(INITIALIZED, negotiation);
+    }
+
+    @Override
+    public void contractRequested(ContractNegotiation negotiation) {
+        received(REQUESTED, negotiation);
     }
 
     @Override

@@ -39,4 +39,10 @@ public interface OdrlConstants {
     String ODRL_PROPERTY_PERMISSION = ODRL_NAMESPACE_PREFIX + "permission";
 
     String ODRL_PROPERTY_TARGET = ODRL_NAMESPACE_PREFIX + "target";
+
+    String ODRL_PROPERTY_ASSIGNEE = ODRL_NAMESPACE_PREFIX + "assignee";
+
+    String ODRL_PROPERTY_ASSIGNER = ODRL_NAMESPACE_PREFIX + "assigner";
+
+
 }

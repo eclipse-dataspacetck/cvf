@@ -16,12 +16,14 @@
 package org.eclipse.dataspacetck.dsp.system.connector;
 
 import org.eclipse.dataspacetck.dsp.system.api.connector.ProviderNegotiationManager;
+import org.eclipse.dataspacetck.dsp.system.api.metadata.DcpSpecBug;
 import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
+import static org.eclipse.dataspacetck.dsp.system.api.connector.IdGenerator.datasetIdFromOfferId;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CALLBACK_ADDRESS_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_CONSUMER_PID_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_EVENT_TYPE_EXPANDED;
@@ -29,6 +31,7 @@ import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPAC
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.DSPACE_PROPERTY_PROVIDER_PID_EXPANDED;
 import static org.eclipse.dataspacetck.dsp.system.api.message.DspConstants.ID;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.compactStringProperty;
+import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.createNegotiationResponse;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.mapProperty;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringIdProperty;
 import static org.eclipse.dataspacetck.dsp.system.api.message.MessageFunctions.stringProperty;
@@ -64,19 +67,21 @@ public class ProviderNegotiationManagerImpl extends AbstractNegotiationManager i
     }
 
     @Override
-    public ContractNegotiation handleContractRequest(Map<String, Object> contractRequest) {
+    public Map<String, Object> handleContractRequest(Map<String, Object> contractRequest, String counterPartyId) {
+        ContractNegotiation negotiation;
         if (contractRequest.containsKey(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED)) {
             // the message is a counter-offer
             var processId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, contractRequest);
-            return handleCounterOffer(contractRequest, processId);
+            negotiation = handleCounterOffer(contractRequest, processId);
         } else {
             // the message is an initial request
-            return handleInitialRequest(contractRequest);
+            negotiation = handleInitialRequest(contractRequest, counterPartyId);
         }
+        return createNegotiationResponse(negotiation.getId(), negotiation.getCorrelationId(), negotiation.getState().toString().toLowerCase());
     }
 
     @Override
-    public void handleAgreed(Map<String, Object> event) {
+    public void handleAccepted(Map<String, Object> event) {
         var providerId = stringIdProperty(DSPACE_PROPERTY_PROVIDER_PID_EXPANDED, event); // // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
         stringProperty(DSPACE_PROPERTY_EVENT_TYPE_EXPANDED, event);
         var negotiation = negotiations.get(providerId);
@@ -107,8 +112,9 @@ public class ProviderNegotiationManagerImpl extends AbstractNegotiationManager i
     }
 
     @NotNull
-    private ContractNegotiation handleInitialRequest(Map<String, Object> contractRequest) {
-        var consumerId = stringIdProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, contractRequest); // FIXME https://github.com/eclipse-dataspacetck/cvf/issues/92
+    private ContractNegotiation handleInitialRequest(Map<String, Object> contractRequest, String counterPartyId) {
+        @DcpSpecBug(section = "Json-LD context", description = "https://github.com/eclipse-dataspacetck/cvf/issues/92")
+        var consumerId = stringIdProperty(DSPACE_PROPERTY_CONSUMER_PID_EXPANDED, contractRequest);
         var previousNegotiation = findByCorrelationId(consumerId);
         if (previousNegotiation != null) {
             return previousNegotiation;
@@ -119,13 +125,15 @@ public class ProviderNegotiationManagerImpl extends AbstractNegotiationManager i
         var offerId = compactStringProperty(ID, offer);
         var callbackAddress = stringProperty(DSPACE_PROPERTY_CALLBACK_ADDRESS_EXPANDED, contractRequest);
 
-        var builder = ContractNegotiation.Builder.newInstance()
+        var negotiation = ContractNegotiation.Builder.newInstance()
                 .correlationId(consumerId)
                 .offerId(offerId)
+                .datasetId(datasetIdFromOfferId(offerId))
                 .state(REQUESTED)
-                .callbackAddress(callbackAddress);
+                .counterPartyId(counterPartyId)
+                .callbackAddress(callbackAddress)
+                .build();
 
-        var negotiation = builder.build();
         negotiations.put(negotiation.getId(), negotiation);
         listeners.forEach(l -> l.contractRequested(negotiation));
 

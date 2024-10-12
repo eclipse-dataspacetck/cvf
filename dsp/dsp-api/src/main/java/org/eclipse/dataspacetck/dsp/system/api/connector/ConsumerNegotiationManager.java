@@ -30,8 +30,8 @@ public interface ConsumerNegotiationManager extends NegotiationManager {
     ContractNegotiation createNegotiation(String datasetId, String offerId);
 
     /**
-     * Called after a contract has been requested and the negotiation id is returned by the provider. The provider negotiation id will be set as the correlation id
-     * on the consumer.
+     * Called after a contract has been requested and the negotiation id is returned by the provider. The provider negotiation
+     * id will be set as the correlation id on the consumer.
      */
     void contractRequested(String consumerId, String providerId);
 

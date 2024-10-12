@@ -16,6 +16,7 @@
 package org.eclipse.dataspacetck.core.system;
 
 import org.eclipse.dataspacetck.core.api.system.CallbackEndpoint;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.io.InputStream;
@@ -53,13 +54,13 @@ public class DefaultCallbackEndpoint implements CallbackEndpoint, BiFunction<Str
     }
 
     public boolean handlesPath(String path) {
-        return lookupHandler(path).isPresent();
+        return lookupHandler(stripTrailingSlash(path)).isPresent();
     }
 
     @Override
     public String apply(String path, InputStream message) {
         //noinspection OptionalGetWithoutIsPresent
-        return lookupHandler(path).get().apply(message);
+        return lookupHandler(stripTrailingSlash(path)).get().apply(message);
     }
 
     @Override
@@ -67,6 +68,7 @@ public class DefaultCallbackEndpoint implements CallbackEndpoint, BiFunction<Str
         if (!path.startsWith("/")) {
             path = "/" + path;
         }
+        path = stripTrailingSlash(path);
         handlers.put(path, handler);
     }
 
@@ -81,6 +83,11 @@ public class DefaultCallbackEndpoint implements CallbackEndpoint, BiFunction<Str
     @Override
     public void close() {
         listeners.forEach(l -> l.onClose(this));
+    }
+
+    @NotNull
+    private String stripTrailingSlash(String path) {
+        return path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
     }
 
     public static class Builder {
@@ -114,10 +121,9 @@ public class DefaultCallbackEndpoint implements CallbackEndpoint, BiFunction<Str
      * Matches the path based on the regular expression.
      */
     private Optional<Function<InputStream, String>> lookupHandler(String expression) {
-        var pattern = compile(expression);
         return handlers.entrySet()
                 .stream()
-                .filter(entry -> !pattern.matcher(entry.getKey()).matches())
+                .filter(entry -> compile(entry.getKey()).matcher(expression).matches())
                 .map(Map.Entry::getValue)
                 .findFirst();
     }

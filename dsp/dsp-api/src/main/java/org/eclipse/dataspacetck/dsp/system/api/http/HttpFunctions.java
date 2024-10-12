@@ -20,10 +20,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.eclipse.dataspacetck.dsp.system.api.metadata.DspTestingWorkaround;
 
 import java.io.IOException;
 
 import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.serialize;
+import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.serializePlainJson;
 
 /**
  * Utility methods for HTTP requests.
@@ -35,10 +37,16 @@ public class HttpFunctions {
     }
 
     public static Response postJson(String url, Object message, boolean expectError) {
-        var requestBody = RequestBody.create(serialize(message), MediaType.get("application/json"));
+        return postJson(url, message, expectError, false);
+    }
+
+    public static Response postJson(String url, Object message, boolean expectError, boolean plain) {
+        var serialized = plain ? serializePlainJson(message) : serialize(message);
+        var requestBody = RequestBody.create(serialized, MediaType.get("application/json"));
+        @DspTestingWorkaround("Remove header claims: region, audience, clientId")
         var httpRequest = new Request.Builder()
                 .url(url)
-                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")  // WORKAROUND: REMOVE - claims
+                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
                 .post(requestBody)
                 .build();
 
