@@ -23,7 +23,7 @@ import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegot
 import static org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation.State.TERMINATED;
 import static org.eclipse.dataspacetck.dsp.verification.cn.ProviderActions.pause;
 import static org.eclipse.dataspacetck.dsp.verification.cn.ProviderActions.postOffer;
-import static org.eclipse.dataspacetck.dsp.verification.cn.ProviderActions.terminate;
+import static org.eclipse.dataspacetck.dsp.verification.cn.ProviderActions.postTerminate;
 
 @Tag("base-compliance")
 @DisplayName("CN_02: Provider test scenarios")
@@ -33,10 +33,10 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @DisplayName("CN:02-01: Verify contract request, provider terminated")
     public void cn_02_01() {
 
-        negotiationMock.recordContractRequestedAction(ProviderActions::terminate);
+        negotiationMock.recordContractRequestedAction(ProviderActions::postTerminate);
 
         negotiationPipeline
-                .sendRequest(datasetId, offerId)
+                .sendRequestMessage(datasetId, offerId)
                 .expectTermination()
                 .thenWaitForState(TERMINATED)
                 .execute();
@@ -49,7 +49,7 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     public void cn_02_02() {
 
         negotiationPipeline
-                .sendRequest(datasetId, offerId)
+                .sendRequestMessage(datasetId, offerId)
                 .sendTermination()
                 .thenVerifyProviderState(TERMINATED)
                 .execute();
@@ -61,11 +61,11 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @DisplayName("CN:02-03: Verify contract request, provider agreement, consumer terminated")
     public void cn_02_03() {
 
-        negotiationMock.recordContractRequestedAction(ProviderActions::postProviderAgreed);
+        negotiationMock.recordContractRequestedAction(ProviderActions::postAgreed);
 
         negotiationPipeline
-                .expectAgreement(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
-                .sendRequest(datasetId, offerId)
+                .expectAgreementMessage(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
+                .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(AGREED)
                 .sendTermination()
                 .thenVerifyProviderState(TERMINATED)
@@ -81,8 +81,8 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
 
         negotiationPipeline
-                .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
-                .sendRequest(datasetId, offerId)
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleOffer(offer))
+                .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .sendTermination()
                 .thenVerifyProviderState(TERMINATED)
@@ -98,12 +98,12 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
         negotiationMock.recordContractRequestedAction(negotiation -> {
             postOffer(negotiation);
             pause();
-            terminate(negotiation);
+            postTerminate(negotiation);
         });
 
         negotiationPipeline
-                .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
-                .sendRequest(datasetId, offerId)
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleOffer(offer))
+                .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .expectTermination()
                 .thenWaitForState(TERMINATED)
@@ -117,11 +117,11 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     public void cn_02_06() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
-        negotiationMock.recordConsumerAgreedAction(ProviderActions::terminate);
+        negotiationMock.recordAgreedAction(ProviderActions::postTerminate);
 
         negotiationPipeline
-                .expectOffer(offer -> consumerConnector.getConsumerNegotiationManager().handleProviderOffer(offer))
-                .sendRequest(datasetId, offerId)
+                .expectOfferMessage(offer -> consumerConnector.getConsumerNegotiationManager().handleOffer(offer))
+                .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(OFFERED)
                 .acceptLastOffer()
                 .expectTermination()
@@ -135,15 +135,15 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @DisplayName("CN:02-07: Verify contract request, provider agreement, consumer verified, provider terminated")
     public void cn_02_07() {
 
-        negotiationMock.recordContractRequestedAction(ProviderActions::postProviderAgreed);
-        negotiationMock.recordConsumerVerifyAction(ProviderActions::terminate);
+        negotiationMock.recordContractRequestedAction(ProviderActions::postAgreed);
+        negotiationMock.recordVerifiedAction(ProviderActions::postTerminate);
 
         negotiationPipeline
-                .expectAgreement(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
-                .sendRequest(datasetId, offerId)
+                .expectAgreementMessage(agreement -> consumerConnector.getConsumerNegotiationManager().handleAgreement(agreement))
+                .sendRequestMessage(datasetId, offerId)
                 .thenWaitForState(AGREED)
                 .expectTermination()
-                .sendConsumerVerify()
+                .sendVerifiedEvent()
                 .thenWaitForState(TERMINATED)
                 .execute();
 

@@ -1,6 +1,6 @@
 maven/mavencentral/com.apicatalog/titanium-json-ld/1.4.1, Apache-2.0, approved, #15200
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.17.2, Apache-2.0, approved, #13672
-maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.17.2, , approved, #13665
+maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.17.2, Apache-2.0 AND MIT, approved, #13665
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.17.2, Apache-2.0, approved, #13671
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.17.2, Apache-2.0, approved, #14161
 maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.17.2, Apache-2.0, approved, #14162

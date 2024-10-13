@@ -20,12 +20,16 @@ import org.eclipse.dataspacetck.core.api.system.Inject;
 import org.eclipse.dataspacetck.core.api.verification.AbstractVerificationTest;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Consumer;
-import org.eclipse.dataspacetck.dsp.system.api.mock.NegotiationProviderMock;
-import org.eclipse.dataspacetck.dsp.system.api.pipeline.NegotiationPipeline;
+import org.eclipse.dataspacetck.dsp.system.api.mock.ProviderNegotiationMock;
+import org.eclipse.dataspacetck.dsp.system.api.pipeline.ProviderNegotiationPipeline;
 import org.junit.jupiter.api.Tag;
 
 import static java.util.UUID.randomUUID;
+import static org.eclipse.dataspacetck.dsp.system.api.connector.IdGenerator.OFFER;
 
+/**
+ * Base class for verifying a connector in the provider role.
+ */
 @Tag("dsp-cn")
 public abstract class AbstractContractNegotiationProviderTest extends AbstractVerificationTest {
 
@@ -34,13 +38,13 @@ public abstract class AbstractContractNegotiationProviderTest extends AbstractVe
     protected Connector consumerConnector;
 
     @Inject
-    protected NegotiationPipeline negotiationPipeline;
+    protected ProviderNegotiationPipeline negotiationPipeline;
 
     @Inject
-    protected NegotiationProviderMock negotiationMock;
+    protected ProviderNegotiationMock negotiationMock;
 
     @ConfigParam
-    protected String offerId = randomUUID().toString();
+    protected String offerId = OFFER + randomUUID();
 
     @ConfigParam
     protected String datasetId = randomUUID().toString();

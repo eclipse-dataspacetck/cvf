@@ -61,6 +61,14 @@ public class MessageSerializer {
         }
     }
 
+    public static String serializePlainJson(Object object) {
+        try {
+            return MAPPER.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static Map<String, Object> processJsonLd(InputStream stream, Map<String, Object> context) {
         try {
             return processJsonLd(MAPPER.readValue(stream, JsonObject.class), context);
@@ -86,10 +94,6 @@ public class MessageSerializer {
             @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
             var expanded = jsonArray.get(0);
             return MAPPER.convertValue(expanded, Map.class);
-
-            //var compacted = compact(JsonDocument.of(MAPPER.convertValue(expanded, JsonObject.class)), EMPTY_CONTEXT).get();
-
-            //    return MAPPER.convertValue(compacted, Map.class);
         } catch (JsonLdError e) {
             throw new RuntimeException(e);
         }
