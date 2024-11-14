@@ -15,12 +15,12 @@
 
 package org.eclipse.dataspacetck.dsp.system.api.http;
 
+import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.eclipse.dataspacetck.dsp.system.api.metadata.DspTestingWorkaround;
 
 import java.io.IOException;
 
@@ -31,6 +31,16 @@ import static org.eclipse.dataspacetck.core.api.message.MessageSerializer.serial
  * Utility methods for HTTP requests.
  */
 public class HttpFunctions {
+    private static Interceptor authorizationInterceptor = chain -> chain.proceed(chain.request());
+
+    public static void registerAuthorizationInterceptor(String authorizationHeader) {
+        authorizationInterceptor = chain -> {
+            var request = chain.request();
+            var authenticatedRequest = request.newBuilder()
+                            .header("Authorization", authorizationHeader).build();
+            return chain.proceed(authenticatedRequest);
+        };
+    }
 
     public static Response postJson(String url, Object message) {
         return postJson(url, message, false);
@@ -43,14 +53,12 @@ public class HttpFunctions {
     public static Response postJson(String url, Object message, boolean expectError, boolean plain) {
         var serialized = plain ? serializePlainJson(message) : serialize(message);
         var requestBody = RequestBody.create(serialized, MediaType.get("application/json"));
-        @DspTestingWorkaround("Remove header claims: region, audience, clientId")
         var httpRequest = new Request.Builder()
                 .url(url)
-                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
                 .post(requestBody)
                 .build();
 
-        var httpClient = new OkHttpClient.Builder().build();
+        var httpClient = new OkHttpClient.Builder().addInterceptor(authorizationInterceptor).build();
         try {
             var response = httpClient.newCall(httpRequest).execute();
             if (404 == response.code()) {
@@ -69,11 +77,10 @@ public class HttpFunctions {
     public static Response getJson(String url) {
         var httpRequest = new Request.Builder()
                 .url(url)
-                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
                 .get()
                 .build();
 
-        var httpClient = new OkHttpClient.Builder().build();
+        var httpClient = new OkHttpClient.Builder().addInterceptor(authorizationInterceptor).build();
         try {
             var response = httpClient.newCall(httpRequest).execute();
             if (404 == response.code()) {

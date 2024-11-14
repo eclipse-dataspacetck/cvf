@@ -23,6 +23,7 @@ import org.eclipse.dataspacetck.core.spi.system.SystemConfiguration;
 import org.eclipse.dataspacetck.core.spi.system.SystemLauncher;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Connector;
 import org.eclipse.dataspacetck.dsp.system.api.connector.Consumer;
+import org.eclipse.dataspacetck.dsp.system.api.http.HttpFunctions;
 import org.eclipse.dataspacetck.dsp.system.api.mock.ConsumerNegotiationMock;
 import org.eclipse.dataspacetck.dsp.system.api.mock.ProviderNegotiationMock;
 import org.eclipse.dataspacetck.dsp.system.api.pipeline.ConsumerNegotiationPipeline;
@@ -55,6 +56,7 @@ public class DspSystemLauncher implements SystemLauncher {
     private static final String LOCAL_CONNECTOR_CONFIG = TCK_PREFIX + ".dsp.local.connector";
     private static final String CONNECTOR_AGENT_ID_CONFIG = TCK_PREFIX + ".dsp.connector.agent.id";
     private static final String CONNECTOR_BASE_URL_CONFIG = TCK_PREFIX + ".dsp.connector.http.url";
+    private static final String CONNECTOR_BASE_AUTHORIZATION_HEADER_CONFIG = TCK_PREFIX + ".dsp.connector.http.header.authorization";
     private static final String CONNECTOR_INITIATE_URL_CONFIG = TCK_PREFIX + ".dsp.connector.negotiation.initiate.url";
     private static final String THREAD_POOL_CONFIG = TCK_PREFIX + ".dsp.thread.pool";
     private static final String DEFAULT_WAIT_CONFIG = TCK_PREFIX + ".dsp.default.wait";
@@ -64,6 +66,7 @@ public class DspSystemLauncher implements SystemLauncher {
     private ExecutorService executor;
     private String connectorUnderTestId = "ANONYMOUS";
     private String baseConnectorUrl;
+    private String baseAuthorizationHeader;
     private String connectorInitiateUrl;
     private boolean useLocalConnector;
     private long waitTime = DEFAULT_WAIT_SECONDS;
@@ -87,6 +90,10 @@ public class DspSystemLauncher implements SystemLauncher {
             baseConnectorUrl = configuration.getPropertyAsString(CONNECTOR_BASE_URL_CONFIG, null);
             if (baseConnectorUrl == null) {
                 throw new RuntimeException("Required configuration not set: " + CONNECTOR_BASE_URL_CONFIG);
+            }
+            baseAuthorizationHeader = configuration.getPropertyAsString(CONNECTOR_BASE_AUTHORIZATION_HEADER_CONFIG, null);
+            if (baseAuthorizationHeader != null) {
+                HttpFunctions.registerAuthorizationInterceptor(baseAuthorizationHeader);
             }
             connectorInitiateUrl = configuration.getPropertyAsString(CONNECTOR_INITIATE_URL_CONFIG, null);
             if (connectorInitiateUrl == null) {
