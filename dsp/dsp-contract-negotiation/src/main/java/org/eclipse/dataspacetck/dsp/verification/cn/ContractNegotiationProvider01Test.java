@@ -16,6 +16,8 @@
 package org.eclipse.dataspacetck.dsp.verification.cn;
 
 import org.eclipse.dataspacetck.core.api.system.MandatoryTest;
+import org.eclipse.dataspacetck.core.api.system.TestSequenceDiagram;
+import org.eclipse.dataspacetck.dsp.system.api.statemachine.ContractNegotiation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 
@@ -30,6 +32,19 @@ public class ContractNegotiationProvider01Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:01-01: Verify contract request, offer received, consumer terminated")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractOfferMessage
+            TCK-->>CUT: 200 OK
+            
+            CUT->>TCK: ContractNegotiationTerminationMessage
+            TCK-->>CUT: 200 OK
+            """)
     public void cn_01_01() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
@@ -47,6 +62,22 @@ public class ContractNegotiationProvider01Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:01-02: Verify contract request, offer received, consumer counter-offer, provider terminated")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractOfferMessage
+            TCK-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractNegotiationTerminationMessage
+            TCK-->>CUT: 200 OK
+            """)
     public void cn_01_02() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
@@ -66,6 +97,30 @@ public class ContractNegotiationProvider01Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:01-03: Verify contract request, offer received, consumer accepted, provider agreement, consumer verified, provider finalized")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractOfferMessage
+            TCK-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractNegotiationEventMessage:accepted
+            CUT-->>TCK: 200 OK
+            
+            CUT->>TCK: ContractAgreementMessage
+            TCK-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractAgreementVerificationMessage
+            CUT-->>TCK: 200 OK
+            
+            CUT->>TCK: ContractNegotiationEventMessage:finalized
+            
+            CUT->>TCK: ContractNegotiationTerminationMessage
+            TCK-->>CUT: 200 OK
+            """)
     public void cn_01_03() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
@@ -89,6 +144,24 @@ public class ContractNegotiationProvider01Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:01-04: Verify contract request, provider agreement, consumer verified, provider finalized")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+                        
+            CUT->>TCK: ContractAgreementMessage
+            TCK-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractAgreementVerificationMessage
+            CUT-->>TCK: 200 OK
+            
+            CUT->>TCK: ContractNegotiationEventMessage:finalized
+            
+            CUT->>TCK: ContractNegotiationTerminationMessage
+            TCK-->>CUT: 200 OK
+            """)
     public void cn_01_04() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postAgreed);

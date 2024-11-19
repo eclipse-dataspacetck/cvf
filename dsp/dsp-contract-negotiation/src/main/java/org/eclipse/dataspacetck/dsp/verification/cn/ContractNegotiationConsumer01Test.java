@@ -15,6 +15,7 @@
 package org.eclipse.dataspacetck.dsp.verification.cn;
 
 import org.eclipse.dataspacetck.core.api.system.MandatoryTest;
+import org.eclipse.dataspacetck.core.api.system.TestSequenceDiagram;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 
@@ -30,6 +31,30 @@ public class ContractNegotiationConsumer01Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN_C:01-01: Verify contract request, offer received, consumer accepted, provider agreed, consumer verified, provider finalized")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (provider)
+            participant CUT as Connector Under Test (consumer)
+
+            TCK->>CUT: Signal to start negotiation
+
+            CUT->>TCK: ContractRequestMessage
+            TCK-->>CUT: ContractNegotiation
+            
+            TCK->>CUT: ContractOfferMessage
+            CUT-->>TCK: 200 OK
+            
+            CUT->>TCK: ContractNegotiationEventMessage:accepted
+            TCK-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractAgreementMessage
+            CUT-->>TCK: 200 OK
+            
+            CUT->>TCK: ContractAgreementVerificationMessage
+            TCK-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractNegotiationEventMessage:finalized
+            CUT-->>TCK: 200 OK
+            """)
     public void cn_c_01_01() {
         negotiationMock.recordInitializedAction(ConsumerActions::postRequest);
         negotiationMock.recordOfferedAction(ConsumerActions::postAccepted);

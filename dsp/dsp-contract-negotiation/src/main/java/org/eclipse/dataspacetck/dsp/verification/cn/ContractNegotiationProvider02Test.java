@@ -15,6 +15,7 @@
 package org.eclipse.dataspacetck.dsp.verification.cn;
 
 import org.eclipse.dataspacetck.core.api.system.MandatoryTest;
+import org.eclipse.dataspacetck.core.api.system.TestSequenceDiagram;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 
@@ -31,6 +32,16 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:02-01: Verify contract request, provider terminated")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractNegotiationTerminationMessage
+            TCK-->>CUT: 200 OK
+            """)
     public void cn_02_01() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postTerminate);
@@ -46,6 +57,16 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:02-02: Verify contract request, consumer terminated")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            TCK->>CUT: ContractNegotiationTerminationMessage
+            CUT-->>TCK: 200 OK
+            """)
     public void cn_02_02() {
 
         negotiationPipeline
@@ -59,6 +80,19 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:02-03: Verify contract request, provider agreement, consumer terminated")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractAgreementMessage
+            TCK-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractNegotiationTerminationMessage
+            CUT-->>TCK: 200 OK
+            """)
     public void cn_02_03() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postAgreed);
@@ -76,6 +110,19 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:02-04: Verify contract request, offer received, consumer terminated")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractOfferMessage
+            TCK-->>CUT: 200 OK
+                        
+            TCK->>CUT: ContractNegotiationTerminationMessage
+            CUT-->>TCK: 200 OK
+            """)
     public void cn_02_04() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
@@ -93,6 +140,19 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:02-05: Verify contract request, offer received, provider terminated")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractOfferMessage
+            TCK-->>CUT: 200 OK
+                        
+            CUT->>TCK: ContractNegotiationTerminationMessage
+            TCK-->>CUT: 200 OK
+            """)
     public void cn_02_05() {
 
         negotiationMock.recordContractRequestedAction(negotiation -> {
@@ -114,6 +174,22 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:02-06: Verify contract request, offer received, consumer accepted, provider terminated")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractOfferMessage
+            TCK-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractNegotiationEventMessage:accepted
+            CUT-->>TCK: 200 OK
+            
+            CUT->>TCK: ContractNegotiationTerminationMessage
+            TCK-->>CUT: 200 OK
+            """)
     public void cn_02_06() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
@@ -133,6 +209,22 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:02-07: Verify contract request, provider agreement, consumer verified, provider terminated")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractAgreementMessage
+            TCK-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractVerificationMessage
+            CUT-->>TCK: 200 OK
+            
+            CUT->>TCK: ContractNegotiationTerminationMessage
+            TCK-->>CUT: 200 OK
+            """)
     public void cn_02_07() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postAgreed);
