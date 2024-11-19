@@ -15,6 +15,7 @@
 package org.eclipse.dataspacetck.dsp.verification.cn;
 
 import org.eclipse.dataspacetck.core.api.system.MandatoryTest;
+import org.eclipse.dataspacetck.core.api.system.TestSequenceDiagram;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 
@@ -28,6 +29,25 @@ public class ContractNegotiationProvider03Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:03-01: Verify contract request, provider agreement, consumer verified, provider finalized, invalid consumer terminated")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractAgreementMessage
+            TCK-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractVerificationMessage
+            CUT-->>TCK: 200 OK
+            
+            CUT->>TCK: ContractNegotiationEventMessage:finalized
+            TCk-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractNegotiationTerminationMessage
+            CUT-->>TCK: 4xx ERROR
+            """)
     public void cn_03_01() {
 
         // Sends an invalid terminate message that should result in an error
@@ -49,6 +69,19 @@ public class ContractNegotiationProvider03Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:03-02: Verify contract request, offer received, invalid consumer verified")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractOfferMessage
+            TCK-->>CUT: 200 OK
+            
+            TCk->>CUT: ContractVerificationMessage
+            CUT-->>TCK: 4xx ERROR
+            """)
     public void cn_03_02() {
 
         // Sends an invalid consumer verified that should result in an error
@@ -66,6 +99,22 @@ public class ContractNegotiationProvider03Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:03-03: Verify contract request, offer received, consumer accepted, illegal consumer verified")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractOfferMessage
+            TCK-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractNegotiationEventMessage:accepted
+            CUT-->>TCK: 200 OK
+            
+            TCk->>CUT: ContractVerificationMessage
+            CUT-->>TCK: 4xx ERROR
+            """)
     public void cn_03_03() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
@@ -83,6 +132,22 @@ public class ContractNegotiationProvider03Test extends AbstractContractNegotiati
 
     @MandatoryTest
     @DisplayName("CN:03-04: Verify contract request, offer received, consumer counter-offer (x2), provider terminated")
+    @TestSequenceDiagram("""
+            participant TCK as Technology Compatibility Kit (consumer)
+            participant CUT as Connector Under Test (provider)
+
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            CUT->>TCK: ContractOfferMessage
+            TCK-->>CUT: 200 OK
+            
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: ContractNegotiation
+            
+            TCK->>CUT: ContractRequestMessage
+            CUT-->>TCK: 4xx ERROR
+            """)
     public void cn_03_04() {
 
         negotiationMock.recordContractRequestedAction(ProviderActions::postOffer);
