@@ -14,6 +14,8 @@
  */
 
 dependencies {
+    annotationProcessor(project(":tools"))
+    implementation(project(":api:core-api"))
     implementation(project(":core"))
     implementation(project(":dsp:dsp-api"))
     testImplementation(project(":dsp:dsp-system"))

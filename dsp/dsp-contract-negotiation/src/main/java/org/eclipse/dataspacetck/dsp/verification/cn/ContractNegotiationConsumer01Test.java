@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspacetck.dsp.verification.cn;
 
+import org.eclipse.dataspacetck.api.system.TestSequenceDiagram;
 import org.eclipse.dataspacetck.core.api.system.MandatoryTest;
-import org.eclipse.dataspacetck.core.api.system.TestSequenceDiagram;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 
