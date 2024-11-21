@@ -1,7 +1,7 @@
 package org.eclipse.dataspacetck.rendering.spi;
 
 import org.eclipse.dataspacetck.document.model.Category;
-import org.eclipse.dataspacetck.document.model.TestMethod;
+import org.eclipse.dataspacetck.document.model.TestCase;
 import org.eclipse.dataspacetck.document.model.TestSuite;
 
 public interface TestPlanRenderer {
@@ -14,7 +14,7 @@ public interface TestPlanRenderer {
 
     void testSuite(TestSuite displayName);
 
-    void testCase(TestMethod testMethod);
+    void testCase(TestCase testCase);
 
     String render();
 }

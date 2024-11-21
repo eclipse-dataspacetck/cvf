@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspacetck.dsp.verification.cn;
 
-import org.eclipse.dataspacetck.api.system.TestSequenceDiagram;
 import org.eclipse.dataspacetck.api.system.MandatoryTest;
+import org.eclipse.dataspacetck.api.system.TestSequenceDiagram;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 
@@ -35,7 +35,7 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @TestSequenceDiagram("""
             participant TCK as Technology Compatibility Kit (consumer)
             participant CUT as Connector Under Test (provider)
-
+            
             TCK->>CUT: ContractRequestMessage
             CUT-->>TCK: ContractNegotiation
             
@@ -60,7 +60,7 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @TestSequenceDiagram("""
             participant TCK as Technology Compatibility Kit (consumer)
             participant CUT as Connector Under Test (provider)
-
+            
             TCK->>CUT: ContractRequestMessage
             CUT-->>TCK: ContractNegotiation
             
@@ -83,7 +83,7 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @TestSequenceDiagram("""
             participant TCK as Technology Compatibility Kit (consumer)
             participant CUT as Connector Under Test (provider)
-
+            
             TCK->>CUT: ContractRequestMessage
             CUT-->>TCK: ContractNegotiation
             
@@ -113,13 +113,13 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @TestSequenceDiagram("""
             participant TCK as Technology Compatibility Kit (consumer)
             participant CUT as Connector Under Test (provider)
-
+            
             TCK->>CUT: ContractRequestMessage
             CUT-->>TCK: ContractNegotiation
             
             CUT->>TCK: ContractOfferMessage
             TCK-->>CUT: 200 OK
-                        
+            
             TCK->>CUT: ContractNegotiationTerminationMessage
             CUT-->>TCK: 200 OK
             """)
@@ -143,13 +143,13 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @TestSequenceDiagram("""
             participant TCK as Technology Compatibility Kit (consumer)
             participant CUT as Connector Under Test (provider)
-
+            
             TCK->>CUT: ContractRequestMessage
             CUT-->>TCK: ContractNegotiation
             
             CUT->>TCK: ContractOfferMessage
             TCK-->>CUT: 200 OK
-                        
+            
             CUT->>TCK: ContractNegotiationTerminationMessage
             TCK-->>CUT: 200 OK
             """)
@@ -177,7 +177,7 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @TestSequenceDiagram("""
             participant TCK as Technology Compatibility Kit (consumer)
             participant CUT as Connector Under Test (provider)
-
+            
             TCK->>CUT: ContractRequestMessage
             CUT-->>TCK: ContractNegotiation
             
@@ -212,7 +212,7 @@ public class ContractNegotiationProvider02Test extends AbstractContractNegotiati
     @TestSequenceDiagram("""
             participant TCK as Technology Compatibility Kit (consumer)
             participant CUT as Connector Under Test (provider)
-
+            
             TCK->>CUT: ContractRequestMessage
             CUT-->>TCK: ContractNegotiation
             

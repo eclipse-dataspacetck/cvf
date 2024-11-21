@@ -4,6 +4,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents a test category. This could be determined by a JUnit {@link org.junit.jupiter.api.Tag} annotation
+ */
 public final class Category {
     private final String name;
     private final Map<String, TestSuite> suites = new HashMap<>();

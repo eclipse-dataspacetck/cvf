@@ -21,6 +21,12 @@ dependencies {
     testImplementation(project(":dsp:dsp-system"))
 }
 
+tasks.withType<JavaCompile> {
+    options.compilerArgs.add("-Acvf.outputDir=${rootProject.layout.buildDirectory.asFile.get().path}") //set output path where testplan.md is stored
+    options.compilerArgs.add("-Acvf.conversion.force=true") // force pre-rendering of mermaid/plantuml diagrams as images (as opposed to: direct embed)
+    options.compilerArgs.add("-Acvf.conversion.format=png") // image format for pre-rendering
+}
+
 tasks.test {
     systemProperty("dataspacetck.launcher", "org.eclipse.dataspacetck.dsp.system.DspSystemLauncher")
     systemProperty("dataspacetck.dsp.local.connector", "true")

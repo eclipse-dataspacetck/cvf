@@ -1,9 +1,9 @@
 package org.eclipse.dataspacetck.document;
 
 import org.eclipse.dataspacetck.document.model.Category;
-import org.eclipse.dataspacetck.document.model.TestMethod;
+import org.eclipse.dataspacetck.document.model.TestCase;
 import org.eclipse.dataspacetck.document.model.TestSuite;
-import org.eclipse.dataspacetck.rendering.markdown.TestPlanRendererImpl;
+import org.eclipse.dataspacetck.rendering.markdown.MarkdownRenderer;
 import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TestPlanRendererImplTest {
 
-    private final TestPlanRendererImpl renderer = new TestPlanRendererImpl();
+    private final MarkdownRenderer renderer = MarkdownRenderer.Builder.newInstance().build();
 
     @Test
     void title() {
@@ -49,7 +49,7 @@ class TestPlanRendererImplTest {
 
     @Test
     void testCase_directEmbed() {
-        renderer.testCase(new TestMethod("method()", "test case name", "C-12343", false, "graph TD; A-->B;"));
+        renderer.testCase(new TestCase("method()", "test case name", "C-12343", false, "graph TD; A-->B;"));
 
         var render = renderer.render();
         assertThat(render).contains("**C-12343 (optional)**<br/>\n");

@@ -13,16 +13,10 @@ import java.io.InputStream;
 public class PlantumlRenderer implements DiagramImageRenderer {
 
     private FileFormat fileFormat;
-    private String baseFilePath;
 
-    public PlantumlRenderer(String baseFilePath) {
-        this.baseFilePath = baseFilePath;
-        fileFormat = FileFormat.SVG;
-    }
 
-    public PlantumlRenderer(String baseFilePath, String fileFormat) {
+    public PlantumlRenderer(String fileFormat) {
         this.fileFormat = Enum.valueOf(FileFormat.class, fileFormat.toUpperCase());
-        this.baseFilePath = baseFilePath;
     }
 
     @Override

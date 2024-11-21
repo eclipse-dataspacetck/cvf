@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspacetck.dsp.verification.cn;
 
-import org.eclipse.dataspacetck.api.system.TestSequenceDiagram;
 import org.eclipse.dataspacetck.api.system.MandatoryTest;
+import org.eclipse.dataspacetck.api.system.TestSequenceDiagram;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ public class ContractNegotiationProvider03Test extends AbstractContractNegotiati
     @TestSequenceDiagram("""
             participant TCK as Technology Compatibility Kit (consumer)
             participant CUT as Connector Under Test (provider)
-
+            
             TCK->>CUT: ContractRequestMessage
             CUT-->>TCK: ContractNegotiation
             
@@ -73,7 +73,7 @@ public class ContractNegotiationProvider03Test extends AbstractContractNegotiati
     @TestSequenceDiagram("""
             participant TCK as Technology Compatibility Kit (consumer)
             participant CUT as Connector Under Test (provider)
-
+            
             TCK->>CUT: ContractRequestMessage
             CUT-->>TCK: ContractNegotiation
             
@@ -104,7 +104,7 @@ public class ContractNegotiationProvider03Test extends AbstractContractNegotiati
     @TestSequenceDiagram("""
             participant TCK as Technology Compatibility Kit (consumer)
             participant CUT as Connector Under Test (provider)
-
+            
             TCK->>CUT: ContractRequestMessage
             CUT-->>TCK: ContractNegotiation
             
@@ -137,7 +137,7 @@ public class ContractNegotiationProvider03Test extends AbstractContractNegotiati
     @TestSequenceDiagram("""
             participant TCK as Technology Compatibility Kit (consumer)
             participant CUT as Connector Under Test (provider)
-
+            
             TCK->>CUT: ContractRequestMessage
             CUT-->>TCK: ContractNegotiation
             
