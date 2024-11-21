@@ -23,6 +23,12 @@ import static net.steppschuh.markdowngenerator.Markdown.italic;
 import static net.steppschuh.markdowngenerator.Markdown.link;
 import static net.steppschuh.markdowngenerator.Markdown.unorderedList;
 
+/**
+ * Renders a {@link org.eclipse.dataspacetck.document.model.TestGraph} and elements within into markdown.
+ * This renderer can be configured to either embed Mermaid/Plantuml in the markdown, or to pre-render it to an image first, and
+ * embed the diagram as image. Use the {@link Builder#preRenderImages(boolean)}, {@link Builder#baseFilePath(String)}
+ * and {@link Builder#imageType(String)} to control this behaviour.
+ */
 public class MarkdownRenderer implements TestPlanRenderer {
     public static final String SEQUENCE_DIAGRAM = "sequenceDiagram";
     public static final String FOUR_SPACES_INDENT = "    ";
@@ -145,6 +151,7 @@ public class MarkdownRenderer implements TestPlanRenderer {
         return item;
     }
 
+    //avoid headings with underlines
     @NotNull
     private Heading heading(String title, int level) {
         var heading = Markdown.heading(title, level);
