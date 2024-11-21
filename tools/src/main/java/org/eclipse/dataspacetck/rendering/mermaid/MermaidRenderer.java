@@ -11,6 +11,11 @@ import java.io.InputStream;
 
 public class MermaidRenderer implements DiagramImageRenderer {
     private static final String KROKI_URL = "https://kroki.io/mermaid/svg";
+    private final String baseFilePath;
+
+    public MermaidRenderer(String baseFilePath){
+        this.baseFilePath = baseFilePath;
+    }
 
     @Override
     public InputStream render(String diagramString) {

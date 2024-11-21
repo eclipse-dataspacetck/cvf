@@ -1,4 +1,4 @@
-package org.eclipse.dataspacetck.annotation.processors.model;
+package org.eclipse.dataspacetck.document.model;
 
 import java.util.Collection;
 import java.util.HashMap;

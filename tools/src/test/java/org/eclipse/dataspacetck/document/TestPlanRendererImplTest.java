@@ -1,5 +1,8 @@
 package org.eclipse.dataspacetck.document;
 
+import org.eclipse.dataspacetck.document.model.Category;
+import org.eclipse.dataspacetck.document.model.TestMethod;
+import org.eclipse.dataspacetck.document.model.TestSuite;
 import org.eclipse.dataspacetck.rendering.markdown.TestPlanRendererImpl;
 import org.junit.jupiter.api.Test;
 
@@ -20,14 +23,14 @@ class TestPlanRendererImplTest {
 
     @Test
     void category() {
-        renderer.category("test category");
-        assertThat(renderer.render()).isEqualTo("## test category\n");
+        renderer.category(new Category("test category"));
+        assertThat(renderer.render()).isEqualTo("## Category `test category`\n");
     }
 
     @Test
     void testSuite() {
-        renderer.testSuite("test suite");
-        assertThat(renderer.render()).isEqualTo("### test suite\n");
+        renderer.testSuite(new TestSuite("test suite"));
+        assertThat(renderer.render()).isEqualTo("### Test suite `test suite`\n");
     }
 
     @Test
@@ -36,21 +39,23 @@ class TestPlanRendererImplTest {
         renderer.testCase("test case name", true, "C-12343", "https://foo.bar", Path.of(res));
 
         var render = renderer.render();
-        assertThat(render).contains("**test case name (mandatory)**<br/>\n");
-        assertThat(render).contains("_Test Number: `C-12343`_<br/>\n");
-        assertThat(render).contains("_Link to [C-12343](https://foo.bar)_<br/>\n");
+        assertThat(render).contains("**C-12343 (mandatory)**<br/>\n");
+        assertThat(render).contains("Description: test case name<br/>\n");
+        assertThat(render).contains("Test Number: `C-12343`<br/>\n");
+        assertThat(render).contains("_View in the [DSP Specification](https://foo.bar)_<br/>\n");
         assertThat(render).contains("![C-12343](testimage.png)\n");
         assertThat(render).endsWith("\n");
     }
 
     @Test
     void testCase_directEmbed() {
-        renderer.testCase("test case name", false, "C-12343", "https://foo.bar", "graph TD; A-->B;");
+        renderer.testCase(new TestMethod("method()", "test case name", "C-12343", false, "graph TD; A-->B;"));
 
         var render = renderer.render();
-        assertThat(render).contains("**test case name (optional)**<br/>\n");
-        assertThat(render).contains("_Test Number: `C-12343`_<br/>\n");
-        assertThat(render).contains("_Link to [C-12343](https://foo.bar)_<br/>\n");
+        assertThat(render).contains("**C-12343 (optional)**<br/>\n");
+        assertThat(render).contains("Description: test case name<br/>\n");
+        assertThat(render).contains("Test Number: `C-12343`<br/>\n");
+        assertThat(render).contains("_View in the [DSP Specification](https://foo.bar/spec/C-12343)_<br/>\n");
         assertThat(render).contains("```mermaid");
         assertThat(render).endsWith("\n");
     }

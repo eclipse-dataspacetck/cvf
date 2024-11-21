@@ -1,22 +1,20 @@
 package org.eclipse.dataspacetck.rendering.spi;
 
-import org.jetbrains.annotations.Nullable;
-
-import java.nio.file.Path;
+import org.eclipse.dataspacetck.document.model.Category;
+import org.eclipse.dataspacetck.document.model.TestMethod;
+import org.eclipse.dataspacetck.document.model.TestSuite;
 
 public interface TestPlanRenderer {
 
     void title(String title);
 
-    void category(String category);
+    void subTitle(String subTitle);
 
-    void testSuite(String displayName);
+    void category(Category category);
 
-    void testCase(String displayName, boolean isMandatory, String testNumber, @Nullable String specUrl, String mermaidDiagram);
+    void testSuite(TestSuite displayName);
 
-    void testCase(String displayName, boolean isMandatory, String testNumber, @Nullable String specUrl, Path diagramImage);
+    void testCase(TestMethod testMethod);
 
     String render();
-
-    void subTitle(String subTitle);
 }

@@ -2,6 +2,9 @@ package org.eclipse.dataspacetck.rendering.markdown;
 
 import net.steppschuh.markdowngenerator.Markdown;
 import net.steppschuh.markdowngenerator.text.heading.Heading;
+import org.eclipse.dataspacetck.document.model.Category;
+import org.eclipse.dataspacetck.document.model.TestMethod;
+import org.eclipse.dataspacetck.document.model.TestSuite;
 import org.eclipse.dataspacetck.rendering.spi.TestPlanRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,6 +24,14 @@ public class TestPlanRendererImpl implements TestPlanRenderer {
     private static final String NEWLINE = "\n";
     private static final String BR = "<br/>";
     private final StringBuilder stringBuilder = new StringBuilder();
+    private boolean renderImage = false;
+
+    public TestPlanRendererImpl() {
+    }
+
+    public TestPlanRendererImpl(boolean renderImage) {
+        this.renderImage = renderImage;
+    }
 
     @Override
     public void title(String title) {
@@ -30,20 +41,22 @@ public class TestPlanRendererImpl implements TestPlanRenderer {
     }
 
     @Override
-    public void category(String category) {
-        stringBuilder.append(heading(category, 2))
+    public void category(Category category) {
+        stringBuilder.append(heading("Category `" + category.name() + "`", 2))
                 .append(NEWLINE);
     }
 
     @Override
-    public void testSuite(String displayName) {
-        stringBuilder.append(heading(displayName, 3))
+    public void testSuite(TestSuite testSuite) {
+        stringBuilder.append(heading("Test suite `" + testSuite.name() + "`", 3))
                 .append(NEWLINE);
     }
 
     @Override
-    public void testCase(String displayName, boolean isMandatory, String testNumber, @Nullable String specUrl, String diagramCode) {
-        var baseItem = baseTestCase(displayName, isMandatory, testNumber, specUrl);
+    public void testCase(TestMethod testMethod) {
+        var baseItem = baseTestCase(testMethod.displayName(), testMethod.isMandatory(), testMethod.number(), testMethod.specUrl());
+
+        var diagramCode = testMethod.diagramCode();
 
         if (diagramCode == null || diagramCode.isBlank()) {
             stringBuilder.append(baseItem);
@@ -66,7 +79,6 @@ public class TestPlanRendererImpl implements TestPlanRenderer {
 
     }
 
-    @Override
     public void testCase(String displayName, boolean isMandatory, String testNumber, @Nullable String specUrl, Path diagramImage) {
         var baseItem = baseTestCase(displayName, isMandatory, testNumber, specUrl);
 
@@ -94,16 +106,14 @@ public class TestPlanRendererImpl implements TestPlanRenderer {
         var item = new StringBuilder();
         item.append(bold(testNumber + (isMandatory ? " (mandatory)" : " (optional)")))
                 .append(BR)
-                .append(NEWLINE)
-                .append(("Description: "+displayName))
+                .append(NEWLINE).append("Description: ").append(displayName)
                 .append(BR)
-                .append(NEWLINE)
-                .append(("Test Number: `" + testNumber + "`"))
+                .append(NEWLINE).append("Test Number: `").append(testNumber).append("`")
                 .append(BR)
                 .append(NEWLINE);
 
         if (specUrl != null) {
-            item.append(italic("View in the " + link("DSP", specUrl)))
+            item.append(italic("View in the " + link("DSP Specification", specUrl)))
                     .append(BR)
                     .append(NEWLINE);
         }

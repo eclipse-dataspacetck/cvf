@@ -1,4 +1,4 @@
-package org.eclipse.dataspacetck.annotation.processors.model;
+package org.eclipse.dataspacetck.document.model;
 
 import org.eclipse.dataspacetck.rendering.spi.TestPlanRenderer;
 
@@ -20,12 +20,10 @@ public class TestGraph {
     public void render(TestPlanRenderer renderer) {
         categories()
                 .forEach(cat -> {
-                    renderer.category("Category `" + cat.name() + "`");
+                    renderer.category(cat);
                     cat.suites().forEach(suite -> {
-                        renderer.testSuite("Test suite `" + suite.name() + "`");
-                        suite.testMethods().forEach(testMethod -> {
-                            renderer.testCase(testMethod.displayName(), testMethod.isMandatory(), testMethod.number(), "", testMethod.diagramCode());
-                        });
+                        renderer.testSuite(suite);
+                        suite.testMethods().forEach(renderer::testCase);
                     });
                 });
     }

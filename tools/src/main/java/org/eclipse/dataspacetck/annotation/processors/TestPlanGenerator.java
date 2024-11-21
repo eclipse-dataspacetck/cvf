@@ -1,8 +1,8 @@
 package org.eclipse.dataspacetck.annotation.processors;
 
 
-import org.eclipse.dataspacetck.annotation.processors.model.TestGraph;
-import org.eclipse.dataspacetck.annotation.processors.model.TestMethod;
+import org.eclipse.dataspacetck.document.model.TestGraph;
+import org.eclipse.dataspacetck.document.model.TestMethod;
 import org.eclipse.dataspacetck.api.system.MandatoryTest;
 import org.eclipse.dataspacetck.api.system.TestSequenceDiagram;
 import org.eclipse.dataspacetck.rendering.markdown.TestPlanRendererImpl;
