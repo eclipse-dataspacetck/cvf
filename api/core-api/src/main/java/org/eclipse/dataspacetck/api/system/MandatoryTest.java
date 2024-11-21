@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspacetck.core.api.system;
+package org.eclipse.dataspacetck.api.system;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

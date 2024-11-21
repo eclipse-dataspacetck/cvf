@@ -22,7 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Denotes the sequence diagram of a test.
@@ -30,7 +30,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
  * The Mermaid sequence diagram notation should be used to allow automated generation of documentation for tests.
  */
 @Inherited
-@Retention(SOURCE)
+@Retention(RUNTIME)
 @Target(METHOD)
 @Test
 public @interface TestSequenceDiagram {

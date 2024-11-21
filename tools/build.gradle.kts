@@ -14,4 +14,6 @@ repositories {
 
 dependencies {
     implementation(project(":api:core-api"))
+    implementation(libs.markdown.gen)
+    implementation(libs.plantuml)
 }
