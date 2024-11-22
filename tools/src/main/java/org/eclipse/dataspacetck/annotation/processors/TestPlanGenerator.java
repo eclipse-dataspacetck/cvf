@@ -39,13 +39,15 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 import javax.tools.StandardLocation;
 
 import static java.util.Optional.ofNullable;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_17)
-@SupportedOptions({ TestPlanGenerator.OUTPUTDIR_OVERRIDE, TestPlanGenerator.FORCE_CONVERSION, TestPlanGenerator.CONVERSION_FORMAT, })
+@SupportedOptions({ TestPlanGenerator.OUTPUTDIR_OVERRIDE, TestPlanGenerator.FORCE_CONVERSION, TestPlanGenerator.CONVERSION_FORMAT, TestPlanGenerator.DO_GENERATE })
 public class TestPlanGenerator extends AbstractProcessor {
+    public static final String DO_GENERATE = "cvf.generate";
     public static final String OUTPUTDIR_OVERRIDE = "cvf.outputDir";
     public static final String FORCE_CONVERSION = "cvf.conversion.force";
     public static final String CONVERSION_FORMAT = "cvf.conversion.format"; // "png" or "svg"
@@ -62,6 +64,14 @@ public class TestPlanGenerator extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        // abort processing if flag is not explicitly set
+        var doGenerate = Boolean.parseBoolean(processingEnv.getOptions().getOrDefault(DO_GENERATE, "false"));
+        if (!doGenerate && roundEnv.processingOver()) {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Test Plan generation is deactivated during normal compilation. " +
+                                                                      "It can be enabled by setting the compiler flag '%s=true' or by running the 'getTestPlan' task".formatted(DO_GENERATE));
+            return false;
+        }
+
         if (roundEnv.processingOver()) {
             writeFile();
             return false;
