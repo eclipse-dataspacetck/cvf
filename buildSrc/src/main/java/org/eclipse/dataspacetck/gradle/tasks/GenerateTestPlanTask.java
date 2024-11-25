@@ -24,6 +24,22 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.List;
 
+/**
+ * Task to explicitly invoke an annotation processor that generates the test plan document. To enable this task, the {@code TestPlanGenerator}
+ * must be on the class path, e.g.:
+ * <pre>
+ * //yourModule/build.gradle.kts
+ *
+ * dependencies {
+ *     annotationProcessor(project(":tools"))
+ * }
+ * tasks.register<GenerateTestPlanTask>("genTestPlan"){
+ *     imageFormat = "png"
+ *     forceConversion = true
+ *     outputDirectory = "/path/to/your/output/dir"
+ * }
+ * </pre>
+ */
 public class GenerateTestPlanTask extends JavaCompile {
     private final List<String> ALLOWED_FORMATS = List.of("png", "svg");
     private String imageFormat = "svg";
