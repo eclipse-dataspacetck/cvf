@@ -43,6 +43,7 @@ import javax.tools.Diagnostic;
 import javax.tools.StandardLocation;
 
 import static java.util.Optional.ofNullable;
+import static javax.tools.Diagnostic.Kind.*;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_17)
 @SupportedOptions({ TestPlanGenerator.OUTPUTDIR_OVERRIDE, TestPlanGenerator.FORCE_CONVERSION, TestPlanGenerator.CONVERSION_FORMAT, TestPlanGenerator.DO_GENERATE })
@@ -67,8 +68,9 @@ public class TestPlanGenerator extends AbstractProcessor {
         // abort processing if flag is not explicitly set
         var doGenerate = Boolean.parseBoolean(processingEnv.getOptions().getOrDefault(DO_GENERATE, "false"));
         if (!doGenerate && roundEnv.processingOver()) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Test Plan generation is deactivated during normal compilation. " +
-                                                                      "It can be enabled by setting the compiler flag '%s=true' or by running the 'getTestPlan' task".formatted(DO_GENERATE));
+            // should be a TRACE or DEBUG message, but there is nothing lower than NOTE
+            processingEnv.getMessager().printMessage(NOTE, "Test Plan generation is deactivated during normal compilation. " +
+                                                           "It can be enabled by setting the compiler flag '%s=true' or by running the 'genTestPlan' task".formatted(DO_GENERATE));
             return false;
         }
 
@@ -105,7 +107,7 @@ public class TestPlanGenerator extends AbstractProcessor {
 
             var preRenderImages = Boolean.parseBoolean(processingEnv.getOptions().get(FORCE_CONVERSION));
             var imageType = ofNullable(processingEnv.getOptions().get(CONVERSION_FORMAT)).orElse(DEFAULT_IMAGE_FORMAT);
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "Force pre-rendering: %b, image type: %s".formatted(preRenderImages, imageType));
+            processingEnv.getMessager().printMessage(WARNING, "Force pre-rendering: %b, image type: %s".formatted(preRenderImages, imageType));
             var renderer = MarkdownRenderer.Builder.newInstance().baseFilePath(basePath)
                     .imageType(imageType)
                     .preRenderImages(preRenderImages)

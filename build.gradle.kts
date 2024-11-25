@@ -87,8 +87,11 @@ subprojects {
         val config = project.configurations.findByName("annotationProcessor")
         if (config != null && config.dependencies.any { it.name == "tools" }) {
             tasks.register<GenerateTestPlanTask>("genTestPlan") {
-                forceConversion = true
-                imageFormat = "svg"
+                val force : String = project.properties.getOrDefault("cvf.conversion.force", "true") as String
+                forceConversion = force.toBoolean()
+                imageFormat = project.properties.getOrDefault("cvf.conversion.format", "svg") as String // or "png"
+                // uncomment to configure the output directory
+                //outputDirectory = "/path/to/directory"
             }
         }
 

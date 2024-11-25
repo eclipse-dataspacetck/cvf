@@ -18,6 +18,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.work.InputChanges;
 
 import java.io.File;
 import java.util.List;
@@ -38,14 +39,7 @@ public class GenerateTestPlanTask extends JavaCompile {
 
         getOptions().setAnnotationProcessorPath(getProject().getConfigurations().getByName("annotationProcessor"));
 
-        getOptions().getCompilerArgs().addAll(
-                List.of("-processor", "org.eclipse.dataspacetck.annotation.processors.TestPlanGenerator",
-                        "-Acvf.outputDir=" + outputDirectory, //set output path where testplan.md is stored
-                        "-Acvf.conversion.force=" + forceConversion, // force pre-rendering of mermaid/plantuml diagrams as images (as opposed to: direct embed)
-                        "-Acvf.conversion.format=" + imageFormat, // image format for pre-rendering
-                        "-Acvf.generate=true" // enable. always true.
-                )
-        );
+
     }
 
     @Input
@@ -83,5 +77,24 @@ public class GenerateTestPlanTask extends JavaCompile {
     @OutputDirectory
     public File getOutputDir() {
         return new File(outputDirectory);
+    }
+
+    @Override
+    protected void compile(InputChanges inputs) {
+        if (forceConversion) {
+            getLogger().info("Will convert all diagrams to {} images and embed those.", imageFormat);
+        } else {
+            getLogger().info("Will directly embed diagram source code in the test plan document.");
+        }
+        // add compiler arguments lazily, when all properties are sure to have been assigned.
+        getOptions().getCompilerArgs().addAll(
+                List.of("-processor", "org.eclipse.dataspacetck.annotation.processors.TestPlanGenerator",
+                        "-Acvf.outputDir=" + outputDirectory, //set output path where testplan.md is stored
+                        "-Acvf.conversion.force=" + forceConversion, // force pre-rendering of mermaid/plantuml diagrams as images (as opposed to: direct embed)
+                        "-Acvf.conversion.format=" + imageFormat, // image format for pre-rendering
+                        "-Acvf.generate=true" // enable. always true.
+                )
+        );
+        super.compile(inputs);
     }
 }
