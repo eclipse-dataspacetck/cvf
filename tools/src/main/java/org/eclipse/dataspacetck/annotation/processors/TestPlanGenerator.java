@@ -103,9 +103,12 @@ public class TestPlanGenerator extends AbstractProcessor {
 
             var basePath = ofNullable(processingEnv.getOptions().get(OUTPUTDIR_OVERRIDE)).orElse(processingEnv.getFiler().getResource(StandardLocation.SOURCE_OUTPUT, "", "testplan").toUri().toString());
 
+            var preRenderImages = Boolean.parseBoolean(processingEnv.getOptions().get(FORCE_CONVERSION));
+            var imageType = ofNullable(processingEnv.getOptions().get(CONVERSION_FORMAT)).orElse(DEFAULT_IMAGE_FORMAT);
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "Force pre-rendering: %b, image type: %s".formatted(preRenderImages, imageType));
             var renderer = MarkdownRenderer.Builder.newInstance().baseFilePath(basePath)
-                    .imageType(ofNullable(processingEnv.getOptions().get(CONVERSION_FORMAT)).orElse(DEFAULT_IMAGE_FORMAT))
-                    .preRenderImages(Boolean.parseBoolean(processingEnv.getOptions().get(FORCE_CONVERSION)))
+                    .imageType(imageType)
+                    .preRenderImages(preRenderImages)
                     .build();
 
             renderer.title("DSP Test Plan Document");

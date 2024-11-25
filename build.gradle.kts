@@ -80,6 +80,7 @@ allprojects {
 // the "dockerize" task is added to all projects that contain a src/main/docker/Dockerfile
 subprojects {
     afterEvaluate {
+
         if (file("${project.projectDir}/src/main/docker/Dockerfile").exists()) {
 
             // this task copies some legal docs into the build folder, so we can easily copy them into the docker images
@@ -186,3 +187,5 @@ nexusPublishing {
         }
     }
 }
+
+
