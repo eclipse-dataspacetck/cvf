@@ -39,11 +39,11 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
 import javax.tools.StandardLocation;
 
 import static java.util.Optional.ofNullable;
-import static javax.tools.Diagnostic.Kind.*;
+import static javax.tools.Diagnostic.Kind.NOTE;
+import static javax.tools.Diagnostic.Kind.WARNING;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_17)
 @SupportedOptions({ TestPlanGenerator.OUTPUTDIR_OVERRIDE, TestPlanGenerator.FORCE_CONVERSION, TestPlanGenerator.CONVERSION_FORMAT, TestPlanGenerator.DO_GENERATE })
