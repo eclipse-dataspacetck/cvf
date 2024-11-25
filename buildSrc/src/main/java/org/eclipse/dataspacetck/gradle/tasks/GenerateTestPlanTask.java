@@ -19,6 +19,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.work.InputChanges;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
@@ -38,8 +39,11 @@ public class GenerateTestPlanTask extends JavaCompile {
         getDestinationDirectory().set(getProject().getLayout().getBuildDirectory().dir("generated/source/annotationProcessor"));
 
         getOptions().setAnnotationProcessorPath(getProject().getConfigurations().getByName("annotationProcessor"));
+    }
 
-
+    @Override
+    public @NotNull String getDescription() {
+        return "Generates a test plan by processing test annotations. Use the properties of this task to control image rendering.";
     }
 
     @Input

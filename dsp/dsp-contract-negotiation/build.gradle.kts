@@ -16,6 +16,8 @@ import org.eclipse.dataspacetck.gradle.tasks.GenerateTestPlanTask
  */
 
 dependencies {
+    // by declaring an annotationProcessor dependency onto the :tools project (which contains the Test Plan Generator),
+    // this module is included
     annotationProcessor(project(":tools"))
 
     implementation(project(":api:core-api"))
