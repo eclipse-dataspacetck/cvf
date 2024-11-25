@@ -14,6 +14,7 @@
  */
 
 rootProject.name = "dataspace-tck"
+include("tools")
 include("boot")
 include("core")
 include("runtimes:tck-runtime")
@@ -21,3 +22,4 @@ include("dsp:dsp-api")
 include("dsp:dsp-system")
 include("dsp:dsp-contract-negotiation")
 include("dsp:dsp-tck")
+include("api:core-api")

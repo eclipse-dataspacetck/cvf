@@ -72,12 +72,6 @@ public abstract class AbstractAsyncPipeline<P extends AsyncPipeline<P>> implemen
         this.context = context;
     }
 
-    public P then(Runnable runnable) {
-        stages.add(runnable);
-        //noinspection unchecked
-        return (P) this;
-    }
-
     public P thenWait(String description, Callable<Boolean> condition) {
         var latch = expectLatches.isEmpty() ? NO_WAIT_LATCH : expectLatches.pop();
         stages.add(() -> {
@@ -98,6 +92,12 @@ public abstract class AbstractAsyncPipeline<P extends AsyncPipeline<P>> implemen
                 throw new RuntimeException(e);
             }
         });
+        //noinspection unchecked
+        return (P) this;
+    }
+
+    public P then(Runnable runnable) {
+        stages.add(runnable);
         //noinspection unchecked
         return (P) this;
     }
