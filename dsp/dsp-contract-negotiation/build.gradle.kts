@@ -24,11 +24,6 @@ dependencies {
     testImplementation(project(":dsp:dsp-system"))
 }
 
-tasks.register<GenerateTestPlanTask>("genTestPlan") {
-    forceConversion = true
-    imageFormat = "svg"
-}
-
 tasks.test {
     systemProperty("dataspacetck.launcher", "org.eclipse.dataspacetck.dsp.system.DspSystemLauncher")
     systemProperty("dataspacetck.dsp.local.connector", "true")

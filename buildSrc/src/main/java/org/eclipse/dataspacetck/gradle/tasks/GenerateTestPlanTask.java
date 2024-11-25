@@ -49,7 +49,6 @@ public class GenerateTestPlanTask extends JavaCompile {
     }
 
     @Input
-
     public String getImageFormat() {
         return imageFormat;
     }
