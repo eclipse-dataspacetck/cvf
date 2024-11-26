@@ -27,7 +27,7 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":api:core-api"))
+    implementation(libs.tck.common.api)
     implementation(libs.markdown.gen)
     implementation(libs.plantuml)
 }

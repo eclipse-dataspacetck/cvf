@@ -27,10 +27,6 @@ plugins {
 }
 
 allprojects {
-    repositories {
-        mavenCentral()
-        mavenLocal()
-    }
 
     apply(plugin = "java-library")
     apply(plugin = "checkstyle")
@@ -65,6 +61,10 @@ allprojects {
         testImplementation(rootProject.libs.assertj)
     }
 
+}
+
+subprojects {
+
     if (!project.hasProperty("skip.signing")) {
         apply(plugin = "signing")
         publishing {
@@ -74,11 +74,6 @@ allprojects {
             }
         }
     }
-
-
-}
-
-subprojects {
 
     afterEvaluate {
 
