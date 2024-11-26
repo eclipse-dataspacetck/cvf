@@ -13,7 +13,7 @@
  *
  */
 
-rootProject.name = "dataspace-tck"
+rootProject.name = "dsp-tck"
 include("tools")
 include("boot")
 include("core")
