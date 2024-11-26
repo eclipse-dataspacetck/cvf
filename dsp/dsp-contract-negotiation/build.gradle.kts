@@ -1,5 +1,3 @@
-import org.eclipse.dataspacetck.gradle.tasks.GenerateTestPlanTask
-
 /*
  *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
@@ -20,7 +18,7 @@ dependencies {
     // this module is included
     annotationProcessor(project(":tools"))
 
-    implementation(project(":api:core-api"))
+    implementation(libs.tck.common.api)
     implementation(project(":core"))
     implementation(project(":dsp:dsp-api"))
     testImplementation(project(":dsp:dsp-system"))

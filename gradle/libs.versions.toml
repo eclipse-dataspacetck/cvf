@@ -10,9 +10,14 @@ jsonapi = "2.0.0"
 jupiter = "5.10.3"
 okhttp = "4.12.0"
 mockito = "5.13.0"
+tck = "0.0.1-SNAPSHOT"
 titanium = "1.4.1"
 
 [libraries]
+
+# modules from tck-common
+tck-common-api = {module = "org.eclipse.dataspacetck:core-api", version.ref = "tck"}
+
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
