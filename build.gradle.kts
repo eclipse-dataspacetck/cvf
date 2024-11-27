@@ -13,7 +13,6 @@
  */
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import org.eclipse.dataspacetck.gradle.tasks.GenerateTestPlanTask
 
 plugins {
     `java-library`
@@ -77,18 +76,7 @@ subprojects {
 
     afterEvaluate {
 
-        // register the annotation processor task to all modules that declare a dependency onto the annotation processor,
-        // except the annotation processor module itself
-        val config = project.configurations.findByName("annotationProcessor")
-        if (config != null && config.dependencies.any { it.name == "tools" }) {
-            tasks.register<GenerateTestPlanTask>("genTestPlan") {
-                val force : String = project.properties.getOrDefault("cvf.conversion.force", "true") as String
-                forceConversion = force.toBoolean()
-                imageFormat = project.properties.getOrDefault("cvf.conversion.format", "svg") as String // or "png"
-                // uncomment to configure the output directory
-                //outputDirectory = "/path/to/directory"
-            }
-        }
+
 
         // the "dockerize" task is added to all projects that contain a src/main/docker/Dockerfile
         if (file("${project.projectDir}/src/main/docker/Dockerfile").exists()) {
