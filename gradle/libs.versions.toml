@@ -35,3 +35,5 @@ titanium = { module = "com.apicatalog:titanium-json-ld", version.ref = "titanium
 docker = { id = "com.bmuschko.docker-remote-api", version = "9.4.0" }
 shadow = { id = "com.gradleup.shadow", version = "8.3.5" }
 nexuspublishing = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
+tck-build = {id = "org.eclipse.dataspacetck.tck-build", version="0.0.1"}
+tck-generator = {id = "org.eclipse.dataspacetck.tck-build", version="0.0.1"}

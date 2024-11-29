@@ -1,4 +1,6 @@
-FROM eclipse-temurin:21.0.2_13-jre-alpine
+FROM eclipse-temurin:23.0.1_11-jre-alpine
+ARG JAR
+ARG ADDITIONAL_FILES
 
 ARG APP_USER=docker
 ARG APP_UID=10100
@@ -14,15 +16,15 @@ RUN adduser \
      --uid "$APP_UID" \
      "$APP_USER"
 
-# run "apk add" first, because user "docker" is not allowed to do that
-
-RUN apk --no-cache add curl
-
 USER "$APP_USER"
+WORKDIR /app
 
-WORKDIR /tck
+COPY ${JAR} tck-runtime.jar
+COPY ${ADDITIONAL_FILES} ./
 
-COPY .. ./
+HEALTHCHECK NONE
 
-EXPOSE 8080
-
+ENTRYPOINT ["java", \
+     "-Djava.security.egd=file:/dev/urandom", \
+     "-jar", \
+     "tck-runtime.jar"]

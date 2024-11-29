@@ -1,3 +1,5 @@
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+
 /*
  *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
@@ -12,7 +14,6 @@
  *
  */
 
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
 plugins {
     `java-library`
@@ -23,6 +24,7 @@ plugins {
     `jacoco-report-aggregation`
     alias(libs.plugins.docker)
     alias(libs.plugins.nexuspublishing)
+    alias(libs.plugins.tck.build)
 }
 
 allprojects {
@@ -66,6 +68,7 @@ subprojects {
 
     if (!project.hasProperty("skip.signing")) {
         apply(plugin = "signing")
+        apply(plugin = "org.eclipse.dataspacetck.tck-build" )
         publishing {
             signing {
                 useGpgCmd()
@@ -75,46 +78,6 @@ subprojects {
     }
 
     afterEvaluate {
-
-
-
-        // the "dockerize" task is added to all projects that contain a src/main/docker/Dockerfile
-        if (file("${project.projectDir}/src/main/docker/Dockerfile").exists()) {
-
-            // this task copies some legal docs into the build folder, so we can easily copy them into the docker images
-            val copyLegalDocs = tasks.create("copyLegalDocs", Copy::class) {
-
-                into("${project.layout.buildDirectory.asFile.get()}")
-                into("legal") {
-                    from("${project.rootProject.projectDir}/SECURITY.md")
-                    from("${project.rootProject.projectDir}/NOTICE.md")
-                    from("${project.rootProject.projectDir}/DEPENDENCIES")
-                    from("${project.rootProject.projectDir}/LICENSE")
-                    from("${projectDir}/notice.md")
-
-                }
-            }
-
-            //actually apply the plugin to the (sub-)project
-            apply(plugin = "com.bmuschko.docker-remote-api")
-            // configure the "dockerize" task
-            val dockerTask: DockerBuildImage = tasks.create("dockerize", DockerBuildImage::class) {
-                val dockerContextDir = project.projectDir
-                dockerFile.set(file("$dockerContextDir/src/main/docker/Dockerfile"))
-                images.add("${project.name}:${project.version}")
-                images.add("${project.name}:latest")
-                // specify platform with the -Dplatform flag:
-                if (System.getProperty("platform") != null) {
-                    platform.set(System.getProperty("platform"))
-                }
-                buildArgs.put("JAR", "build/libs/${project.name}.jar")
-                buildArgs.put("ADDITIONAL_FILES", "build/legal/*")
-                inputDir.set(file(dockerContextDir))
-            }
-            // make sure "dockerize" always runs after "copyLegalDocs"
-            dockerTask.dependsOn(copyLegalDocs)
-        }
-
         publishing {
             publications.forEach { i ->
                 val mp = (i as MavenPublication)
