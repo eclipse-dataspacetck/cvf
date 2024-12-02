@@ -20,7 +20,7 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.eclipse.dataspacetck.gradle.plugins.tckbuild.DockerExtension
+import org.eclipse.dataspacetck.gradle.tckbuild.extensions.DockerExtension
 
 plugins {
     `java-library`

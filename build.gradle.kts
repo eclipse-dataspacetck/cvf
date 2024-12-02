@@ -1,4 +1,4 @@
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import org.eclipse.dataspacetck.gradle.tckbuild.extensions.TckBuildExtension
 
 /*
  *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
@@ -33,7 +33,21 @@ allprojects {
     apply(plugin = "checkstyle")
     apply(plugin = "maven-publish")
     apply(plugin = "signing")
+    apply(plugin = "org.eclipse.dataspacetck.tck-build")
 
+    configure<TckBuildExtension> {
+        pom {
+            scmConnection = "https://github.com/eclipse-dataspacetck/dsp-tck.git"
+            scmUrl = "scm:git:git@github.com:eclipse-dataspacetck/dsp-tck.git"
+            projectName = project.name
+            description = "DSP Technology Compatibility Kit"
+            projectUrl = "https://projects.eclipse.org/projects/technology.dataspacetck"
+
+            developers {
+                create("Another", "Another Developer", "another@dev.com")
+            }
+        }
+    }
 
     tasks.test {
         useJUnitPlatform()
@@ -47,7 +61,6 @@ allprojects {
             from("${rootProject.projectDir.path}/NOTICE.md")
         }
     }
-
 
     dependencies {
         implementation(rootProject.libs.json.api)
@@ -66,66 +79,46 @@ allprojects {
 
 subprojects {
 
-    if (!project.hasProperty("skip.signing")) {
-        apply(plugin = "signing")
-        apply(plugin = "org.eclipse.dataspacetck.tck-build" )
-        publishing {
-            signing {
-                useGpgCmd()
-                sign(publishing.publications)
-            }
-        }
-    }
-
     afterEvaluate {
-        publishing {
-            publications.forEach { i ->
-                val mp = (i as MavenPublication)
-                mp.pom {
-                    name.set(project.name)
-                    description.set("Compliance Verification Toolkit")
-                    url.set("https://projects.eclipse.org/projects/technology.dataspacetck")
+//        publishing {
+//            publications.forEach { i ->
+//                val mp = (i as MavenPublication)
+//                mp.pom {
+//                    name.set(project.name)
+//                    description.set("Compliance Verification Toolkit")
+//                    url.set("https://projects.eclipse.org/projects/technology.dataspacetck")
+//
+//                    licenses {
+//                        license {
+//                            name.set("The Apache License, Version 2.0")
+//                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+//                        }
+//                        developers {
+//                            developer {
+//                                id.set("JimMarino")
+//                                name.set("Jim Marino")
+//                                email.set("jmarino@metaformsystems.com")
+//                            }
+//                            developer {
+//                                id.set("PaulLatzelsperger")
+//                                name.set("Paul Latzelsperger")
+//                                email.set("paul.latzelsperger@beardyinc.com")
+//                            }
+//                            developer {
+//                                id.set("EnricoRisa")
+//                                name.set("Enrico Risa")
+//                                email.set("enrico.risa@gmail.com")
+//                            }
+//                        }
+//                        scm {
+//                            connection.set("scm:git:git@github.com:eclipse-dataspacetck/cvf.git")
+//                            url.set("https://github.com/eclipse-dataspacetck/cvf.git")
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
-                    licenses {
-                        license {
-                            name.set("The Apache License, Version 2.0")
-                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                        }
-                        developers {
-                            developer {
-                                id.set("JimMarino")
-                                name.set("Jim Marino")
-                                email.set("jmarino@metaformsystems.com")
-                            }
-                            developer {
-                                id.set("PaulLatzelsperger")
-                                name.set("Paul Latzelsperger")
-                                email.set("paul.latzelsperger@beardyinc.com")
-                            }
-                            developer {
-                                id.set("EnricoRisa")
-                                name.set("Enrico Risa")
-                                email.set("enrico.risa@gmail.com")
-                            }
-                        }
-                        scm {
-                            connection.set("scm:git:git@github.com:eclipse-dataspacetck/cvf.git")
-                            url.set("https://github.com/eclipse-dataspacetck/cvf.git")
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
-    publishing {
-        publications {
-            create<MavenPublication>(project.name) {
-                artifactId = project.name
-                from(components["java"])
-            }
-        }
     }
 }
 
@@ -137,16 +130,3 @@ tasks.register("allDependencies", DependencyReportTask::class)
 checkstyle {
     maxErrors = 0
 }
-
-nexusPublishing {
-    repositories {
-        sonatype {  //only for users registered in Sonatype after 24 Feb 2021
-            nexusUrl.set(uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/"))
-            snapshotRepositoryUrl.set(uri("https://oss.sonatype.org/content/repositories/snapshots/"))
-            username.set(System.getenv("OSSRH_USERNAME") ?: return@sonatype)
-            password.set(System.getenv("OSSRH_PASSWORD") ?: return@sonatype)
-        }
-    }
-}
-
-
