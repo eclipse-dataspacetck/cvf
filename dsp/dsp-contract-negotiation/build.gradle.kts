@@ -16,7 +16,7 @@ import org.eclipse.dataspacetck.gradle.plugins.tckgen.TckGeneratorExtension
  */
 
 plugins {
-    id("org.eclipse.dataspacetck.tck-generator") version ("0.0.1")
+    alias(libs.plugins.tck.generator)
 }
 
 dependencies {
@@ -24,10 +24,6 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":dsp:dsp-api"))
     testImplementation(project(":dsp:dsp-system"))
-}
-
-configure<TckGeneratorExtension> {
-    generatorVersion = project.version.toString()
 }
 
 tasks.test {

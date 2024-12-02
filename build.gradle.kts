@@ -27,25 +27,31 @@ plugins {
     alias(libs.plugins.tck.build)
 }
 
+buildscript {
+    dependencies {
+        val version: String by project
+        classpath("org.eclipse.dataspacetck.build.tck-build:org.eclipse.dataspacetck.build.tck-build.gradle.plugin:$version")
+        classpath("org.eclipse.dataspacetck.build.tck-generator:org.eclipse.dataspacetck.build.tck-generator.gradle.plugin:$version")
+    }
+}
+
+
 allprojects {
 
     apply(plugin = "java-library")
     apply(plugin = "checkstyle")
     apply(plugin = "maven-publish")
     apply(plugin = "signing")
-    apply(plugin = "org.eclipse.dataspacetck.tck-build")
+    apply(plugin = "org.eclipse.dataspacetck.build.tck-build")
 
     configure<TckBuildExtension> {
         pom {
             scmConnection = "https://github.com/eclipse-dataspacetck/dsp-tck.git"
             scmUrl = "scm:git:git@github.com:eclipse-dataspacetck/dsp-tck.git"
+            groupId = project.group.toString()
             projectName = project.name
             description = "DSP Technology Compatibility Kit"
             projectUrl = "https://projects.eclipse.org/projects/technology.dataspacetck"
-
-            developers {
-                create("Another", "Another Developer", "another@dev.com")
-            }
         }
     }
 
@@ -80,44 +86,6 @@ allprojects {
 subprojects {
 
     afterEvaluate {
-//        publishing {
-//            publications.forEach { i ->
-//                val mp = (i as MavenPublication)
-//                mp.pom {
-//                    name.set(project.name)
-//                    description.set("Compliance Verification Toolkit")
-//                    url.set("https://projects.eclipse.org/projects/technology.dataspacetck")
-//
-//                    licenses {
-//                        license {
-//                            name.set("The Apache License, Version 2.0")
-//                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-//                        }
-//                        developers {
-//                            developer {
-//                                id.set("JimMarino")
-//                                name.set("Jim Marino")
-//                                email.set("jmarino@metaformsystems.com")
-//                            }
-//                            developer {
-//                                id.set("PaulLatzelsperger")
-//                                name.set("Paul Latzelsperger")
-//                                email.set("paul.latzelsperger@beardyinc.com")
-//                            }
-//                            developer {
-//                                id.set("EnricoRisa")
-//                                name.set("Enrico Risa")
-//                                email.set("enrico.risa@gmail.com")
-//                            }
-//                        }
-//                        scm {
-//                            connection.set("scm:git:git@github.com:eclipse-dataspacetck/cvf.git")
-//                            url.set("https://github.com/eclipse-dataspacetck/cvf.git")
-//                        }
-//                    }
-//                }
-//            }
-//        }
 
     }
 }
