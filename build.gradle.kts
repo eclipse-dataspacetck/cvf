@@ -60,14 +60,6 @@ allprojects {
         systemProperty("dataspacetck.launcher", "org.eclipse.dataspacetck.dsp.system.DspSystemLauncher")
     }
 
-    tasks.jar {
-        metaInf {
-            from("${rootProject.projectDir.path}/LICENSE")
-            from("${rootProject.projectDir.path}/DEPENDENCIES")
-            from("${rootProject.projectDir.path}/NOTICE.md")
-        }
-    }
-
     dependencies {
         implementation(rootProject.libs.json.api)
         implementation(rootProject.libs.jackson.databind)
@@ -82,14 +74,6 @@ allprojects {
     }
 
 }
-
-subprojects {
-
-    afterEvaluate {
-
-    }
-}
-
 
 // needed for running the dash tool
 tasks.register("allDependencies", DependencyReportTask::class)
