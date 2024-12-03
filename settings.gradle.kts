@@ -37,7 +37,6 @@ dependencyResolutionManagement {
     }
 }
 
-include("tools")
 include("boot")
 include("core")
 include("runtimes:tck-runtime")

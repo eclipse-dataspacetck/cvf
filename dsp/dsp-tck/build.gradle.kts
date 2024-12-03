@@ -20,6 +20,7 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.eclipse.dataspacetck.gradle.tckbuild.extensions.DockerExtension
 
 plugins {
     `java-library`
@@ -37,6 +38,10 @@ dependencies {
     testImplementation(project(":dsp:dsp-contract-negotiation"))
 }
 
+
+configure<DockerExtension>{
+    jarFilePath = "build/libs/${project.name}-runtime.jar"
+}
 tasks.withType<ShadowJar> {
     exclude("**/pom.properties", "**/pom.xml")
     mergeServiceFiles()

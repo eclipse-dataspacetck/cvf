@@ -1,3 +1,5 @@
+import org.eclipse.dataspacetck.gradle.plugins.tckgen.TckGeneratorExtension
+
 /*
  *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
@@ -13,11 +15,11 @@
  *
  */
 
-dependencies {
-    // by declaring an annotationProcessor dependency onto the :tools project (which contains the Test Plan Generator),
-    // this module is included
-    annotationProcessor(project(":tools"))
+plugins {
+    alias(libs.plugins.tck.generator)
+}
 
+dependencies {
     implementation(libs.tck.common.api)
     implementation(project(":core"))
     implementation(project(":dsp:dsp-api"))
