@@ -1,0 +1,52 @@
+#
+#  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+#
+#  This program and the accompanying materials are made available under the
+#  terms of the Apache License, Version 2.0 which is available at
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+#  SPDX-License-Identifier: Apache-2.0
+#
+#  Contributors:
+#    Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+#
+
+---
+name: "Publish Snapshot Build"
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  secrets-presence:
+    name: "Check for required credentials"
+    runs-on: ubuntu-latest
+    outputs:
+      HAS_DOCKER: ${{ steps.secret-presence.outputs.HAS_DOCKER }}
+    steps:
+      - name: Check whether secrets exist
+        id: secret-presence
+        run: |
+          [ ! -z "${{ secrets.DOCKER_HUB_TOKEN }}" ] &&
+          [ ! -z "${{ secrets.DOCKER_HUB_USER }}" ] && echo "HAS_DOCKER=true" >> $GITHUB_OUTPUT
+          exit 0
+
+  create-docker-image:
+    name: "Build and push images"
+    needs: [ secrets-presence ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        if: |
+          needs.secrets-presence.outputs.HAS_DOCKER
+
+      - uses: eclipse-dataspacetck/tck-common/.github/actions/publish-docker-image@main
+        name: Publish DSP TCK Docker image
+        with:
+          rootDir: "dsp/dsp-tck"
+          imagename: "dsp-tck-runtime"
+          namespace: "eclipsedataspacetck"
+          docker_user: ${{ secrets.DOCKER_HUB_USER }}
+          docker_token: ${{ secrets.DOCKER_HUB_TOKEN }}
+

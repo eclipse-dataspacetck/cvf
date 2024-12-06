@@ -5,6 +5,10 @@ ARG ADDITIONAL_FILES
 ARG APP_USER=docker
 ARG APP_UID=10100
 
+ENV CONFIG_FILE="/etc/tck/config.properties"
+
+RUN apk --no-cache add curl
+
 RUN addgroup --system "$APP_USER"
 
 RUN adduser \
@@ -24,7 +28,6 @@ COPY ${ADDITIONAL_FILES} ./
 
 HEALTHCHECK NONE
 
-ENTRYPOINT ["java", \
-     "-Djava.security.egd=file:/dev/urandom", \
-     "-jar", \
-     "tck-runtime.jar"]
+# use sh -c to allow any SIGTERM to reach the JVM
+ENTRYPOINT ["sh", "-c", \
+            "exec java -Djava.security.egd=file:/dev/urandom -jar tck-runtime.jar -config ${CONFIG_FILE}"]

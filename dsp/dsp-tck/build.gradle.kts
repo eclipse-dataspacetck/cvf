@@ -39,7 +39,7 @@ dependencies {
 }
 
 
-configure<DockerExtension>{
+configure<DockerExtension> {
     jarFilePath = "build/libs/${project.name}-runtime.jar"
 }
 tasks.withType<ShadowJar> {

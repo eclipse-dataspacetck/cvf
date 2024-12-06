@@ -22,6 +22,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -73,6 +76,10 @@ public class DspTckSuite {
         }
         if (!CONFIG.equals(args[0])) {
             throw new IllegalArgumentException("Invalid argument: " + args[0]);
+        }
+        if (!Files.exists(Path.of(args[1]))) {
+            System.err.println("The specified configuration file does not exist: " + args[1]);
+            return new HashMap<>();
         }
         try (var reader = new FileReader(args[1])) {
             var properties = new Properties();

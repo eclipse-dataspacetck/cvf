@@ -56,12 +56,17 @@ public class DspSystemLauncher implements SystemLauncher {
     private static final String LOCAL_CONNECTOR_CONFIG = TCK_PREFIX + ".dsp.local.connector";
     private static final String CONNECTOR_AGENT_ID_CONFIG = TCK_PREFIX + ".dsp.connector.agent.id";
     private static final String CONNECTOR_BASE_URL_CONFIG = TCK_PREFIX + ".dsp.connector.http.url";
-    private static final String CONNECTOR_BASE_AUTHORIZATION_HEADER_CONFIG = TCK_PREFIX + ".dsp.connector.http.header.authorization";
+    private static final String CONNECTOR_BASE_AUTHORIZATION_HEADER_CONFIG = TCK_PREFIX + ".dsp.connector.http.headers.authorization";
     private static final String CONNECTOR_INITIATE_URL_CONFIG = TCK_PREFIX + ".dsp.connector.negotiation.initiate.url";
     private static final String THREAD_POOL_CONFIG = TCK_PREFIX + ".dsp.thread.pool";
     private static final String DEFAULT_WAIT_CONFIG = TCK_PREFIX + ".dsp.default.wait";
     private static final int DEFAULT_WAIT_SECONDS = 15;
-
+    private final Map<String, Connector> consumerConnectors = new ConcurrentHashMap<>();
+    private final Map<String, Connector> providerConnectors = new ConcurrentHashMap<>();
+    private final Map<String, ProviderNegotiationMock> negotiationMocks = new ConcurrentHashMap<>();
+    private final Map<String, ProviderNegotiationClient> negotiationClients = new ConcurrentHashMap<>();
+    private final Map<String, ConsumerNegotiationMock> consumerNegotiationMocks = new ConcurrentHashMap<>();
+    private final Map<String, ConsumerNegotiationClient> consumerNegotiationClients = new ConcurrentHashMap<>();
     private Monitor monitor;
     private ExecutorService executor;
     private String connectorUnderTestId = "ANONYMOUS";
@@ -70,15 +75,6 @@ public class DspSystemLauncher implements SystemLauncher {
     private String connectorInitiateUrl;
     private boolean useLocalConnector;
     private long waitTime = DEFAULT_WAIT_SECONDS;
-
-    private Map<String, Connector> consumerConnectors = new ConcurrentHashMap<>();
-    private Map<String, Connector> providerConnectors = new ConcurrentHashMap<>();
-
-    private Map<String, ProviderNegotiationMock> negotiationMocks = new ConcurrentHashMap<>();
-    private Map<String, ProviderNegotiationClient> negotiationClients = new ConcurrentHashMap<>();
-
-    private Map<String, ConsumerNegotiationMock> consumerNegotiationMocks = new ConcurrentHashMap<>();
-    private Map<String, ConsumerNegotiationClient> consumerNegotiationClients = new ConcurrentHashMap<>();
 
     @Override
     public void start(SystemConfiguration configuration) {
@@ -107,13 +103,20 @@ public class DspSystemLauncher implements SystemLauncher {
     }
 
     @Override
+    public void close() {
+        if (executor != null) {
+            executor.shutdownNow();
+        }
+    }
+
+    @Override
     public <T> boolean providesService(Class<T> type) {
         return type.equals(ProviderNegotiationClient.class) ||
-                type.equals(Connector.class) ||
-                type.equals(ProviderNegotiationMock.class) ||
-                type.equals(ConsumerNegotiationMock.class) ||
-                type.equals(ConsumerNegotiationPipeline.class) ||
-                type.equals(ProviderNegotiationPipeline.class);
+               type.equals(Connector.class) ||
+               type.equals(ProviderNegotiationMock.class) ||
+               type.equals(ConsumerNegotiationMock.class) ||
+               type.equals(ConsumerNegotiationPipeline.class) ||
+               type.equals(ProviderNegotiationPipeline.class);
     }
 
     @Nullable
@@ -225,13 +228,6 @@ public class DspSystemLauncher implements SystemLauncher {
                     callbackEndpoint.getAddress(),
                     monitor);
         });
-    }
-
-    @Override
-    public void close() {
-        if (executor != null) {
-            executor.shutdownNow();
-        }
     }
 
 }
